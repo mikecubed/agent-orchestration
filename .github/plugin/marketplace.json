@@ -1,15 +1,15 @@
 {
-  "name": "copilot-skills-marketplace",
+  "name": "agent-workflow-skills-marketplace",
   "owner": {
     "name": "Mike Cubed"
   },
   "metadata": {
-    "description": "Marketplace metadata for the shared copilot-skills plugin.",
+    "description": "Marketplace metadata for the shared agent-workflow-skills plugin.",
     "version": "0.1.0"
   },
   "plugins": [
     {
-      "name": "copilot-skills",
+      "name": "agent-workflow-skills",
       "source": ".",
       "description": "Reusable implementation, review-resolution, and PR-readiness workflow skills.",
       "version": "0.1.0",

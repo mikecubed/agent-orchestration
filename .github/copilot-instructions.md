@@ -26,4 +26,4 @@
 - Every skill file must keep the tested SKILL.md shape: YAML frontmatter with `name` and `description`, plus the required sections including `## Purpose` and `## Project-Specific Inputs`.
 - Write skill content in repo-agnostic workflow language. The skills are meant to be reusable across repositories, so avoid baking in project-specific branch names, validation commands, or Hydra-specific assumptions.
 - When extending a skill, keep the separation of responsibilities intact: implementation parallelism, review-resolution, and final readiness are modeled as three separate skills rather than one combined workflow.
-- Prefer plugin-qualified invocation names in docs and examples, such as `/copilot-skills:parallel-implementation-loop`, because the README treats plugin namespacing as the normal usage pattern.
+- Prefer plugin-qualified invocation names in docs and examples, such as `/agent-workflow-skills:parallel-implementation-loop`, because the README treats plugin namespacing as the normal usage pattern.

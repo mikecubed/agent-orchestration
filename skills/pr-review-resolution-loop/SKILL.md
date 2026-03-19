@@ -105,7 +105,7 @@ If multiple accepted fixes are independent:
 
 1. group them into separate fix tracks;
 2. keep tightly coupled fixes serial;
-3. reuse the `/copilot-skills:parallel-implementation-loop` rules for isolation, review, and cleanup.
+3. reuse the `/agent-workflow-skills:parallel-implementation-loop` rules for isolation, review, and cleanup.
 
 If review items interact heavily, resolve them serially.
 

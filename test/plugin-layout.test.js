@@ -43,7 +43,7 @@ describe('plugin manifests', () => {
   it('defines a Copilot plugin manifest with the shared skills directory', () => {
     const manifest = readJson('plugin.json');
 
-    assert.equal(manifest.name, 'copilot-skills');
+    assert.equal(manifest.name, 'agent-workflow-skills');
     assert.deepEqual(manifest.skills, ['skills/']);
     assert.equal(manifest.version, '0.1.0');
     assert.equal(manifest.category, 'developer-tools');
@@ -69,10 +69,10 @@ describe('marketplace metadata', () => {
   it('defines a Copilot marketplace entry that points at this plugin root', () => {
     const copilotManifest = readJson('plugin.json');
     const marketplace = readJson('.github/plugin/marketplace.json');
-    const pluginEntry = marketplace.plugins.find((entry) => entry.name === 'copilot-skills');
+    const pluginEntry = marketplace.plugins.find((entry) => entry.name === 'agent-workflow-skills');
 
-    assert.equal(marketplace.name, 'copilot-skills-marketplace');
-    assert.ok(pluginEntry, 'expected copilot-skills plugin entry');
+    assert.equal(marketplace.name, 'agent-workflow-skills-marketplace');
+    assert.ok(pluginEntry, 'expected agent-workflow-skills plugin entry');
     assert.equal(pluginEntry.source, '.');
     assert.deepEqual(pluginEntry.skills, ['skills/']);
     assert.equal(pluginEntry.version, copilotManifest.version);

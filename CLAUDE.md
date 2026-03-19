@@ -30,7 +30,7 @@ This repository is a shared plugin repo for **GitHub Copilot CLI** and **Claude 
 - Every skill must keep the tested shape, including frontmatter with `name` and `description`, plus `## Purpose`, `## When to Use It`, `## Project-Specific Inputs`, `## Workflow`, `## Required Gates`, `## Stop Conditions`, and an example section.
 - Keep skill content repo-agnostic and reusable across repositories.
 - Preserve the three-skill split: implementation parallelism, review resolution, and final readiness are separate workflows.
-- Prefer plugin-qualified names in examples, such as `/copilot-skills:parallel-implementation-loop`.
+- Prefer plugin-qualified names in examples, such as `/agent-workflow-skills:parallel-implementation-loop`.
 
 ## Local plugin usage
 
