@@ -1,0 +1,172 @@
+---
+name: pr-review-resolution-loop
+description: Resolve pull request review comments with disciplined triage, scoped fixes, thread closure, and final validation.
+---
+
+## Purpose
+
+Use this skill when a developer wants to work through pull request or branch review feedback in a disciplined loop.
+
+This skill is for review resolution, not first-pass implementation. It assumes there is already an active branch or review surface and a set of comments or threads to evaluate.
+
+## When to Use It
+
+Activate when the developer asks for things like:
+
+- "work through the review comments"
+- "decide which comments should actually be fixed"
+- "address the review feedback and close the threads"
+- "reply to the comments we are declining"
+
+## Project-Specific Inputs
+
+Before you start, identify:
+
+- the active branch or review surface;
+- where review comments and threads are collected;
+- the repository's validation commands;
+- how the team expects resolved comments to be replied to and closed;
+- whether the repository allows parallel fix tracks or prefers serial review fixes.
+
+## Default Roles
+
+Use separate roles for:
+
+- an implementer that makes accepted fixes;
+- a reviewer that inspects each fix and the final integrated result.
+
+## Core Rules
+
+### 1. Do not assume every review comment is correct
+
+Every review item must be triaged into one of these outcomes:
+
+- fix
+- decline
+- clarify first
+
+Never churn the code just to satisfy a weak, stale, or incorrect comment.
+
+### 2. Accepted fixes still follow TDD and design rules
+
+For comments that become fixes:
+
+1. add or adjust failing tests first when behavior changes;
+2. implement the smallest fix that resolves the issue;
+3. refactor only while tests stay green.
+
+### 3. Close the loop on every thread
+
+Every review thread should end in one of these states:
+
+- fixed and resolved;
+- declined with a clear rationale;
+- intentionally left open because a real blocker remains.
+
+Do not stop with code changes only.
+
+## Workflow
+
+### 1. Gather review context
+
+Before making changes:
+
+1. collect open review threads and relevant general comments;
+2. read the current code and nearby tests;
+3. confirm the latest branch diff and validation status.
+
+Do not act on comment text alone if the code has moved.
+
+### 2. Triage review items
+
+For each item, classify whether it is:
+
+- a correctness issue;
+- a security issue;
+- a missing or weak test;
+- a contract mismatch;
+- an architecture concern;
+- stale, already fixed, or out of scope.
+
+Then decide whether to fix, decline, or clarify first.
+
+### 3. Batch independent fixes when safe
+
+If multiple accepted fixes are independent:
+
+1. group them into separate fix tracks;
+2. keep tightly coupled fixes serial;
+3. reuse the implementation-loop rules for isolation, review, and cleanup.
+
+If review items interact heavily, resolve them serially.
+
+### 4. Implement each accepted fix
+
+For every accepted fix:
+
+1. give the implementer:
+   - the exact review item;
+   - the intended resolution;
+   - the affected files;
+   - the needed tests;
+   - the scope boundary;
+2. require minimal, focused changes only.
+
+### 5. Review each fix
+
+After each fix:
+
+1. have a separate reviewer inspect the resulting diff;
+2. ask for only substantive issues:
+   - correctness regressions;
+   - missing edge-case coverage;
+   - contract drift;
+   - security concerns;
+   - material design regressions.
+
+### 6. Reply to and resolve review threads
+
+After each fix or decline:
+
+- if fixed, reply briefly with what changed and resolve the thread;
+- if declined, reply with the concrete reason and resolve it if appropriate;
+- if clarification is still needed, post the question and leave the thread open intentionally.
+
+Silent declines are not allowed.
+
+### 7. Final validation
+
+After all relevant review items are handled:
+
+1. run the repository's real quality gates;
+2. verify any new behavior has test coverage;
+3. run the final PR-readiness workflow on the stable diff;
+4. summarize remaining concerns, if any.
+
+## Required Gates
+
+### Comment gate
+
+A comment is not complete until:
+
+- it was triaged explicitly;
+- fix, decline, or clarify-first was chosen;
+- the thread was resolved or intentionally left open with a stated blocker.
+
+### Fix gate
+
+A fix is not complete until:
+
+- tests changed first when applicable;
+- the issue is actually resolved;
+- review finds no unresolved substantive issue;
+- touched files stay scoped to the real concern.
+
+### Review batch gate
+
+The batch is not complete until:
+
+- all relevant review items are handled;
+- repository validation passes;
+- the final readiness workflow has been run;
+- remaining issues are explicitly reported.

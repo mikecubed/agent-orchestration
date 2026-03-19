@@ -1,0 +1,25 @@
+{
+  "name": "copilot-skills",
+  "description": "Reusable implementation, review-resolution, and PR-readiness workflow skills.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Mike Cubed"
+  },
+  "license": "MIT",
+  "category": "developer-tools",
+  "keywords": [
+    "copilot",
+    "skills",
+    "workflow",
+    "review"
+  ],
+  "tags": [
+    "pull-requests",
+    "implementation",
+    "code-review",
+    "claude-compatible"
+  ],
+  "skills": [
+    "skills/"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "copilot-skills-marketplace",
+  "owner": {
+    "name": "Mike Cubed"
+  },
+  "metadata": {
+    "description": "Marketplace metadata for the shared copilot-skills plugin.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "copilot-skills",
+      "source": ".",
+      "description": "Reusable implementation, review-resolution, and PR-readiness workflow skills.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Mike Cubed"
+      },
+      "license": "MIT",
+      "keywords": [
+        "copilot",
+        "skills",
+        "workflow",
+        "review"
+      ],
+      "category": "developer-tools",
+      "tags": [
+        "pull-requests",
+        "implementation",
+        "code-review",
+        "claude-compatible"
+      ],
+      "skills": [
+        "skills/"
+      ]
+    }
+  ]
+}

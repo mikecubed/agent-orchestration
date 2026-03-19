@@ -1,0 +1,23 @@
+{
+  "name": "copilot-skills",
+  "version": "0.1.0",
+  "description": "Shared plugin repo for GitHub Copilot CLI and Claude Code skills",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "validate:plugin": "node --test test/**/*.test.js"
+  },
+  "files": [
+    "plugin.json",
+    ".github/plugin/",
+    ".claude-plugin/",
+    "skills/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
