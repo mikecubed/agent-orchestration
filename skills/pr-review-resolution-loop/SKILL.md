@@ -35,6 +35,8 @@ Use separate roles for:
 - an implementer that makes accepted fixes;
 - a reviewer that inspects each fix and the final integrated result.
 
+In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer the exact fix scope and constraints. Pass the reviewer only the resulting diff and the review criteria.
+
 ## Core Rules
 
 ### 1. Do not assume every review comment is correct
@@ -105,7 +107,7 @@ If multiple accepted fixes are independent:
 
 1. group them into separate fix tracks;
 2. keep tightly coupled fixes serial;
-3. reuse the `/agent-workflow-skills:parallel-implementation-loop` rules for isolation, review, and cleanup.
+3. invoke `/agent-workflow-skills:parallel-implementation-loop` for each independent fix batch.
 
 If review items interact heavily, resolve them serially.
 
@@ -149,7 +151,7 @@ After all relevant review items are handled:
 
 1. run the repository's real quality gates;
 2. verify any new behavior has test coverage;
-3. run the final PR-readiness workflow on the stable diff;
+3. invoke `/agent-workflow-skills:final-pr-readiness-gate` on the stable diff;
 4. publish one durable review-resolution summary that captures decisions, validation, and remaining concerns when the repository has a place for it.
 
 ## Example Review-Resolution Summary

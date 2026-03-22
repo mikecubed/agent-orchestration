@@ -6,11 +6,18 @@
     "name": "Michael Henderson"
   },
   "license": "MIT",
+  "category": "developer-tools",
   "keywords": [
     "copilot",
     "skills",
     "workflow",
     "review"
+  ],
+  "tags": [
+    "pull-requests",
+    "implementation",
+    "code-review",
+    "claude-compatible"
   ],
   "skills": "./skills/"
 }

@@ -77,6 +77,8 @@ describe('plugin manifests', () => {
     assert.equal(claudeManifest.name, copilotManifest.name);
     assert.equal(claudeManifest.version, copilotManifest.version);
     assert.equal(claudeManifest.description, copilotManifest.description);
+    assert.equal(claudeManifest.category, copilotManifest.category);
+    assert.deepEqual(claudeManifest.tags, copilotManifest.tags);
     assert.equal(claudeManifest.skills, './skills/');
     assert.equal(packageManifest.version, copilotManifest.version);
     assert.equal(packageManifest.scripts['validate:runtime'], 'node scripts/verify-runtime.mjs');

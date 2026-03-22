@@ -45,6 +45,8 @@ Use separate roles for:
 
 Keep implementation and review separate whenever possible.
 
+In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer a scoped prompt with exact task, file, and TDD constraints. Pass the reviewer only the diff and the review criteria. Do not share context between roles.
+
 ## Core Rules
 
 ### 1. Only parallelize truly independent work
@@ -81,7 +83,7 @@ More concurrency is only worth it when:
 
 ### 4. Temporary work surfaces are disposable, not permanent state
 
-If the workflow uses worktrees, branches, or other sandboxes:
+If the workflow uses worktrees, branches, or other sandboxes (in Claude Code, use the Agent tool with `isolation: "worktree"` — it auto-cleans if no changes are made):
 
 1. treat the integration branch as the long-lived review surface;
 2. treat track work surfaces as temporary and batch-owned;
@@ -183,7 +185,7 @@ After all track work is integrated:
 
 1. verify the integrated behavior is coherent;
 2. run the repository's real quality gates;
-3. run the final PR-readiness workflow on the stable integrated diff;
+3. invoke `/agent-workflow-skills:final-pr-readiness-gate` on the stable integrated diff;
 4. retire clean temporary work surfaces;
 5. keep any retained work surface only with an explicit reason.
 
