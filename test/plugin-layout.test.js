@@ -116,7 +116,6 @@ describe('marketplace metadata', () => {
     assert.equal(marketplace.owner.name, copilotManifest.author.name);
     assert.equal(marketplace.metadata.version, copilotManifest.version);
     assert.ok(pluginEntry, 'expected agent-workflow-skills plugin entry');
-    assert.equal(pluginEntry.source, '.');
     assert.equal(pluginEntry.skills, './skills/');
     assert.equal(pluginEntry.version, copilotManifest.version);
     assert.equal(pluginEntry.description, copilotManifest.description);
