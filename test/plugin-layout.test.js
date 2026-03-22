@@ -77,6 +77,8 @@ describe('plugin manifests', () => {
     assert.equal(claudeManifest.name, copilotManifest.name);
     assert.equal(claudeManifest.version, copilotManifest.version);
     assert.equal(claudeManifest.description, copilotManifest.description);
+    assert.equal(claudeManifest.category, copilotManifest.category);
+    assert.deepEqual(claudeManifest.tags, copilotManifest.tags);
     assert.equal(claudeManifest.skills, './skills/');
     assert.equal(packageManifest.version, copilotManifest.version);
     assert.equal(packageManifest.scripts['validate:runtime'], 'node scripts/verify-runtime.mjs');
@@ -96,6 +98,26 @@ describe('marketplace metadata', () => {
     assert.ok(pluginEntry, 'expected agent-workflow-skills plugin entry');
     assert.equal(pluginEntry.source, '.');
     assert.deepEqual(pluginEntry.skills, ['skills/']);
+    assert.equal(pluginEntry.version, copilotManifest.version);
+    assert.equal(pluginEntry.description, copilotManifest.description);
+    assert.equal(pluginEntry.author.name, copilotManifest.author.name);
+    assert.equal(pluginEntry.license, copilotManifest.license);
+    assert.equal(pluginEntry.category, copilotManifest.category);
+    assert.deepEqual(pluginEntry.keywords, copilotManifest.keywords);
+    assert.deepEqual(pluginEntry.tags, copilotManifest.tags);
+  });
+
+  it('defines a Claude marketplace entry with matching identity metadata', () => {
+    const copilotManifest = readJson('plugin.json');
+    const marketplace = readJson('.claude-plugin/marketplace.json');
+    const pluginEntry = marketplace.plugins.find((entry) => entry.name === 'agent-workflow-skills');
+
+    assert.equal(marketplace.name, 'agent-workflow-skills-marketplace');
+    assert.equal(marketplace.owner.name, copilotManifest.author.name);
+    assert.equal(marketplace.metadata.version, copilotManifest.version);
+    assert.ok(pluginEntry, 'expected agent-workflow-skills plugin entry');
+    assert.equal(pluginEntry.source, '.');
+    assert.equal(pluginEntry.skills, './skills/');
     assert.equal(pluginEntry.version, copilotManifest.version);
     assert.equal(pluginEntry.description, copilotManifest.description);
     assert.equal(pluginEntry.author.name, copilotManifest.author.name);
@@ -138,6 +160,7 @@ describe('package contents', () => {
 
     assert.ok(files.includes('plugin.json'));
     assert.ok(files.includes('.claude-plugin/plugin.json'));
+    assert.ok(files.includes('.claude-plugin/marketplace.json'));
     assert.ok(files.includes('.github/plugin/marketplace.json'));
     assert.ok(files.includes('README.md'));
     assert.ok(files.includes('LICENSE'));

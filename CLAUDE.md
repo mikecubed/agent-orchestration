@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Repository role
 
 This repository is a shared plugin repo for **GitHub Copilot CLI** and **Claude Code**. The shared `skills/` tree is the single source of truth. Change skill behavior in `skills/*/SKILL.md`, not in duplicated runtime-specific copies.
@@ -25,9 +27,11 @@ This repository is a shared plugin repo for **GitHub Copilot CLI** and **Claude 
 ## Repository-specific conventions
 
 - Keep the repo plugin-first: skill logic belongs in `skills/*/SKILL.md`.
-- Keep shared identity metadata aligned across `package.json`, `plugin.json`, `.claude-plugin/plugin.json`, and `.github/plugin/marketplace.json`.
+- Keep shared identity metadata aligned across `package.json`, `plugin.json`, `.claude-plugin/plugin.json`, `.github/plugin/marketplace.json`, and `.claude-plugin/marketplace.json`. The `version` field must be identical in all five files or tests will fail (both marketplace files carry it in `metadata.version` and in the `plugins[0].version` entry).
+- Both marketplace files mirror `plugin.json` exactly for `author`, `keywords`, `tags`, `license`, `category`, and `description` in their plugin entry (`plugins[0]`) — the test asserts each field individually. The top-level `metadata.description` in each marketplace file is a human-readable summary and is not tested for parity.
 - Preserve the intentional path difference: Copilot uses `["skills/"]`; Claude uses `"./skills/"`.
 - Every skill must keep the tested shape, including frontmatter with `name` and `description`, plus `## Purpose`, `## When to Use It`, `## Project-Specific Inputs`, `## Workflow`, `## Required Gates`, `## Stop Conditions`, and an example section.
+- The test file (`test/plugin-layout.test.js`) hardcodes the three skill names. Adding a new skill requires adding it to the `skills` array in that file as well as to both manifests.
 - Keep skill content repo-agnostic and reusable across repositories.
 - Preserve the three-skill split: implementation parallelism, review resolution, and final readiness are separate workflows.
 - Prefer plugin-qualified names in examples, such as `/agent-workflow-skills:parallel-implementation-loop`.

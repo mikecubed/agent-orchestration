@@ -1,0 +1,36 @@
+{
+  "name": "agent-workflow-skills-marketplace",
+  "owner": {
+    "name": "Michael Henderson"
+  },
+  "metadata": {
+    "description": "Marketplace metadata for the shared agent-workflow-skills plugin.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "agent-workflow-skills",
+      "source": ".",
+      "description": "Reusable implementation, review-resolution, and PR-readiness workflow skills.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Michael Henderson"
+      },
+      "license": "MIT",
+      "keywords": [
+        "copilot",
+        "skills",
+        "workflow",
+        "review"
+      ],
+      "category": "developer-tools",
+      "tags": [
+        "pull-requests",
+        "implementation",
+        "code-review",
+        "claude-compatible"
+      ],
+      "skills": "./skills/"
+    }
+  ]
+}

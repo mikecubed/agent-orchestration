@@ -22,93 +22,52 @@ If the output is temporary or session-only, keep it out of the repository.
 
 Use for `parallel-implementation-loop`.
 
-```md
-# Track Report: <topic>
-
-## Scope
-
-- Track name: `<track-name>`
-- Tasks: `<task-id-1>, <task-id-2>`
-- Owned files: `<path>`, `<path>`
-- Dependencies: `<dependency status>`
-
-## Validation
-
-- Commands run:
-  - `<command>`
-  - `<command>`
-- Result: `pass | fail | partial`
-
-## Outcome
-
-- State: `active | merged | abandoned | blocked`
-- Summary: <short summary of what changed>
-- Follow-ups: <remaining risks or next steps>
+```text
+Track: <track-name>
+Tasks: <task-id-1>, <task-id-2>
+Files: <path>, <path>
+Dependencies: <dependency status>
+Validation: <command>
+Work surface: <branch or worktree path>
+State: active | merged | abandoned | blocked
+Summary: <short summary of what changed>
+Follow-ups: <remaining risks or next steps>
 ```
 
 ## Review-resolution summary
 
 Use for `pr-review-resolution-loop`.
 
-```md
-# Review Resolution: <topic>
-
-## Review surface
-
-- Branch or PR: `<name>`
-- Reviewer source: `<GitHub review / comments / local review>`
-
-## Decisions
-
-| Item | Classification | Resolution | Notes |
-| --- | --- | --- | --- |
-| `<comment id>` | `security / correctness / test / contract / architecture / stale` | `fixed / declined / clarify first` | `<short rationale>` |
-
-## Validation
-
-- Commands run:
-  - `<command>`
-- Result: `pass | fail | partial`
-
-## Remaining concerns
-
-- <open blocker or intentional follow-up>
+```text
+Review surface: <branch or PR> against <target>
+Reviewer source: <GitHub review / comments / local review>
+Decisions:
+- <comment-id> | <correctness / security / test / contract / architecture / stale> | <fixed / declined / clarify first> | <short rationale>
+Validation:
+- <command>
+Result:
+- <pass / fail / partial>
+Remaining concerns:
+- <open blocker or intentional follow-up, or none>
 ```
 
 ## Final readiness report
 
 Use for `final-pr-readiness-gate`.
 
-```md
-# Readiness Report: <topic>
-
-## Review surface
-
-- Diff under review: `<branch or PR>`
-- Baseline: `<target branch or commit>`
-- Structured checker: `<tool or none>`
-
-## Findings
-
-### Blockers
-
-- <blocker>
-
-### Fix-now
-
-- <fix-now item>
-
-### Follow-ups
-
-- <follow-up item>
-
-### Skipped checks
-
-- <reason>
-
-## Verdict
-
-- `ready for review | ready with follow-ups | not ready | stopped by user`
+```text
+Review surface: <branch or PR> against <target>
+Structured checker: <tool or none>
+Blockers:
+- <blocker, or none>
+Fix-now:
+- <fix-now item, or none>
+Follow-ups:
+- <follow-up item, or none>
+Skipped checks:
+- <reason, or none>
+Verdict:
+- <ready for review / ready with follow-ups / not ready / stopped by user>
 ```
 
 ## When to use these templates
