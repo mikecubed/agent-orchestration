@@ -32,10 +32,43 @@ Before you start, identify:
 
 Use:
 
-- an optional structured checker for code-bearing diffs;
-- a separate final reviewer for whole-diff judgment.
+- an optional **structured checker** for code-bearing diffs;
+- a separate **final reviewer** for whole-diff judgment.
 
 If no structured checker exists, continue with the final reviewer only.
+
+### Model Selection
+
+Resolve the active model for each role using this priority chain:
+
+1. **Project config** — look for the runtime-specific config file in the current project root:
+   - Copilot CLI: `.copilot/models.yaml`
+   - Claude Code: `.claude/models.yaml`
+
+   These are plain YAML files (no markdown, no fenced blocks). Read the `structured-check` and `final-reviewer` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
+
+2. **Session cache** — if models were already confirmed earlier in this session, reuse them without asking again.
+3. **Baked-in defaults** — if neither config file nor session cache exists, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
+
+#### Config file format
+
+The config files are plain YAML (not markdown). Create the file for the active runtime and set only the keys you want to override — absent keys fall back to the baked-in defaults. The keys for this skill are:
+
+```yaml
+structured-check: <model-name>
+final-reviewer: <model-name>
+```
+
+See `docs/models-config-template.md` in this plugin for ready-to-copy templates for both runtimes.
+
+#### Default models
+
+| Runtime       | Role             | Default model       |
+|---------------|------------------|---------------------|
+| Copilot CLI   | Structured check | `gpt-5.4`           |
+| Copilot CLI   | Final reviewer   | `gpt-5.4`           |
+| Claude Code   | Structured check | `claude-opus-4.6`   |
+| Claude Code   | Final reviewer   | `claude-opus-4.6`   |
 
 ## Preconditions
 

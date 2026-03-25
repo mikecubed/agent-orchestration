@@ -40,12 +40,45 @@ If any of those inputs are missing, stop and get them first.
 
 Use separate roles for:
 
-- an implementer model or agent;
-- a reviewer model or agent.
+- an **implementer** model or agent;
+- a **reviewer** model or agent.
 
 Keep implementation and review separate whenever possible.
 
 In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer a scoped prompt with exact task, file, and TDD constraints. Pass the reviewer only the diff and the review criteria. Do not share context between roles.
+
+### Model Selection
+
+Resolve the active model for each role using this priority chain:
+
+1. **Project config** — look for the runtime-specific config file in the current project root:
+   - Copilot CLI: `.copilot/models.yaml`
+   - Claude Code: `.claude/models.yaml`
+
+   These are plain YAML files (no markdown, no fenced blocks). Read the `implementer` and `reviewer` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
+
+2. **Session cache** — if models were already confirmed earlier in this session, reuse them without asking again.
+3. **Baked-in defaults** — if neither config file nor session cache exists, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
+
+#### Config file format
+
+The config files are plain YAML (not markdown). Create the file for the active runtime and set only the keys you want to override — absent keys fall back to the baked-in defaults. The keys for this skill are:
+
+```yaml
+implementer: <model-name>
+reviewer: <model-name>
+```
+
+See `docs/models-config-template.md` in this plugin for ready-to-copy templates for both runtimes.
+
+#### Default models
+
+| Runtime       | Role        | Default model       |
+|---------------|-------------|---------------------|
+| Copilot CLI   | Implementer | `claude-opus-4.6`   |
+| Copilot CLI   | Reviewer    | `gpt-5.4`           |
+| Claude Code   | Implementer | `claude-opus-4.6`   |
+| Claude Code   | Reviewer    | `claude-opus-4.6`   |
 
 ## Core Rules
 
