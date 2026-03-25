@@ -17,7 +17,7 @@ Update this file whenever you want to switch to a newer model release.
 implementer: claude-opus-4.6
 reviewer: gpt-5.4
 structured-check: gpt-5.4
-final-reviewer: claude-opus-4.6
+final-reviewer: gpt-5.4
 
 ## Claude Code
 

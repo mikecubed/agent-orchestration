@@ -50,7 +50,7 @@ Resolve the active model for each role using this priority chain:
 | Runtime       | Role             | Default model       |
 |---------------|------------------|---------------------|
 | Copilot CLI   | Structured check | `gpt-5.4`           |
-| Copilot CLI   | Final reviewer   | `claude-opus-4.6`   |
+| Copilot CLI   | Final reviewer   | `gpt-5.4`           |
 | Claude Code   | Structured check | `claude-opus-4.6`   |
 | Claude Code   | Final reviewer   | `claude-opus-4.6`   |
 
