@@ -1,19 +1,23 @@
 # Model Preferences — Config Templates
 
-The `agent-workflow-skills` plugin looks for a runtime-specific config file in
-your project root to override the default models used for each role.
+The `agent-workflow-skills` plugin looks for a **plain YAML file** (not markdown)
+in your project root to override the default models used for each role.
 
-Create the file for your runtime (or both) and edit the model names as needed.
+Create the file for your runtime (or both). The directories (`.copilot/` and
+`.claude/`) may need to be created first if they do not already exist. Set only
+the keys you want to override — any absent key falls back to the baked-in default
+for that role without prompting.
+
 Update these files whenever you want to switch to a newer model release.
 
 ---
 
-## Copilot CLI — `.copilot/models.md`
+## Copilot CLI
 
-Create `.copilot/models.md` in your project root with the following content:
+Create `.copilot/models.yaml` with:
 
 ```yaml
-# Models used by agent-workflow-skills in Copilot CLI
+# agent-workflow-skills model overrides — Copilot CLI
 # parallel-implementation-loop and pr-review-resolution-loop
 implementer: claude-opus-4.6
 reviewer: gpt-5.4
@@ -25,12 +29,12 @@ final-reviewer: gpt-5.4
 
 ---
 
-## Claude Code — `.claude/models.md`
+## Claude Code
 
-Create `.claude/models.md` in your project root with the following content:
+Create `.claude/models.yaml` with:
 
 ```yaml
-# Models used by agent-workflow-skills in Claude Code
+# agent-workflow-skills model overrides — Claude Code
 # parallel-implementation-loop and pr-review-resolution-loop
 implementer: claude-opus-4.6
 reviewer: claude-opus-4.6

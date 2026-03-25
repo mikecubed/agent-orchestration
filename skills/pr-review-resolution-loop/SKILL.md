@@ -42,17 +42,17 @@ In Claude Code, spawn each role as a separate agent using the Agent tool. Pass t
 Resolve the active model for each role using this priority chain:
 
 1. **Project config** — look for the runtime-specific config file in the current project root:
-   - Copilot CLI: `.copilot/models.md`
-   - Claude Code: `.claude/models.md`
+   - Copilot CLI: `.copilot/models.yaml`
+   - Claude Code: `.claude/models.yaml`
 
-   If found, parse the `implementer` and `reviewer` keys from the YAML block in that file and use those model names for this session.
+   These are plain YAML files (no markdown, no fenced blocks). Read the `implementer` and `reviewer` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
 
 2. **Session cache** — if models were already confirmed earlier in this session, reuse them without asking again.
-3. **Baked-in defaults** — if neither is found, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
+3. **Baked-in defaults** — if neither config file nor session cache exists, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
 
 #### Config file format
 
-The config file uses a simple YAML key-value block. The keys for this skill are:
+The config files are plain YAML (not markdown). Create the file for the active runtime and set only the keys you want to override — absent keys fall back to the baked-in defaults. The keys for this skill are:
 
 ```yaml
 implementer: <model-name>
