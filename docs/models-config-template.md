@@ -1,7 +1,7 @@
 # Model Preferences — Config Templates
 
 The `agent-workflow-skills` plugin looks for a **plain YAML file** (not markdown)
-in your project root to override the default models used for each role.
+under your project root to override the default models used for each role.
 
 Create the file for your runtime (or both). The directories (`.copilot/` and
 `.claude/`) may need to be created first if they do not already exist. Set only
