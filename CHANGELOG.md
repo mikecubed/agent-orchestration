@@ -12,7 +12,7 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ### Changed
 
-- bumped the shared package, plugin manifests, and marketplace metadata to `0.2.1`
+- bumped the shared package, plugin manifests, and marketplace metadata to `0.3.0`
 
 ## [0.2.0] - 2026-03-25
 
