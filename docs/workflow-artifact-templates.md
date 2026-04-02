@@ -109,7 +109,7 @@ Skip reason: <if discovery was skipped, why — e.g., "single file, fully scoped
 
 ## Workflow outcome measures
 
-Use at the end of any workflow skill to record aggregate effectiveness signals. These fields are populated once, at workflow completion, in the batch summary or final report.
+Use at the end of any workflow skill to record aggregate effectiveness signals. Each skill should record the fields that are meaningful for its workflow stage, using the names below. Populate the applicable fields once, at workflow completion, in the batch summary or final report.
 
 ```text
 discovery-reuse: yes | no | skipped
@@ -132,7 +132,7 @@ final-gate-result: ready | ready-with-follow-ups | not-ready | stopped
 
 **Recording rules**
 
-- Populate all fields at workflow completion as part of the batch summary or final report.
+- Populate the fields that apply to the active workflow at completion as part of the batch summary or final report.
 - If the workflow stops early — due to user interruption, escalation, or a stop condition — record whatever measures are available and append an interruption note explaining which fields are incomplete and why.
 - One outcome-measures block per workflow invocation. Do not aggregate across separate workflow runs.
 
