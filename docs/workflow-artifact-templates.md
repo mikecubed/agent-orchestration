@@ -29,7 +29,14 @@ Files: <path>, <path>
 Dependencies: <dependency status>
 Validation: <command>
 Work surface: <branch or worktree path>
-State: active | merged | abandoned | blocked
+State: pending | active | review | revision | merged | rescue | serialized | escalated | blocked | abandoned
+Validation outcome: pass | fail | partial | not-run
+Unresolved issues:
+- <open issue, or none>
+Rescue history:
+- <trigger> | <action> | <outcome> | <attempt number>, or none
+Next action: <what should happen next for this track>
+Revision rounds: <count of implementer-reviewer revision cycles completed, or 0>
 Summary: <short summary of what changed>
 Follow-ups: <remaining risks or next steps>
 ```
@@ -41,6 +48,7 @@ Use for `pr-review-resolution-loop`.
 ```text
 Review surface: <branch or PR> against <target>
 Reviewer source: <GitHub review / Azure DevOps PR review / comments / local review>
+Current state: triage | fixing | validating | done
 Decisions:
 - <comment-id> | <correctness / security / test / contract / architecture / stale> | <fixed / declined / clarify first> | <short rationale>
 Validation:
@@ -49,6 +57,9 @@ Result:
 - <pass / fail / partial>
 Remaining concerns:
 - <open blocker or intentional follow-up, or none>
+Unresolved questions:
+- <question requiring developer input, or none>
+Next action: <what should happen next for this review cycle>
 ```
 
 ## Final readiness report
@@ -58,6 +69,7 @@ Use for `final-pr-readiness-gate`.
 ```text
 Review surface: <branch or PR> against <target>
 Structured checker: <tool or none>
+Current state: scanning | fixing | re-checking | done
 Blockers:
 - <blocker, or none>
 Fix-now:
@@ -66,6 +78,9 @@ Follow-ups:
 - <follow-up item, or none>
 Skipped checks:
 - <reason, or none>
+Unresolved questions:
+- <question requiring developer input, or none>
+Next action: <what should happen next for this readiness check>
 Verdict:
 - <ready for review / ready with follow-ups / not ready / stopped by user>
 ```
