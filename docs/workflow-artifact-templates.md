@@ -128,7 +128,7 @@ final-gate-result: ready | ready-with-follow-ups | not-ready | stopped
 | `rescue-attempts` | integer | Total number of rescue attempts across all tracks during the workflow. |
 | `abandonment-events` | integer | Number of tracks or review items abandoned without resolution. |
 | `re-review-loops` | map of track → count | Per-track count of extra implementer-reviewer revision cycles beyond the initial review. |
-| `final-gate-result` | `ready \| ready-with-follow-ups \| not-ready \| stopped` | Outcome of the final readiness gate, or `stopped` if the workflow was halted before completion. |
+| `final-gate-result` | `ready \| ready-with-follow-ups \| not-ready \| stopped` | Normalized token form of the readiness verdict: `ready for review` → `ready`, `ready with follow-ups` → `ready-with-follow-ups`, `not ready` → `not-ready`, `stopped by user` → `stopped`. |
 
 **Recording rules**
 

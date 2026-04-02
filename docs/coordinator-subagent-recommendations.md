@@ -25,13 +25,13 @@ The repo already has strong foundations:
 
 Those are worth preserving.
 
-## Where the current wording causes slowdowns
+## Where the baseline wording causes slowdowns
 
-Three current patterns are likely driving the issue:
+In the pre-change baseline, three patterns are likely driving the issue:
 
-1. `parallel-implementation-loop` explicitly says to keep implementation and review separate and, in Claude Code, to "not share context between roles" (`skills/parallel-implementation-loop/SKILL.md:46-49`).
-2. `pr-review-resolution-loop` repeats the same pattern by passing only fix scope to the implementer and only the resulting diff to the reviewer (`skills/pr-review-resolution-loop/SKILL.md:35-40`).
-3. All three skills require project-specific inputs before starting, but none define a lightweight discovery tier to gather those inputs once and hand them off (`skills/parallel-implementation-loop/SKILL.md:27-37`, `skills/pr-review-resolution-loop/SKILL.md:21-31`, `skills/final-pr-readiness-gate/SKILL.md:21-29`).
+1. `parallel-implementation-loop` emphasized strict separation between implementation and review responsibilities, which protects independence but can also force each role to rediscover the same working context.
+2. `pr-review-resolution-loop` followed a similar handoff pattern, where the implementer and reviewer operated on narrow slices of context instead of receiving a shared factual brief prepared by the coordinator.
+3. Across all three skills, the baseline workflow expected project-specific inputs up front, but it did not define a lightweight discovery tier that gathers those inputs once and hands them off to the rest of the workflow.
 
 That combination is good for independence, but too strict for throughput. It protects judgment independence, yet it also encourages:
 
@@ -139,7 +139,7 @@ That preserves independence while removing repeated discovery work.
 
 ## Recommendation 3: add progress-based waiting and rescue rules
 
-> **Implementation status:** Addressed in plan Phase 2 (FR-003, FR-004). A "Coordinator Progress and Rescue Policy" subsection with soft-budget → rescue → hard-budget state transitions was added to `parallel-implementation-loop` (T007), `pr-review-resolution-loop` (T008), and `final-pr-readiness-gate` (T009). Bounded resend loops and rescue-before-abandon stop conditions are included.
+> **Implementation status:** Addressed in plan Phase 2 (FR-003, FR-004). `parallel-implementation-loop` (T007) adds a "Coordinator Progress and Rescue Policy" subsection with soft-budget -> rescue -> hard-budget state transitions. `pr-review-resolution-loop` (T008) and `final-pr-readiness-gate` (T009) add corresponding progress, rescue, and stop-condition guidance for the same coordinator behavior. Bounded resend loops and rescue-before-abandon stop conditions are included.
 
 Right now the coordinator has too little middle ground between waiting and bailing out. Add an explicit state model:
 

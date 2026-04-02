@@ -223,7 +223,11 @@ The report MUST also include the workflow outcome measures defined in `docs/work
 
 - `discovery-reuse` — `yes`, `no`, or `skipped` (whether the discovery brief was reused by downstream checks);
 - `rescue-attempts` — integer count of rescue attempts during the gate, or `0`;
-- `final-gate-result` — one of `ready`, `ready-with-follow-ups`, `not-ready`, or `stopped` (must match the verdict above).
+- `final-gate-result` — one of `ready`, `ready-with-follow-ups`, `not-ready`, or `stopped`, using the normalized token form of the verdict above:
+  - `ready for review` -> `ready`
+  - `ready with follow-ups` -> `ready-with-follow-ups`
+  - `not ready` -> `not-ready`
+  - `stopped by user` -> `stopped`
 
 Populate these fields once, at gate completion. If the gate stops early, record whatever measures are available and note which fields are incomplete.
 
