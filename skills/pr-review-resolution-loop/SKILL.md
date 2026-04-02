@@ -231,6 +231,21 @@ If a fix attempt stalls — the implementer cannot make progress, the change gro
 
 Do not allow a single stalled fix to block the rest of the review batch. Move to the next independent fix and return to the stalled item after the developer provides guidance or approves the re-scoped change.
 
+#### Disagreement resolution: fix-vs-decline conflict
+
+When the reviewer and implementer disagree on whether a comment should be fixed or declined:
+
+1. record the disagreement with each side's rationale;
+2. allow one re-review round where both sides see the other's reasoning;
+3. if the conflict persists after the re-review, escalate to the developer with both rationales and the comment context.
+
+When a fix fails repeatedly on the same issue — the implementer cannot produce a change that satisfies the reviewer after exhausting the bounded resend loop:
+
+1. re-scope the fix to a smaller, defensible change;
+2. if re-scoping is not viable, decline the comment with documented rationale covering what was attempted and why convergence was not possible.
+
+Do not allow a fix-vs-decline disagreement to stall the rest of the batch. Move to the next independent item and return to the disputed comment after escalation or re-scoping resolves it.
+
 ### 6. Reply to and close review discussions
 
 After each fix or decline:
@@ -250,7 +265,8 @@ After all relevant review items are handled:
 1. run the repository's real quality gates;
 2. verify any new behavior has test coverage;
 3. invoke `/agent-workflow-skills:final-pr-readiness-gate` on the stable diff;
-4. publish one durable review-resolution summary using the review-resolution summary template from `docs/workflow-artifact-templates.md`. The summary MUST capture decisions, validation outcome, and remaining concerns.
+4. publish one durable review-resolution summary using the review-resolution summary template from `docs/workflow-artifact-templates.md`. The summary MUST capture decisions, validation outcome, and remaining concerns;
+5. include a workflow outcome-measures block in the summary using the outcome-measures template from `docs/workflow-artifact-templates.md`. The block MUST include at minimum: `discovery-reuse`, `rescue-attempts`, and `re-review-loops`.
 
 ## Example Review-Resolution Summary
 
@@ -270,6 +286,13 @@ Result:
 - pass
 Remaining concerns:
 - Waiting on reviewer confirmation for one clarify-first thread about ownership of normalization
+Outcome measures:
+  discovery-reuse: yes
+  rescue-attempts: 0
+  re-review-loops:
+    comment-14: 0
+    comment-19: 1
+    comment-23: 0
 ```
 
 Prefer the repository's canonical review-resolution artifact template when one exists.
@@ -315,10 +338,10 @@ The batch is not complete until:
 
 - the review surface has moved enough that the original comments are no longer reliable;
 - accepted fixes begin conflicting on the same files or contract;
-- reviewer and implementer still disagree after exhausting the bounded resend loop and rescue policy — two resend attempts were made and re-scoping was attempted or ruled out;
+- reviewer and implementer still disagree after exhausting the bounded resend loop, rescue policy, and disagreement resolution — two resend attempts were made, re-scoping was attempted or ruled out, and any fix-vs-decline conflict was escalated after one re-review;
 - required validation commands or thread-resolution expectations are still unknown;
 - the developer asks to stop.
 
-Before stopping for a disagreement or stall, always attempt rescue first: apply the bounded resend loop (Step 5), then the rescue policy. Only stop after those options are exhausted or the developer explicitly declines re-scoping.
+Before stopping for a disagreement or stall, always attempt rescue first: apply the bounded resend loop (Step 5), then the rescue policy, then disagreement resolution for fix-vs-decline conflicts. Only stop after those options are exhausted or the developer explicitly declines re-scoping.
 
 When a stop condition is met, stop batching, restate the blocker, and continue only after the review surface is stable again.
