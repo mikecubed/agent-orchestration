@@ -37,7 +37,9 @@ Use separate roles for:
 - an **implementer** that makes accepted fixes;
 - a **reviewer** that inspects each fix and the final integrated result.
 
-In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer the exact fix scope and constraints. Pass the reviewer only the resulting diff and the review criteria.
+In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer the exact fix scope and constraints. Pass the reviewer the resulting diff and the review criteria.
+
+Both roles may receive the discovery brief (see Workflow Step 1) as factual context — file lists, task boundaries, validation commands, and comparison baseline. Do not pass one role's conclusions or assessments to the other; the reviewer must form an independent judgment from the diff.
 
 ### Escalation: Fleet / Agent Team Mode
 
@@ -62,7 +64,7 @@ Resolve the active model for each role using this priority chain:
    - Copilot CLI: `.copilot/models.yaml`
    - Claude Code: `.claude/models.yaml`
 
-   These are plain YAML files (no markdown, no fenced blocks). Read the `implementer` and `reviewer` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
+   These are plain YAML files (no markdown, no fenced blocks). Read the `implementer`, `reviewer`, and `scout` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
 
 2. **Session cache** — if models were already confirmed earlier in this session, reuse them without asking again.
 3. **Baked-in defaults** — if neither config file nor session cache exists, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
@@ -74,6 +76,7 @@ The config files are plain YAML (not markdown). Create the file for the active r
 ```yaml
 implementer: <model-name>
 reviewer: <model-name>
+scout: <model-name>
 ```
 
 See `docs/models-config-template.md` in this plugin for ready-to-copy templates for both runtimes.
@@ -84,8 +87,10 @@ See `docs/models-config-template.md` in this plugin for ready-to-copy templates 
 |---------------|-------------|---------------------|
 | Copilot CLI   | Implementer | `claude-opus-4.6`   |
 | Copilot CLI   | Reviewer    | `gpt-5.4`           |
+| Copilot CLI   | Scout       | `claude-haiku-4.5`  |
 | Claude Code   | Implementer | `claude-opus-4.6`   |
 | Claude Code   | Reviewer    | `claude-opus-4.6`   |
+| Claude Code   | Scout       | `claude-haiku-4.5`  |
 
 ## Core Rules
 
@@ -128,6 +133,21 @@ Before making changes:
 3. confirm the latest branch diff and validation status.
 
 Do not act on comment text alone if the code has moved.
+
+#### Bounded discovery brief
+
+Before triaging, use the **scout** model (see Model Selection) to produce a short discovery brief covering:
+
+- the review surface and comparison baseline;
+- relevant files and validation commands;
+- task boundaries — what is in scope vs. out of scope for this review batch;
+- open questions requiring developer input, if any.
+
+Use the discovery brief template from `docs/workflow-artifact-templates.md` with `Task shape: review-resolution-batch`.
+
+**Skip condition**: Skip discovery when the review batch is already narrow and fully scoped — a single comment on a single file, or a batch where every item was already triaged in a prior pass. When skipped, record the skip reason in the brief.
+
+Pass the completed brief to the coordinator for triage and as factual context to implementers and reviewers in subsequent steps. Do not allow the brief to persist beyond the current review batch.
 
 ### 2. Triage review items
 
