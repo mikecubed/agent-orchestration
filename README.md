@@ -153,3 +153,4 @@ For repository-specific contributor guidance, see:
 - `CLAUDE.md`
 - `.github/copilot-instructions.md`
 - `docs/workflow-artifact-templates.md`
+- `docs/coordinator-subagent-recommendations.md`

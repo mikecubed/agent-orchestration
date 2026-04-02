@@ -9,6 +9,8 @@ Use this skill when a developer wants to implement a reviewed plan or task list 
 
 This is an execution skill, not a planning skill. Use it only after the feature already has accepted requirements, a plan, or an actionable task list.
 
+Persistent team, squad, or fleet-style long-lived orchestration is out of scope for this skill. Use a separate orchestration layer if persistent coordination is needed.
+
 ## When to Use It
 
 Activate when the developer asks for things like:
@@ -32,7 +34,8 @@ Before you start, identify:
 - the validation commands for each track;
 - the repository's testing and quality gates;
 - the approved branch, worktree, or sandbox strategy;
-- any local rules for opening draft pull requests or track branches.
+- any local rules for opening draft pull requests or track branches;
+- the maximum revision rounds per track before escalation (default: 2).
 
 If any of those inputs are missing, stop and get them first.
 
@@ -45,7 +48,7 @@ Use separate roles for:
 
 Keep implementation and review separate whenever possible.
 
-In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer a scoped prompt with exact task, file, and TDD constraints. Pass the reviewer only the diff and the review criteria. Do not share context between roles.
+In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer a scoped prompt with exact task, file, and TDD constraints. Pass the reviewer only the diff and the review criteria. Keep implementation and review judgment separate. The coordinator may share a factual brief that includes task boundaries, files, validation commands, and known dependencies. Do not share proposed conclusions, review verdicts, or implementation rationale across roles.
 
 ### Escalation: Fleet / Agent Team Mode
 
@@ -75,7 +78,7 @@ Resolve the active model for each role using this priority chain:
    - Copilot CLI: `.copilot/models.yaml`
    - Claude Code: `.claude/models.yaml`
 
-   These are plain YAML files (no markdown, no fenced blocks). Read the `implementer` and `reviewer` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
+   These are plain YAML files (no markdown, no fenced blocks). Read the `implementer`, `reviewer`, and `scout` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
 
 2. **Session cache** — if models were already confirmed earlier in this session, reuse them without asking again.
 3. **Baked-in defaults** — if neither config file nor session cache exists, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
@@ -87,6 +90,7 @@ The config files are plain YAML (not markdown). Create the file for the active r
 ```yaml
 implementer: <model-name>
 reviewer: <model-name>
+scout: <model-name>
 ```
 
 See `docs/models-config-template.md` in this plugin for ready-to-copy templates for both runtimes.
@@ -97,8 +101,10 @@ See `docs/models-config-template.md` in this plugin for ready-to-copy templates 
 |---------------|-------------|---------------------|
 | Copilot CLI   | Implementer | `claude-opus-4.6`   |
 | Copilot CLI   | Reviewer    | `gpt-5.4`           |
+| Copilot CLI   | Scout       | `claude-haiku-4.5`  |
 | Claude Code   | Implementer | `claude-opus-4.6`   |
 | Claude Code   | Reviewer    | `claude-opus-4.6`   |
+| Claude Code   | Scout       | `claude-haiku-4.5`  |
 
 ## Core Rules
 
@@ -181,7 +187,29 @@ Before launching tracks:
    - validation commands;
    - merge target.
 
-### 2. Launch implementation tracks
+### 2. Run discovery (or skip it)
+
+Before delegating to expensive implementers or reviewers, run one lightweight discovery pass using the **scout** model to produce a **discovery brief**. The scout gathers factual context — relevant files, task boundaries, validation commands, dependencies, and open questions — so that downstream roles do not repeat the same exploration.
+
+Run the scout **once per batch or session**, not once per track. Implementers and reviewers inherit only the slice of the brief they need.
+
+Use the discovery brief template from `docs/workflow-artifact-templates.md`:
+
+```text
+Task summary: <one-paragraph description of the work>
+Task shape: single-track | multi-track-batch | review-resolution-batch | large-diff-readiness
+Relevant files: <path>, <path>
+Task boundaries: <what is in scope and what is not>
+Validation commands: <command>, <command>
+Dependencies: <known dependencies or shared interfaces, if multi-track>
+Comparison baseline: <branch, commit, or PR reference, if review or readiness>
+Open questions: <questions requiring developer input, or none>
+Skip reason: <if discovery was skipped, why>
+```
+
+**Skip condition**: Skip the scout when the task is already narrow and fully scoped — one file, one well-defined bug fix, one known test failure, or one already-triaged review comment. When skipped, record the skip reason in the brief.
+
+### 3. Launch implementation tracks
 
 For each track:
 
@@ -189,20 +217,52 @@ For each track:
    - standard scoped agents by default;
    - Fleet or agent-team mode only for explicitly approved, high-leverage tracks;
 2. create an isolated work surface if the repository uses them;
-3. provide the implementer with:
+3. create or update a durable track report using the template shape in `docs/workflow-artifact-templates.md`, initializing the known fields:
+   - track name;
+   - owned tasks;
+   - owned files;
+   - dependencies;
+   - validation commands;
+   - work surface;
+   - current state;
+   - next action.
+4. provide the implementer with:
    - exact task IDs;
    - exact files or modules;
    - TDD expectations;
    - reuse constraints;
    - validation commands;
    - instruction to stay within scope;
-4. require the track to report:
+5. require the track to report:
    - files changed;
    - tests added or updated;
    - validation performed;
    - uncertainties or blockers.
 
-### 3. Review each completed track
+### 4. Coordinator progress and rescue policy
+
+After launching tracks, the coordinator monitors each track through a bounded lifecycle of budget transitions. This policy prevents silent stalls and ensures partial work is never lost.
+
+**Budget transitions**
+
+1. **Soft budget** — the coordinator sets an expected completion window for each track based on task size. The window is advisory; the coordinator does not interrupt a track that is still making visible progress.
+2. **Progress visible** — a track is considered active when any of these indicators advance between checks:
+   - files modified since last check;
+   - tests added or updated;
+   - validation running or recently completed;
+   - partial results returned to the coordinator.
+   If at least one indicator has advanced, the track remains in soft-budget status.
+3. **Rescue** — if progress indicators stall before soft budget expires, or if soft budget expires with work still incomplete, the coordinator enters rescue:
+   - ask the track for a brief status and blockers;
+   - narrow scope to the smallest deliverable that preserves partial progress;
+   - allow one bounded retry with the narrowed scope;
+   - if the retry does not restore progress, escalate to the developer or stop the track.
+4. **Hard budget** — the coordinator defines a maximum total effort per track measured in delegation rounds, not wall time. When the hard budget is reached the track must stop regardless of remaining work.
+5. **Stopped** — a track enters the stopped state when it reaches hard budget, rescue fails, or the developer cancels it. Stopped tracks record partial results, files touched, tests written, and unresolved items in the batch summary before releasing their work surface.
+
+The coordinator re-evaluates budget status after every delegation round. Do not wait for a track to go fully silent before checking.
+
+### 5. Review each completed track
 
 After a track finishes:
 
@@ -216,17 +276,37 @@ After a track finishes:
 
 Do not spend review budget on style-only nits.
 
-### 4. Revise if needed
+Update the track report after review so it records the current state, validation outcome, unresolved issues, and next action before moving to revision or integration.
+
+### 6. Revise if needed
 
 If the reviewer finds real issues:
 
-1. send the issues back to the implementer;
-2. rerun targeted validation;
+1. send the issues back to the implementer as a **targeted resend** containing:
+   - unresolved issue IDs from the review;
+   - constrained scope limited to the flagged issues;
+   - acceptance criteria the resend must satisfy;
+   - validation commands to rerun;
+   - escalation condition: if the same issue recurs after one bounded resend, escalate to the coordinator for rescue or developer input.
+2. rerun targeted validation on the resend result;
 3. re-review only if the changes were substantial.
 
-Stop when the reviewer no longer finds meaningful issues.
+A resend is bounded follow-up work. It is not a restart of the full task and not an invitation to broaden scope. Limit revision to at most two consecutive resend rounds per issue. If an issue survives two rounds, escalate to the developer rather than continuing the loop.
 
-### 5. Integrate tracks carefully
+#### Convergence rules
+
+Apply these rules during every revision round to prevent unbounded churn:
+
+1. **Repeated issue** — if a reviewer raises the same substantive issue a second time after a resend has already addressed it, stop the resend loop and apply rescue or re-scope immediately. Do not send the issue back to the implementer a third time. If rescue or re-scope still does not restore convergence, escalate to the developer.
+2. **Scope growth** — if a revision introduces changes beyond the original track boundary (new files, new features, or expanded contracts), stop the revision and re-scope the track before continuing. Scope growth during revision is a planning gap, not an implementation task.
+3. **Material disagreement** — if the implementer and reviewer disagree on whether a flagged issue is valid and one exchange has not resolved it, escalate to the developer for a decision. Do not let the loop continue without a tiebreaker.
+4. **Maximum revision rounds** — a track may complete at most the number of revision rounds specified in Project-Specific Inputs (default: 2). If the track still has unresolved issues after the maximum rounds, escalate to the developer with a summary of what remains and why convergence was not reached.
+
+When a convergence rule fires, record the trigger, the action taken, and the outcome in the track report's rescue history before moving to the next step.
+
+When a resend or rescue occurs, update the track report's state, revision rounds, rescue history, unresolved issues, and next action so the final track gate has a durable record of what changed.
+
+### 7. Integrate tracks carefully
 
 When tracks are ready:
 
@@ -235,7 +315,9 @@ When tracks are ready:
 3. run targeted integration validation after risky merges;
 4. stop and reconcile immediately if two tracks drifted on a shared interface.
 
-### 6. Final validation and cleanup
+After merge, update each track report to reflect the final track state (`merged`, `abandoned`, `blocked`, or retained for later work).
+
+### 8. Final validation and cleanup
 
 After all track work is integrated:
 
@@ -245,16 +327,21 @@ After all track work is integrated:
 4. retire clean temporary work surfaces;
 5. keep any retained work surface only with an explicit reason.
 
-### 7. Record the batch outcome
+### 9. Record the batch outcome
 
 Before stopping, publish one durable batch summary that includes:
 
 1. merged tracks;
 2. retained or abandoned tracks;
 3. validations run;
-4. unresolved follow-ups.
+4. unresolved follow-ups;
+5. workflow outcome measures using the template from `docs/workflow-artifact-templates.md`:
+   - `discovery-reuse` — whether the discovery brief was reused by downstream tracks;
+   - `rescue-attempts` — total rescue attempts across all tracks;
+   - `abandonment-events` — tracks abandoned without resolution;
+   - `re-review-loops` — per-track count of extra revision cycles beyond the initial review.
 
-Prefer a durable artifact over chat-only memory when the repository has a place for it.
+"Durable" means written to a repository-appropriate sink using the template shape from `docs/workflow-artifact-templates.md` — for example, a PR description, a committed document, an issue comment, or a task tracker entry. In this repository, committed workflow artifacts live under `docs/`; other repositories may use a different durable sink. The batch summary MUST be produced; chat-only memory is not sufficient.
 
 ## Required Gates
 
@@ -265,7 +352,8 @@ A track is not complete until:
 - tests were added or updated first when applicable;
 - track-local validation passes;
 - changed files stayed within scope;
-- review found no unresolved substantive issues.
+- review found no unresolved substantive issues;
+- a durable track report artifact has been updated to reflect the final track state (see `docs/workflow-artifact-templates.md` for the template).
 
 ### Batch gate
 
@@ -274,13 +362,19 @@ The batch is not complete until:
 - all integrated work is coherent;
 - repository quality gates pass;
 - the final readiness workflow has run on the stable integrated diff;
-- temporary work surfaces are cleaned up or explicitly retained.
+- temporary work surfaces are cleaned up or explicitly retained;
+- a durable batch summary artifact has been produced that captures merged tracks, retained or abandoned tracks, validations run, and unresolved follow-ups (see `docs/workflow-artifact-templates.md` for the template).
 
 ## Stop Conditions
 
 - review or fix churn continues without convergence;
+- a track exhausts its maximum revision rounds without resolving all issues;
+- a repeated issue survives two resend attempts without resolution;
+- material implementer-reviewer disagreement cannot be resolved without developer input;
+- scope growth during revision indicates a planning gap that must be addressed before continuing;
 - track boundaries prove false;
 - required repository inputs are still unknown;
-- the developer asks to stop.
+- the developer asks to stop;
+- a track reaches hard budget after rescue has been attempted.
 
-When that happens, reduce concurrency and continue serially.
+Before abandoning a stalled track, the coordinator must attempt at least one rescue pass: narrow scope, request a status update, and offer one bounded retry. Only abandon the track if rescue fails or the developer explicitly cancels. When stopping, record partial results, unresolved items, and the reason for stopping. Then reduce concurrency and continue serially with the remaining work.

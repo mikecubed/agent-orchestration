@@ -190,8 +190,8 @@ The comparison also exposed a few meaningful gaps:
 | --- | --- | --- |
 | Hooks and guardrails close to the edit point | Partial | Automation now checks content structure and package surface, but it still does not exercise real runtime loading in Copilot CLI or Claude Code. |
 | Semantic tools over grep | Partial | The readiness skill now prefers semantic/MCP/LSP-style checkers, but the repo does not bundle such tooling itself. |
-| Artifact-based memory | Partial | Skills say to identify and record things, but do not specify durable handoff artifacts. |
-| Adversarial review and self-critique | Partial | Reviewer roles exist, but disagreement and escalation behavior are not strongly specified. |
+| Artifact-based memory | Complete | Skills now require durable artifact production as a gate condition; templates extended with state, next-action, and outcome fields. |
+| Adversarial review and self-critique | Complete | Convergence rules, disagreement escalation, and maximum revision rounds now specified in all three skills. |
 | Safe parallelism with worktrees | Partial | Worktrees and sandboxes are mentioned, but not elevated as the default safe strategy. |
 
 ## Best-practice fit map

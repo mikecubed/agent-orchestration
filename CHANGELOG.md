@@ -6,6 +6,21 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-02
+
+### Added
+
+- scout/discovery guidance, factual-brief handoffs, and cheap-model routing support across all three shared workflow skills
+- progress-based rescue policies, bounded resend loops, convergence rules, and workflow outcome-measure recording
+- stronger structural assertions in `test/plugin-layout.test.js` for required protocol language in each `SKILL.md`
+
+### Changed
+
+- promoted durable workflow artifacts from advisory guidance to required gate conditions and expanded `docs/workflow-artifact-templates.md` with state and outcome fields
+- updated `docs/coordinator-subagent-recommendations.md` and `docs/skills-evaluation.md` to reflect the implemented throughput improvements and out-of-scope persistent-team guidance
+- bumped the shared package, plugin manifests, and marketplace metadata to `0.4.0`
+- stopped tracking `.sdd/` planning artifacts in git and added `.sdd/` to `.gitignore`
+
 ## [0.3.0] - 2026-03-30
 
 ### Added

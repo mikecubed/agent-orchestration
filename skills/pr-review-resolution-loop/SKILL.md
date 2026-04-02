@@ -9,6 +9,8 @@ Use this skill when a developer wants to work through pull request or branch rev
 
 This skill is for review resolution, not first-pass implementation. It assumes there is already an active branch or review surface and a set of comments or threads to evaluate.
 
+Persistent team, squad, or fleet-style long-lived orchestration is out of scope for this skill. Use a separate orchestration layer if persistent coordination is needed.
+
 ## When to Use It
 
 Activate when the developer asks for things like:
@@ -37,7 +39,9 @@ Use separate roles for:
 - an **implementer** that makes accepted fixes;
 - a **reviewer** that inspects each fix and the final integrated result.
 
-In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer the exact fix scope and constraints. Pass the reviewer only the resulting diff and the review criteria.
+In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer the exact fix scope and constraints. Pass the reviewer the resulting diff and the review criteria.
+
+Both roles may receive the discovery brief (see Workflow Step 1) as factual context — file lists, task boundaries, validation commands, and comparison baseline. Do not pass one role's conclusions or assessments to the other; the reviewer must form an independent judgment from the diff.
 
 ### Escalation: Fleet / Agent Team Mode
 
@@ -62,7 +66,7 @@ Resolve the active model for each role using this priority chain:
    - Copilot CLI: `.copilot/models.yaml`
    - Claude Code: `.claude/models.yaml`
 
-   These are plain YAML files (no markdown, no fenced blocks). Read the `implementer` and `reviewer` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
+   These are plain YAML files (no markdown, no fenced blocks). Read the `implementer`, `reviewer`, and `scout` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
 
 2. **Session cache** — if models were already confirmed earlier in this session, reuse them without asking again.
 3. **Baked-in defaults** — if neither config file nor session cache exists, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
@@ -74,6 +78,7 @@ The config files are plain YAML (not markdown). Create the file for the active r
 ```yaml
 implementer: <model-name>
 reviewer: <model-name>
+scout: <model-name>
 ```
 
 See `docs/models-config-template.md` in this plugin for ready-to-copy templates for both runtimes.
@@ -84,8 +89,10 @@ See `docs/models-config-template.md` in this plugin for ready-to-copy templates 
 |---------------|-------------|---------------------|
 | Copilot CLI   | Implementer | `claude-opus-4.6`   |
 | Copilot CLI   | Reviewer    | `gpt-5.4`           |
+| Copilot CLI   | Scout       | `claude-haiku-4.5`  |
 | Claude Code   | Implementer | `claude-opus-4.6`   |
 | Claude Code   | Reviewer    | `claude-opus-4.6`   |
+| Claude Code   | Scout       | `claude-haiku-4.5`  |
 
 ## Core Rules
 
@@ -128,6 +135,21 @@ Before making changes:
 3. confirm the latest branch diff and validation status.
 
 Do not act on comment text alone if the code has moved.
+
+#### Bounded discovery brief
+
+Before triaging, use the **scout** model (see Model Selection) to produce a short discovery brief covering:
+
+- the review surface and comparison baseline;
+- relevant files and validation commands;
+- task boundaries — what is in scope vs. out of scope for this review batch;
+- open questions requiring developer input, if any.
+
+Use the discovery brief template from `docs/workflow-artifact-templates.md` with `Task shape: review-resolution-batch`.
+
+**Skip condition**: Skip discovery when the review batch is already narrow and fully scoped — a single comment on a single file, or a batch where every item was already triaged in a prior pass. When skipped, record the skip reason in the brief.
+
+Pass the completed brief to the coordinator for triage and as factual context to implementers and reviewers in subsequent steps. Do not allow the brief to persist beyond the current review batch.
 
 ### 2. Triage review items
 
@@ -186,6 +208,41 @@ After each fix:
    - security concerns;
    - material design regressions.
 
+#### Bounded fix-review resend loop
+
+When the reviewer finds substantive issues in a fix:
+
+1. return the fix to the implementer with the specific issues and the reviewer's expected resolution;
+2. the implementer revises and resubmits;
+3. the reviewer re-inspects the revised diff.
+
+Allow at most **2 resend attempts** per fix. If the fix still has unresolved substantive issues after the second resend:
+
+- escalate to the developer with a summary of the disagreement or stall, including what was attempted in each round;
+- or re-scope the fix to a smaller, defensible change that both sides accept.
+
+Do not loop indefinitely. A fix that cannot converge in two rounds needs human judgment or a narrower scope.
+
+#### Rescue policy for stalled fixes
+
+If a fix attempt stalls — the implementer cannot make progress, the change grows beyond its original scope, or successive attempts do not move closer to resolving the review item:
+
+1. pause the fix and capture what was attempted and where it stalled;
+2. re-scope to the smallest change that still addresses the core concern;
+3. if re-scoping is not viable, escalate to the developer with a clear description of the blocker.
+
+Do not allow a single stalled fix to block the rest of the review batch. Move to the next independent fix and return to the stalled item after the developer provides guidance or approves the re-scoped change.
+
+#### Disagreement resolution: fix-vs-decline conflict
+
+When the reviewer and implementer disagree on whether a comment should be fixed or declined:
+
+1. record the disagreement with each side's rationale;
+2. allow one re-review round where both sides see the other's reasoning;
+3. if the conflict persists after the re-review, escalate to the developer with both rationales and the comment context.
+
+Do not allow a fix-vs-decline disagreement to stall the rest of the batch. Move to the next independent item and return to the disputed comment after escalation or re-scoping resolves it.
+
 ### 6. Reply to and close review discussions
 
 After each fix or decline:
@@ -205,7 +262,8 @@ After all relevant review items are handled:
 1. run the repository's real quality gates;
 2. verify any new behavior has test coverage;
 3. invoke `/agent-workflow-skills:final-pr-readiness-gate` on the stable diff;
-4. publish one durable review-resolution summary that captures decisions, validation, and remaining concerns when the repository has a place for it.
+4. publish one durable review-resolution summary using the review-resolution summary template from `docs/workflow-artifact-templates.md`. The summary MUST capture decisions, validation outcome, and remaining concerns;
+5. include a workflow outcome-measures block in the summary using the outcome-measures template from `docs/workflow-artifact-templates.md`. The block MUST include at minimum: `discovery-reuse`, `rescue-attempts`, and `re-review-loops`.
 
 ## Example Review-Resolution Summary
 
@@ -225,6 +283,13 @@ Result:
 - pass
 Remaining concerns:
 - Waiting on reviewer confirmation for one clarify-first thread about ownership of normalization
+Outcome measures:
+  discovery-reuse: yes
+  rescue-attempts: 0
+  re-review-loops:
+    comment-14: 0
+    comment-19: 1
+    comment-23: 0
 ```
 
 Prefer the repository's canonical review-resolution artifact template when one exists.
@@ -263,14 +328,17 @@ The batch is not complete until:
 - all relevant review items are handled;
 - repository validation passes;
 - the final readiness workflow has been run;
+- a durable review-resolution summary has been published using the template from `docs/workflow-artifact-templates.md`;
 - remaining issues are explicitly reported.
 
 ## Stop Conditions
 
 - the review surface has moved enough that the original comments are no longer reliable;
 - accepted fixes begin conflicting on the same files or contract;
-- reviewer and implementer disagree without a repository rule to break the tie;
+- reviewer and implementer still disagree after exhausting the bounded resend loop, rescue policy, and disagreement resolution — two resend attempts were made, re-scoping was attempted or ruled out, and any fix-vs-decline conflict was escalated after one re-review;
 - required validation commands or thread-resolution expectations are still unknown;
 - the developer asks to stop.
 
-When that happens, stop batching, restate the blocker, and continue only after the review surface is stable again.
+Before stopping for a disagreement or stall, always attempt rescue first: apply the bounded resend loop (Step 5), then the rescue policy, then disagreement resolution for fix-vs-decline conflicts. Only stop after those options are exhausted or the developer explicitly declines re-scoping.
+
+When a stop condition is met, stop batching, restate the blocker, and continue only after the review surface is stable again.

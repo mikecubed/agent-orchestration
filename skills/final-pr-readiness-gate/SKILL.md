@@ -9,6 +9,8 @@ Use this skill when a branch or pull request diff is finally stable and you want
 
 This is a final integrated gate, not an inline coding step.
 
+Persistent team, squad, or fleet-style long-lived orchestration is out of scope for this skill. Use a separate orchestration layer if persistent coordination is needed.
+
 ## When to Use It
 
 Activate when the developer asks for things like:
@@ -32,10 +34,11 @@ Before you start, identify:
 
 Use:
 
+- an optional **scout** for pre-slicing large diffs and preparing factual context;
 - an optional **structured checker** for code-bearing diffs;
 - a separate **final reviewer** for whole-diff judgment.
 
-If no structured checker exists, continue with the final reviewer only.
+If no structured checker exists, continue with the final reviewer only. If the diff is small or focused, skip the scout and proceed directly.
 
 ### Escalation: Fleet / Agent Team Mode
 
@@ -60,7 +63,7 @@ Resolve the active model for each role using this priority chain:
    - Copilot CLI: `.copilot/models.yaml`
    - Claude Code: `.claude/models.yaml`
 
-   These are plain YAML files (no markdown, no fenced blocks). Read the `structured-check` and `final-reviewer` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
+   These are plain YAML files (no markdown, no fenced blocks). Read the `structured-check`, `final-reviewer`, and `scout` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
 
 2. **Session cache** — if models were already confirmed earlier in this session, reuse them without asking again.
 3. **Baked-in defaults** — if neither config file nor session cache exists, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
@@ -72,6 +75,7 @@ The config files are plain YAML (not markdown). Create the file for the active r
 ```yaml
 structured-check: <model-name>
 final-reviewer: <model-name>
+scout: <model-name>
 ```
 
 See `docs/models-config-template.md` in this plugin for ready-to-copy templates for both runtimes.
@@ -82,8 +86,10 @@ See `docs/models-config-template.md` in this plugin for ready-to-copy templates 
 |---------------|------------------|---------------------|
 | Copilot CLI   | Structured check | `gpt-5.4`           |
 | Copilot CLI   | Final reviewer   | `gpt-5.4`           |
+| Copilot CLI   | Scout            | `claude-haiku-4.5`  |
 | Claude Code   | Structured check | `claude-opus-4.6`   |
 | Claude Code   | Final reviewer   | `claude-opus-4.6`   |
+| Claude Code   | Scout            | `claude-haiku-4.5`  |
 
 ## Preconditions
 
@@ -108,6 +114,17 @@ Before running the final gate:
    - otherwise the stable branch diff against the agreed baseline.
 
 Evaluate the integrated result, not a partial local slice.
+
+#### Pre-slicer discovery
+
+Before proceeding to structured checks, run a fast scout pass to prepare the review surface for efficient downstream processing:
+
+1. if diff scope, affected modules, or validation facts are already known from earlier in the current session, reuse those facts directly instead of rediscovering — this refers to context already present in the bounded session, not an artifact contract with another skill;
+2. identify the diff structure: affected modules, file categories (code, tests, config, docs), and approximate size;
+3. note high-risk or cross-cutting modules for prioritization during structured checks;
+4. produce a discovery brief per `docs/workflow-artifact-templates.md` with at least: task shape, relevant files, comparison baseline, and validation commands.
+
+Skip the scout pass when the diff is small or focused enough that a single reviewer can process it without pre-slicing — for example, fewer than roughly ten files in a single coherent module.
 
 ### 2. Decide whether a structured checker applies
 
@@ -144,6 +161,17 @@ Focus on:
 - naming or complexity regressions;
 - observability and test-quality gaps that matter on the final diff.
 
+#### Rescue policy for structured-check delays
+
+When the structured checker stalls, times out, or the diff is large enough to cause processing delays, apply the following rescue-before-abandon sequence instead of immediately stopping the gate:
+
+1. **Narrow scope** — reduce the diff to the highest-risk modules. Use the discovery brief when one was produced, or fall back to git-diff file-level heuristics (largest files, most cross-cutting paths) when discovery was skipped on a small or focused diff.
+2. **Drop non-critical checks** — skip checks that would not change the final verdict, such as stylistic or low-severity rules.
+3. **Serialize remaining work** — run remaining checks sequentially rather than concurrently to avoid compounding resource pressure.
+4. **Re-evaluate after rescue** — if the reduced scope completes, proceed to triage and the final reviewer as normal. If the rescue itself stalls or produces no usable findings, record the failure and escalate to the developer before abandoning.
+
+Do not abandon the gate because a single checker stalled or the diff was large. Always attempt at least one rescue pass and record any scope reductions, skipped checks, or processing-delay mitigations in the readiness report.
+
 ### 4. Triage structured findings
 
 Classify findings into:
@@ -178,13 +206,30 @@ End with one of these outcomes:
 
 ### 7. Report clearly
 
-Summarize:
+Produce a readiness report following the template in `docs/workflow-artifact-templates.md`. The report MUST record:
 
+- review surface;
+- structured checker, or `none`;
+- current state;
 - blockers;
 - fix-now items;
 - follow-ups;
-- skipped-check reason, if the diff was not code-bearing;
+- skipped checks, if any;
+- unresolved questions;
+- next action;
 - final readiness verdict.
+
+The report MUST also include the workflow outcome measures defined in `docs/workflow-artifact-templates.md`:
+
+- `discovery-reuse` — `yes`, `no`, or `skipped` (whether the discovery brief was reused by downstream checks);
+- `rescue-attempts` — integer count of rescue attempts during the gate, or `0`;
+- `final-gate-result` — one of `ready`, `ready-with-follow-ups`, `not-ready`, or `stopped`, using the normalized token form of the verdict above:
+  - `ready for review` -> `ready`
+  - `ready with follow-ups` -> `ready-with-follow-ups`
+  - `not ready` -> `not-ready`
+  - `stopped by user` -> `stopped`
+
+Populate these fields once, at gate completion. If the gate stops early, record whatever measures are available and note which fields are incomplete.
 
 The result should make the next action obvious.
 
@@ -195,6 +240,7 @@ Use a durable report shape so the next actor can make a decision quickly. For ex
 ```text
 Review surface: PR #128 against main
 Structured checker: codex review + repo test suite
+Current state: done
 Blockers:
 - Missing null-path coverage in src/api/createWidget.js
 Fix-now:
@@ -203,8 +249,14 @@ Follow-ups:
 - Consider extracting shared validation helper after merge
 Skipped checks:
 - None
+Unresolved questions:
+- None
+Next action: Send back for the one fix-now item, then rerun readiness
 Verdict:
 - ready with follow-ups
+discovery-reuse: yes
+rescue-attempts: 0
+final-gate-result: ready-with-follow-ups
 ```
 
 ## Required Gates
@@ -214,7 +266,8 @@ A final readiness pass is not complete until:
 - the stable diff was evaluated as a whole;
 - any structured findings were triaged when applicable;
 - a final substantive review was performed;
-- an explicit readiness verdict was produced.
+- an explicit readiness verdict was produced;
+- a durable readiness report following `docs/workflow-artifact-templates.md` has been published.
 
 ## Stop Conditions
 
@@ -222,6 +275,9 @@ A final readiness pass is not complete until:
 - structured findings conflict and no human tie-breaker is available;
 - required validation commands or comparison baseline are still unknown;
 - the diff is too large to judge coherently without first reducing or chunking it;
+- a structured checker stalls, times out, or the diff causes processing delays, and rescue-before-abandon (see § Rescue policy for structured-check delays) has been attempted and failed;
 - the developer asks to stop.
 
-When that happens, stop the final gate, report why it is not yet trustworthy, and resume only on a stable diff.
+Before stopping because a structured checker stalled or the diff exceeded the review budget, always follow the rescue-before-abandon sequence defined in § Rescue policy for structured-check delays: narrow scope, drop non-critical checks, serialize, and re-evaluate. Stop only after the rescue pass fails or the developer confirms abandonment.
+
+When a hard stop is necessary, report why the gate is not yet trustworthy, record the rescue attempt and its outcome, and resume only on a stable diff.
