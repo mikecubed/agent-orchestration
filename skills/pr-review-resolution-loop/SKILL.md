@@ -206,6 +206,31 @@ After each fix:
    - security concerns;
    - material design regressions.
 
+#### Bounded fix-review resend loop
+
+When the reviewer finds substantive issues in a fix:
+
+1. return the fix to the implementer with the specific issues and the reviewer's expected resolution;
+2. the implementer revises and resubmits;
+3. the reviewer re-inspects the revised diff.
+
+Allow at most **2 resend attempts** per fix. If the fix still has unresolved substantive issues after the second resend:
+
+- escalate to the developer with a summary of the disagreement or stall, including what was attempted in each round;
+- or re-scope the fix to a smaller, defensible change that both sides accept.
+
+Do not loop indefinitely. A fix that cannot converge in two rounds needs human judgment or a narrower scope.
+
+#### Rescue policy for stalled fixes
+
+If a fix attempt stalls — the implementer cannot make progress, the change grows beyond its original scope, or successive attempts do not move closer to resolving the review item:
+
+1. pause the fix and capture what was attempted and where it stalled;
+2. re-scope to the smallest change that still addresses the core concern;
+3. if re-scoping is not viable, escalate to the developer with a clear description of the blocker.
+
+Do not allow a single stalled fix to block the rest of the review batch. Move to the next independent fix and return to the stalled item after the developer provides guidance or approves the re-scoped change.
+
 ### 6. Reply to and close review discussions
 
 After each fix or decline:
@@ -289,8 +314,10 @@ The batch is not complete until:
 
 - the review surface has moved enough that the original comments are no longer reliable;
 - accepted fixes begin conflicting on the same files or contract;
-- reviewer and implementer disagree without a repository rule to break the tie;
+- reviewer and implementer still disagree after exhausting the bounded resend loop and rescue policy — two resend attempts were made and re-scoping was attempted or ruled out;
 - required validation commands or thread-resolution expectations are still unknown;
 - the developer asks to stop.
 
-When that happens, stop batching, restate the blocker, and continue only after the review surface is stable again.
+Before stopping for a disagreement or stall, always attempt rescue first: apply the bounded resend loop (Step 5), then the rescue policy. Only stop after those options are exhausted or the developer explicitly declines re-scoping.
+
+When a stop condition is met, stop batching, restate the blocker, and continue only after the review surface is stable again.
