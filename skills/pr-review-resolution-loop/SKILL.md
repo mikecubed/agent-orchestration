@@ -250,7 +250,7 @@ After all relevant review items are handled:
 1. run the repository's real quality gates;
 2. verify any new behavior has test coverage;
 3. invoke `/agent-workflow-skills:final-pr-readiness-gate` on the stable diff;
-4. publish one durable review-resolution summary that captures decisions, validation, and remaining concerns when the repository has a place for it.
+4. publish one durable review-resolution summary using the review-resolution summary template from `docs/workflow-artifact-templates.md`. The summary MUST capture decisions, validation outcome, and remaining concerns.
 
 ## Example Review-Resolution Summary
 
@@ -308,6 +308,7 @@ The batch is not complete until:
 - all relevant review items are handled;
 - repository validation passes;
 - the final readiness workflow has been run;
+- a durable review-resolution summary has been published using the template from `docs/workflow-artifact-templates.md`;
 - remaining issues are explicitly reported.
 
 ## Stop Conditions
