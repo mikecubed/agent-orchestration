@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to this plugin should be documented in this file.
+All notable changes to this repository should be documented in this file.
 
 The format is based on Keep a Changelog and the project follows Semantic Versioning.
 
@@ -9,11 +9,13 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 ### Added
 
 - umbrella marketplace groundwork for `agent-orchestration`, including a companion `plugins/sdd-workflow/` bundle and a new `planning-orchestration` skill
+- umbrella docs for marketplace overview, install guidance, and companion-plugin composition
 
 ### Changed
 
 - renamed the root plugin identity from `agent-workflow-skills` to `workflow-orchestration`
 - updated marketplace metadata to expose both `workflow-orchestration` and `sdd-workflow`
+- moved `workflow-orchestration` into `plugins/workflow-orchestration/` and converted the repo root to umbrella-only marketplace, docs, and validation infrastructure
 
 ## [0.4.0] - 2026-04-02
 

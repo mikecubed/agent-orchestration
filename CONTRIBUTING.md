@@ -1,19 +1,20 @@
 # Contributing
 
-This repository is a shared plugin for **GitHub Copilot CLI** and **Claude Code**. The shared `skills/` tree is the product surface, and the manifests describe how that same skill set is exposed in each runtime.
+This repository is an umbrella marketplace for separate **GitHub Copilot CLI** and **Claude Code** plugins. The main bundles currently live under `plugins/workflow-orchestration/` and `plugins/sdd-workflow/`.
 
 ## What to change
 
-- Change workflow behavior in `skills/<skill-name>/SKILL.md`.
-- Change plugin packaging or identity in `plugin.json`, `.claude-plugin/plugin.json`, or `.github/plugin/marketplace.json`.
-- Change validation rules in `test/plugin-layout.test.js`.
+- Change workflow behavior for the orchestration plugin in `plugins/workflow-orchestration/skills/<skill-name>/SKILL.md`.
+- Change marketplace packaging or identity in `.github/plugin/marketplace.json` or `.claude-plugin/marketplace.json`.
+- Change umbrella validation rules in `test/umbrella-layout.test.js`.
+- Change workflow plugin validation rules in `plugins/workflow-orchestration/test/plugin-layout.test.js`.
 - Change local/runtime verification behavior in `scripts/verify-runtime.mjs`.
 
 ## Skill authoring rules
 
 Every shared skill must:
 
-- live at `skills/<skill-name>/SKILL.md`;
+- live at `plugins/workflow-orchestration/skills/<skill-name>/SKILL.md`;
 - keep the frontmatter `name` aligned with the directory name;
 - include the sections enforced by the test suite, including `## Purpose`, `## When to Use It`, `## Project-Specific Inputs`, `## Workflow`, `## Required Gates`, `## Stop Conditions`, and at least one `## Example` section.
 
@@ -29,7 +30,7 @@ Install dependencies:
 npm install
 ```
 
-Run the repository test suite:
+Run the umbrella test suite:
 
 ```bash
 npm test
@@ -41,7 +42,7 @@ Run the same validation through the named script:
 npm run validate:plugin
 ```
 
-Verify the packaged artifact surface:
+Verify the umbrella packaged artifact surface:
 
 ```bash
 npm pack --dry-run
@@ -55,33 +56,39 @@ npm run validate:runtime
 
 `validate:runtime` is intentionally opt-in rather than a CI gate. It uses authenticated local CLIs, performs an isolated Copilot install/list/uninstall check, and runs session-only plugin loading checks in both Copilot CLI and Claude Code.
 
+Run the workflow plugin test suite directly:
+
+```bash
+npm --prefix plugins/workflow-orchestration test
+```
+
 ## Runtime-specific manifest notes
 
-The Copilot and Claude manifests intentionally use different `skills` path syntax:
+The workflow-orchestration Copilot and Claude manifests intentionally use different `skills` path syntax:
 
-- `plugin.json` uses `["skills/"]`;
-- `.claude-plugin/plugin.json` uses `"./skills/"`.
+- `plugins/workflow-orchestration/plugin.json` uses `["skills/"]`;
+- `plugins/workflow-orchestration/.claude-plugin/plugin.json` uses `"./skills/"`.
 
 That difference is expected and is documented in the tests and README.
 
 ## Local testing
 
-For Copilot CLI, load the plugin directly from the repo root:
+For Copilot CLI, load the workflow plugin directly:
 
 ```bash
-copilot -p "List the plugin-qualified skill names loaded from this plugin, one per line and nothing else." --plugin-dir . --allow-all-tools --output-format text
+copilot -p "List the plugin-qualified skill names loaded from this plugin, one per line and nothing else." --plugin-dir ./plugins/workflow-orchestration --allow-all-tools --output-format text
 ```
 
 For Claude Code:
 
 ```bash
-claude -p --plugin-dir . --output-format text "List the plugin-qualified skill names loaded from this plugin, one per line and nothing else."
+claude -p --plugin-dir ./plugins/workflow-orchestration --output-format text "List the plugin-qualified skill names loaded from this plugin, one per line and nothing else."
 ```
 
 To test interactively in Claude Code, run:
 
 ```bash
-claude --plugin-dir .
+claude --plugin-dir ./plugins/workflow-orchestration
 ```
 
 Then reload changes with:
@@ -105,10 +112,10 @@ If you change skill structure or manifest metadata, run both `npm test` and `npm
 
 If you need a committed artifact for implementation, review-resolution, or readiness work, use the canonical templates in:
 
-- `docs/workflow-artifact-templates.md`
+- `plugins/workflow-orchestration/docs/workflow-artifact-templates.md`
 
-Keep committed workflow artifacts under `docs/` and use descriptive names such as:
+Keep committed workflow artifacts for `workflow-orchestration` under `plugins/workflow-orchestration/docs/` and use descriptive names such as:
 
-- `docs/track-report-<topic>.md`
-- `docs/review-resolution-<topic>.md`
-- `docs/readiness-report-<topic>.md`
+- `plugins/workflow-orchestration/docs/track-report-<topic>.md`
+- `plugins/workflow-orchestration/docs/review-resolution-<topic>.md`
+- `plugins/workflow-orchestration/docs/readiness-report-<topic>.md`

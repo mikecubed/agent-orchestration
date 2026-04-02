@@ -1,24 +1,25 @@
 {
-  "name": "workflow-orchestration",
+  "name": "agent-orchestration",
   "version": "0.5.0",
-  "description": "Planning, implementation, review-resolution, and PR-readiness orchestration skills.",
+  "description": "Umbrella marketplace for workflow orchestration and spec-driven development plugins.",
   "type": "module",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "test": "node --test test/**/*.test.js",
-    "validate:plugin": "node --test test/**/*.test.js",
+    "test": "node --test test/**/*.test.js && npm --prefix plugins/workflow-orchestration test",
+    "validate:plugin": "npm test",
     "validate:runtime": "node scripts/verify-runtime.mjs"
   },
   "files": [
-    "plugin.json",
     ".github/plugin/",
     ".claude-plugin/",
-    "docs/",
-    "plugins/sdd-workflow/",
-    "skills/",
+    "docs/marketplace-overview.md",
+    "docs/install-guide.md",
+    "docs/plugin-composition.md",
+    "plugins/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CONTRIBUTING.md"
   ],
   "engines": {
     "node": ">=22.0.0"

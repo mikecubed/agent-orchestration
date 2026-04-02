@@ -8,6 +8,24 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
+const PLUGIN_TARGETS = new Map([
+  [
+    'workflow-orchestration',
+    {
+      root: path.join(ROOT, 'plugins', 'workflow-orchestration'),
+      copilotSkillDir: 'skills',
+      claudeSkillDir: 'skills',
+    },
+  ],
+  [
+    'sdd-workflow',
+    {
+      root: path.join(ROOT, 'plugins', 'sdd-workflow'),
+      copilotSkillDir: 'copilot-skills',
+      claudeSkillDir: 'skills',
+    },
+  ],
+]);
 
 function executableNames(command) {
   if (process.platform !== 'win32' || /\.[^./\\]+$/.test(command)) {
@@ -166,11 +184,17 @@ function verifyClaudePlugin(pluginRoot, relativeSkillDir) {
   }
 }
 
-verifyCopilotRuntime(ROOT, 'skills');
-verifyClaudePlugin(ROOT, 'skills');
+const requestedPlugins = process.argv.slice(2);
+const targetNames = requestedPlugins.length === 0
+  ? [...PLUGIN_TARGETS.keys()]
+  : requestedPlugins;
 
-const sddRoot = path.join(ROOT, 'plugins', 'sdd-workflow');
-verifyCopilotRuntime(sddRoot, 'copilot-skills');
-verifyClaudePlugin(sddRoot, 'skills');
+for (const targetName of targetNames) {
+  const target = PLUGIN_TARGETS.get(targetName);
+
+  assert.ok(target, `Unknown plugin target: ${targetName}`);
+  verifyCopilotRuntime(target.root, target.copilotSkillDir);
+  verifyClaudePlugin(target.root, target.claudeSkillDir);
+}
 
 console.log('Runtime verification completed.');

@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "workflow-orchestration",
-      "source": ".",
+      "source": "plugins/workflow-orchestration",
       "description": "Planning, implementation, review-resolution, and PR-readiness orchestration skills.",
       "version": "0.5.0",
       "author": {

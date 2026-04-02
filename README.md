@@ -2,84 +2,71 @@
 
 Umbrella marketplace repo for separate **GitHub Copilot CLI** and **Claude Code** plugins focused on planning, workflow orchestration, and spec-driven development.
 
-## Plugins in this repo
+## Plugin bundles
 
-### `workflow-orchestration`
+### `plugins/workflow-orchestration`
 
-The root plugin in this repository provides shared orchestration skills:
+Shared orchestration plugin with:
 
 - `planning-orchestration`
 - `parallel-implementation-loop`
 - `pr-review-resolution-loop`
 - `final-pr-readiness-gate`
 
-Install locally:
+Local install:
 
 ```bash
-copilot plugin install .
-claude --plugin-dir .
+copilot plugin install ./plugins/workflow-orchestration
+claude --plugin-dir ./plugins/workflow-orchestration
 ```
 
-Expected namespaced usage:
+### `plugins/sdd-workflow`
 
-```text
-/workflow-orchestration:planning-orchestration
-/workflow-orchestration:parallel-implementation-loop
-```
-
-### `sdd-workflow`
-
-The companion plugin lives under `plugins/sdd-workflow/` and provides:
+Companion SDD plugin with:
 
 - `sdd.specify`
 - `sdd.plan`
 - `sdd.tasks`
 - `sdd-feature-workflow`
 
-Install locally:
+Local install:
 
 ```bash
 copilot plugin install ./plugins/sdd-workflow
 claude --plugin-dir ./plugins/sdd-workflow
 ```
 
-Expected namespaced usage:
+## Marketplace role
 
-```text
-/sdd-workflow:sdd.specify
-/sdd-workflow:sdd.plan
-/sdd-workflow:sdd.tasks
-```
+The repo root is umbrella-only infrastructure:
 
-## Marketplace layout
+- `.github/plugin/marketplace.json` for Copilot marketplace metadata
+- `.claude-plugin/marketplace.json` for Claude marketplace metadata
+- `docs/` for umbrella install and composition docs
+- `scripts/verify-runtime.mjs` for aggregate runtime validation
+- `test/` for umbrella-level structure checks
 
-This repo is both:
+## Docs
 
-- the home of the `workflow-orchestration` plugin; and
-- the marketplace source for multiple companion plugins via:
-  - `.github/plugin/marketplace.json`
-  - `.claude-plugin/marketplace.json`
+- `docs/marketplace-overview.md`
+- `docs/install-guide.md`
+- `docs/plugin-composition.md`
 
-The current umbrella name is **`agent-orchestration`**.
+## Validation
 
-## Development
-
-Validate the root `workflow-orchestration` plugin with:
+Run the full umbrella validation:
 
 ```bash
 npm test
 npm run validate:runtime
 ```
 
-These checks validate:
+Run the workflow plugin validation directly:
 
-- plugin manifests and marketplace metadata;
-- required shared skill layout and protocol language;
-- package contents;
-- runtime loading for both Claude Code and Copilot CLI.
+```bash
+npm --prefix plugins/workflow-orchestration test
+npm --prefix plugins/workflow-orchestration run validate:runtime
+```
 
-## Notes
+Plugin names stay precise even though the marketplace is shared. Prefer plugin-qualified names such as `/workflow-orchestration:planning-orchestration` and `/sdd-workflow:sdd.plan`.
 
-- plugin names stay precise even though the marketplace is shared;
-- `workflow-orchestration` may optionally compose with `sdd-workflow`, but they remain separate installable plugins;
-- prefer plugin-qualified names in examples and documentation.
