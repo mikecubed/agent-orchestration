@@ -70,6 +70,26 @@ Verdict:
 - <ready for review / ready with follow-ups / not ready / stopped by user>
 ```
 
+## Discovery brief
+
+Use when a workflow skill needs to prepare factual context before delegating to expensive specialists. The coordinator or a fast scout-tier model produces one discovery brief per batch or session.
+
+```text
+Task summary: <one-paragraph description of the work>
+Task shape: single-track | multi-track-batch | review-resolution-batch | large-diff-readiness
+Relevant files: <path>, <path>
+Task boundaries: <what is in scope and what is not>
+Validation commands: <command>, <command>
+Dependencies: <known dependencies or shared interfaces, if multi-track>
+Comparison baseline: <branch, commit, or PR reference, if review or readiness>
+Open questions: <questions requiring developer input, or none>
+Skip reason: <if discovery was skipped, why — e.g., "single file, fully scoped bug fix">
+```
+
+**Lifecycle**: Created before track launch or triage. Consumed by the coordinator for track splitting and by implementers and reviewers as factual context. Retired at workflow completion.
+
+**Skip condition**: Discovery is skipped when the task is already narrow and fully scoped — one file, one well-defined bug fix, one known test failure, or one already-triaged review comment. When skipped, record the `Skip reason` field.
+
 ## When to use these templates
 
 Use a committed artifact when:

@@ -25,6 +25,9 @@ reviewer: gpt-5.4
 # final-pr-readiness-gate
 structured-check: gpt-5.4
 final-reviewer: gpt-5.4
+
+# bounded discovery/triage (all skills)
+scout: claude-haiku-4.5
 ```
 
 ---
@@ -42,15 +45,19 @@ reviewer: claude-opus-4.6
 # final-pr-readiness-gate
 structured-check: claude-opus-4.6
 final-reviewer: claude-opus-4.6
+
+# bounded discovery/triage (all skills)
+scout: claude-haiku-4.5
 ```
 
 ---
 
 ## Key reference
 
-| Key               | Used by skill(s)                                          | Role                        |
-|-------------------|-----------------------------------------------------------|-----------------------------|
-| `implementer`     | parallel-implementation-loop, pr-review-resolution-loop  | Makes code changes          |
-| `reviewer`        | parallel-implementation-loop, pr-review-resolution-loop  | Reviews diffs               |
-| `structured-check`| final-pr-readiness-gate                                   | Runs structured code checks |
-| `final-reviewer`  | final-pr-readiness-gate                                   | Whole-diff final review     |
+| Key               | Used by skill(s)                                                                                      | Role                                                  |
+|-------------------|--------------------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| `implementer`     | parallel-implementation-loop, pr-review-resolution-loop                                               | Makes code changes                                    |
+| `reviewer`        | parallel-implementation-loop, pr-review-resolution-loop                                               | Reviews diffs                                         |
+| `structured-check`| final-pr-readiness-gate                                                                                | Runs structured code checks                           |
+| `final-reviewer`  | final-pr-readiness-gate                                                                                | Whole-diff final review                               |
+| `scout`           | parallel-implementation-loop, pr-review-resolution-loop, final-pr-readiness-gate                      | Runs bounded discovery/triage before expensive delegation |
