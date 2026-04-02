@@ -1,6 +1,6 @@
 {
   "name": "agent-workflow-skills",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Shared plugin repo for GitHub Copilot CLI and Claude Code skills",
   "type": "module",
   "license": "MIT",
