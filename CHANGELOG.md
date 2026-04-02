@@ -6,6 +6,15 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+### Added
+
+- umbrella marketplace groundwork for `agent-orchestration`, including a companion `plugins/sdd-workflow/` bundle and a new `planning-orchestration` skill
+
+### Changed
+
+- renamed the root plugin identity from `agent-workflow-skills` to `workflow-orchestration`
+- updated marketplace metadata to expose both `workflow-orchestration` and `sdd-workflow`
+
 ## [0.4.0] - 2026-04-02
 
 ### Added

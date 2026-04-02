@@ -8,13 +8,14 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
+const SDD_ROOT = path.join(ROOT, 'plugins', 'sdd-workflow');
 
-function readJson(relativePath) {
-  return JSON.parse(fs.readFileSync(path.join(ROOT, relativePath), 'utf8'));
+function readJson(root, relativePath) {
+  return JSON.parse(fs.readFileSync(path.join(root, relativePath), 'utf8'));
 }
 
-function readText(relativePath) {
-  return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+function readText(root, relativePath) {
+  return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
 function readFrontmatter(text) {
@@ -57,12 +58,12 @@ function readPackedFiles() {
   return packedFiles;
 }
 
-describe('plugin manifests', () => {
-  it('defines a Copilot plugin manifest with the shared skills directory', () => {
-    const manifest = readJson('plugin.json');
-    const packageManifest = readJson('package.json');
+describe('workflow-orchestration manifests', () => {
+  it('defines a Copilot plugin manifest for workflow-orchestration', () => {
+    const manifest = readJson(ROOT, 'plugin.json');
+    const packageManifest = readJson(ROOT, 'package.json');
 
-    assert.equal(manifest.name, 'agent-workflow-skills');
+    assert.equal(manifest.name, 'workflow-orchestration');
     assert.deepEqual(manifest.skills, ['skills/']);
     assert.equal(manifest.version, packageManifest.version);
     assert.equal(manifest.category, 'developer-tools');
@@ -70,9 +71,9 @@ describe('plugin manifests', () => {
   });
 
   it('defines a Claude plugin manifest with matching identity metadata', () => {
-    const copilotManifest = readJson('plugin.json');
-    const claudeManifest = readJson('.claude-plugin/plugin.json');
-    const packageManifest = readJson('package.json');
+    const copilotManifest = readJson(ROOT, 'plugin.json');
+    const claudeManifest = readJson(ROOT, '.claude-plugin/plugin.json');
+    const packageManifest = readJson(ROOT, 'package.json');
 
     assert.equal(claudeManifest.name, copilotManifest.name);
     assert.equal(claudeManifest.version, copilotManifest.version);
@@ -86,50 +87,53 @@ describe('plugin manifests', () => {
   });
 });
 
-describe('marketplace metadata', () => {
-  it('defines a Copilot marketplace entry that points at this plugin root', () => {
-    const copilotManifest = readJson('plugin.json');
-    const marketplace = readJson('.github/plugin/marketplace.json');
-    const pluginEntry = marketplace.plugins.find((entry) => entry.name === 'agent-workflow-skills');
+describe('agent-orchestration marketplace metadata', () => {
+  it('defines a Copilot marketplace with workflow-orchestration and sdd-workflow entries', () => {
+    const workflowManifest = readJson(ROOT, 'plugin.json');
+    const marketplace = readJson(ROOT, '.github/plugin/marketplace.json');
+    const workflowEntry = marketplace.plugins.find((entry) => entry.name === 'workflow-orchestration');
+    const sddEntry = marketplace.plugins.find((entry) => entry.name === 'sdd-workflow');
 
-    assert.equal(marketplace.name, 'agent-workflow-skills-marketplace');
-    assert.equal(marketplace.owner.name, copilotManifest.author.name);
-    assert.equal(marketplace.metadata.version, copilotManifest.version);
-    assert.ok(pluginEntry, 'expected agent-workflow-skills plugin entry');
-    assert.equal(pluginEntry.source, '.');
-    assert.deepEqual(pluginEntry.skills, ['skills/']);
-    assert.equal(pluginEntry.version, copilotManifest.version);
-    assert.equal(pluginEntry.description, copilotManifest.description);
-    assert.equal(pluginEntry.author.name, copilotManifest.author.name);
-    assert.equal(pluginEntry.license, copilotManifest.license);
-    assert.equal(pluginEntry.category, copilotManifest.category);
-    assert.deepEqual(pluginEntry.keywords, copilotManifest.keywords);
-    assert.deepEqual(pluginEntry.tags, copilotManifest.tags);
+    assert.equal(marketplace.name, 'agent-orchestration');
+    assert.equal(marketplace.owner.name, workflowManifest.author.name);
+    assert.equal(marketplace.metadata.version, workflowManifest.version);
+
+    assert.ok(workflowEntry, 'expected workflow-orchestration plugin entry');
+    assert.equal(workflowEntry.source, '.');
+    assert.deepEqual(workflowEntry.skills, ['skills/']);
+    assert.equal(workflowEntry.version, workflowManifest.version);
+
+    assert.ok(sddEntry, 'expected sdd-workflow plugin entry');
+    assert.equal(sddEntry.source, 'plugins/sdd-workflow');
+    assert.deepEqual(sddEntry.skills, ['copilot-skills/']);
+    assert.equal(sddEntry.version, '0.2.0');
   });
 
-  it('defines a Claude marketplace entry with matching identity metadata', () => {
-    const copilotManifest = readJson('plugin.json');
-    const marketplace = readJson('.claude-plugin/marketplace.json');
-    const pluginEntry = marketplace.plugins.find((entry) => entry.name === 'agent-workflow-skills');
+  it('defines a Claude marketplace with workflow-orchestration and sdd-workflow entries', () => {
+    const workflowManifest = readJson(ROOT, 'plugin.json');
+    const marketplace = readJson(ROOT, '.claude-plugin/marketplace.json');
+    const workflowEntry = marketplace.plugins.find((entry) => entry.name === 'workflow-orchestration');
+    const sddEntry = marketplace.plugins.find((entry) => entry.name === 'sdd-workflow');
 
-    assert.equal(marketplace.name, 'agent-workflow-skills-marketplace');
-    assert.equal(marketplace.owner.name, copilotManifest.author.name);
-    assert.equal(marketplace.metadata.version, copilotManifest.version);
-    assert.ok(pluginEntry, 'expected agent-workflow-skills plugin entry');
-    assert.equal(pluginEntry.source, './');
-    assert.equal(pluginEntry.skills, './skills/');
-    assert.equal(pluginEntry.version, copilotManifest.version);
-    assert.equal(pluginEntry.description, copilotManifest.description);
-    assert.equal(pluginEntry.author.name, copilotManifest.author.name);
-    assert.equal(pluginEntry.license, copilotManifest.license);
-    assert.equal(pluginEntry.category, copilotManifest.category);
-    assert.deepEqual(pluginEntry.keywords, copilotManifest.keywords);
-    assert.deepEqual(pluginEntry.tags, copilotManifest.tags);
+    assert.equal(marketplace.name, 'agent-orchestration');
+    assert.equal(marketplace.owner.name, workflowManifest.author.name);
+    assert.equal(marketplace.metadata.version, workflowManifest.version);
+
+    assert.ok(workflowEntry, 'expected workflow-orchestration plugin entry');
+    assert.equal(workflowEntry.source, './');
+    assert.equal(workflowEntry.skills, './skills/');
+    assert.equal(workflowEntry.version, workflowManifest.version);
+
+    assert.ok(sddEntry, 'expected sdd-workflow plugin entry');
+    assert.equal(sddEntry.source, './plugins/sdd-workflow');
+    assert.equal(sddEntry.skills, './skills/');
+    assert.equal(sddEntry.version, '0.2.0');
   });
 });
 
-describe('shared skills layout', () => {
+describe('workflow-orchestration skills layout', () => {
   const skills = [
+    'planning-orchestration',
     'parallel-implementation-loop',
     'pr-review-resolution-loop',
     'final-pr-readiness-gate',
@@ -138,7 +142,7 @@ describe('shared skills layout', () => {
   for (const skill of skills) {
     it(`provides ${skill} as a shared plugin skill`, () => {
       const relativePath = path.join('skills', skill, 'SKILL.md');
-      const text = readText(relativePath);
+      const text = readText(ROOT, relativePath);
 
       assert.match(text, /^---\nname: /);
       assert.match(text, /\ndescription: /);
@@ -150,20 +154,12 @@ describe('shared skills layout', () => {
       assert.match(text, /## Required Gates/);
       assert.match(text, /## Stop Conditions/);
       assert.match(text, /## Example/);
-
-      // Phase 2 – discovery / factual brief language
       assert.match(text, /factual\s+(brief|context|facts)/i,
         `${skill} should reference factual brief or shared facts language`);
-
-      // Phase 3 – rescue policy language
       assert.match(text, /\brescue\b/i,
         `${skill} should reference rescue policy`);
-
-      // Phase 4 – durable artifact / report gates
       assert.match(text, /\bdurable\b[\s\S]{1,80}\b(?:artifact|report|summary)\b/,
         `${skill} should reference durable artifacts or reports`);
-
-      // T024 – exclusion of persistent orchestration
       assert.match(text,
         /(?:persistent\s+team|squad|fleet)[\s\S]{0,120}out of scope|out of scope[\s\S]{0,120}(?:persistent\s+team|squad|fleet)/i,
         `${skill} should scope out persistent team, squad, or fleet orchestration`);
@@ -171,8 +167,36 @@ describe('shared skills layout', () => {
   }
 });
 
+describe('sdd-workflow plugin bundle', () => {
+  it('defines the Copilot and Claude manifests', () => {
+    const copilotManifest = readJson(SDD_ROOT, 'plugin.json');
+    const claudeManifest = readJson(SDD_ROOT, '.claude-plugin/plugin.json');
+
+    assert.equal(copilotManifest.name, 'sdd-workflow');
+    assert.equal(copilotManifest.agents, 'agents/');
+    assert.deepEqual(copilotManifest.skills, ['copilot-skills/']);
+    assert.equal(claudeManifest.name, 'sdd-workflow');
+    assert.equal(copilotManifest.version, claudeManifest.version);
+  });
+
+  it('ships the minimal runtime SDD command and skill surfaces', () => {
+    for (const relativePath of [
+      'commands/sdd.specify.md',
+      'commands/sdd.plan.md',
+      'commands/sdd.tasks.md',
+      'agents/sdd.specify.md',
+      'agents/sdd.plan.md',
+      'agents/sdd.tasks.md',
+      'skills/sdd-feature-workflow/SKILL.md',
+      'copilot-skills/sdd-feature-workflow/SKILL.md',
+    ]) {
+      assert.ok(fs.existsSync(path.join(SDD_ROOT, relativePath)), `expected ${relativePath}`);
+    }
+  });
+});
+
 describe('package contents', () => {
-  it('includes the required plugin files in the published tarball', () => {
+  it('includes the required workflow-orchestration and marketplace files in the published tarball', () => {
     const files = readPackedFiles();
 
     assert.ok(files.includes('plugin.json'));
@@ -181,8 +205,13 @@ describe('package contents', () => {
     assert.ok(files.includes('.github/plugin/marketplace.json'));
     assert.ok(files.includes('README.md'));
     assert.ok(files.includes('LICENSE'));
+    assert.ok(files.includes('plugins/sdd-workflow/plugin.json'));
+    assert.ok(files.includes('plugins/sdd-workflow/.claude-plugin/plugin.json'));
+    assert.ok(files.includes('plugins/sdd-workflow/commands/sdd.specify.md'));
+    assert.ok(files.includes('plugins/sdd-workflow/skills/sdd-feature-workflow/SKILL.md'));
 
     for (const skill of [
+      'planning-orchestration',
       'parallel-implementation-loop',
       'pr-review-resolution-loop',
       'final-pr-readiness-gate',

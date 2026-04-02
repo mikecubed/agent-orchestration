@@ -1,7 +1,7 @@
 {
-  "name": "agent-workflow-skills",
-  "version": "0.4.0",
-  "description": "Shared plugin repo for GitHub Copilot CLI and Claude Code skills",
+  "name": "workflow-orchestration",
+  "version": "0.5.0",
+  "description": "Planning, implementation, review-resolution, and PR-readiness orchestration skills.",
   "type": "module",
   "license": "MIT",
   "private": true,
@@ -15,6 +15,7 @@
     ".github/plugin/",
     ".claude-plugin/",
     "docs/",
+    "plugins/sdd-workflow/",
     "skills/",
     "README.md",
     "LICENSE"

@@ -34,7 +34,7 @@ This repository is a shared plugin repo for **GitHub Copilot CLI** and **Claude 
 - The test file (`test/plugin-layout.test.js`) hardcodes the three skill names. Adding a new skill requires adding it to the `skills` array in that file as well as to both manifests.
 - Keep skill content repo-agnostic and reusable across repositories.
 - Preserve the three-skill split: implementation parallelism, review resolution, and final readiness are separate workflows.
-- Prefer plugin-qualified names in examples, such as `/agent-workflow-skills:parallel-implementation-loop`.
+- Prefer plugin-qualified names in examples, such as `/workflow-orchestration:parallel-implementation-loop`.
 
 ## Local plugin usage
 

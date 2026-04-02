@@ -1,6 +1,6 @@
 # Model Preferences — Config Templates
 
-The `agent-workflow-skills` plugin looks for a **plain YAML file** (not markdown)
+The `workflow-orchestration` plugin looks for a **plain YAML file** (not markdown)
 under your project root to override the default models used for each role.
 
 Create the file for your runtime (or both). The directories (`.copilot/` and
@@ -17,10 +17,13 @@ Update these files whenever you want to switch to a newer model release.
 Create `.copilot/models.yaml` with:
 
 ```yaml
-# agent-workflow-skills model overrides — Copilot CLI
+# workflow-orchestration model overrides — Copilot CLI
+# planning-orchestration
+planner: claude-opus-4.6
+reviewer: gpt-5.4
+
 # parallel-implementation-loop and pr-review-resolution-loop
 implementer: claude-opus-4.6
-reviewer: gpt-5.4
 
 # final-pr-readiness-gate
 structured-check: gpt-5.4
@@ -37,10 +40,13 @@ scout: claude-haiku-4.5
 Create `.claude/models.yaml` with:
 
 ```yaml
-# agent-workflow-skills model overrides — Claude Code
+# workflow-orchestration model overrides — Claude Code
+# planning-orchestration
+planner: claude-opus-4.6
+reviewer: claude-opus-4.6
+
 # parallel-implementation-loop and pr-review-resolution-loop
 implementer: claude-opus-4.6
-reviewer: claude-opus-4.6
 
 # final-pr-readiness-gate
 structured-check: claude-opus-4.6
@@ -56,8 +62,9 @@ scout: claude-haiku-4.5
 
 | Key               | Used by skill(s)                                                                                      | Role                                                  |
 |-------------------|--------------------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| `planner`         | planning-orchestration                                                                                 | Produces and revises planning artifacts               |
 | `implementer`     | parallel-implementation-loop, pr-review-resolution-loop                                               | Makes code changes                                    |
-| `reviewer`        | parallel-implementation-loop, pr-review-resolution-loop                                               | Reviews diffs                                         |
+| `reviewer`        | planning-orchestration, parallel-implementation-loop, pr-review-resolution-loop                       | Reviews plans or diffs                                |
 | `structured-check`| final-pr-readiness-gate                                                                                | Runs structured code checks                           |
 | `final-reviewer`  | final-pr-readiness-gate                                                                                | Whole-diff final review                               |
-| `scout`           | parallel-implementation-loop, pr-review-resolution-loop, final-pr-readiness-gate                      | Runs bounded discovery/triage before expensive delegation |
+| `scout`           | planning-orchestration, parallel-implementation-loop, pr-review-resolution-loop, final-pr-readiness-gate | Runs bounded discovery/triage before expensive delegation |

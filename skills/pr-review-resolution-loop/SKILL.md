@@ -179,7 +179,7 @@ If multiple accepted fixes are independent:
 
 1. group them into separate fix tracks;
 2. keep tightly coupled fixes serial;
-3. invoke `/agent-workflow-skills:parallel-implementation-loop` for each independent fix batch;
+3. invoke `/workflow-orchestration:parallel-implementation-loop` for each independent fix batch;
 4. use Fleet or agent-team mode only for batches that were explicitly approved for the higher-cost path.
 
 If review items interact heavily, resolve them serially.
@@ -261,7 +261,7 @@ After all relevant review items are handled:
 
 1. run the repository's real quality gates;
 2. verify any new behavior has test coverage;
-3. invoke `/agent-workflow-skills:final-pr-readiness-gate` on the stable diff;
+3. invoke `/workflow-orchestration:final-pr-readiness-gate` on the stable diff;
 4. publish one durable review-resolution summary using the review-resolution summary template from `docs/workflow-artifact-templates.md`. The summary MUST capture decisions, validation outcome, and remaining concerns;
 5. include a workflow outcome-measures block in the summary using the outcome-measures template from `docs/workflow-artifact-templates.md`. The block MUST include at minimum: `discovery-reuse`, `rescue-attempts`, and `re-review-loops`.
 

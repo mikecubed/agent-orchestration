@@ -1,18 +1,18 @@
 {
-  "name": "agent-workflow-skills-marketplace",
+  "name": "agent-orchestration",
   "owner": {
     "name": "Michael Henderson"
   },
   "metadata": {
-    "description": "Marketplace metadata for the shared agent-workflow-skills plugin.",
-    "version": "0.4.0"
+    "description": "Marketplace metadata for companion planning, workflow, and SDD plugins.",
+    "version": "0.5.0"
   },
   "plugins": [
     {
-      "name": "agent-workflow-skills",
+      "name": "workflow-orchestration",
       "source": ".",
-      "description": "Reusable implementation, review-resolution, and PR-readiness workflow skills.",
-      "version": "0.4.0",
+      "description": "Planning, implementation, review-resolution, and PR-readiness orchestration skills.",
+      "version": "0.5.0",
       "author": {
         "name": "Michael Henderson"
       },
@@ -21,6 +21,8 @@
         "copilot",
         "skills",
         "workflow",
+        "orchestration",
+        "planning",
         "review"
       ],
       "category": "developer-tools",
@@ -28,10 +30,38 @@
         "pull-requests",
         "implementation",
         "code-review",
+        "planning",
         "claude-compatible"
       ],
       "skills": [
         "skills/"
+      ]
+    },
+    {
+      "name": "sdd-workflow",
+      "source": "plugins/sdd-workflow",
+      "description": "Spec-driven development workflow plugin for GitHub Copilot CLI.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Michael Henderson"
+      },
+      "license": "MIT",
+      "keywords": [
+        "copilot",
+        "sdd",
+        "planning",
+        "specification",
+        "tasks"
+      ],
+      "category": "developer-tools",
+      "tags": [
+        "planning",
+        "specification",
+        "tasks",
+        "claude-compatible"
+      ],
+      "skills": [
+        "copilot-skills/"
       ]
     }
   ]

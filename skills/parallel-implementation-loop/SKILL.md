@@ -323,7 +323,7 @@ After all track work is integrated:
 
 1. verify the integrated behavior is coherent;
 2. run the repository's real quality gates;
-3. invoke `/agent-workflow-skills:final-pr-readiness-gate` on the stable integrated diff;
+3. invoke `/workflow-orchestration:final-pr-readiness-gate` on the stable integrated diff;
 4. retire clean temporary work surfaces;
 5. keep any retained work surface only with an explicit reason.
 

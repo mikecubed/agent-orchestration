@@ -1,0 +1,16 @@
+{
+  "name": "sdd-workflow",
+  "description": "Spec-driven development workflow plugin for Claude Code.",
+  "version": "0.2.0",
+  "author": {
+    "name": "Michael Henderson"
+  },
+  "license": "MIT",
+  "keywords": [
+    "copilot",
+    "sdd",
+    "planning",
+    "specification",
+    "tasks"
+  ]
+}
