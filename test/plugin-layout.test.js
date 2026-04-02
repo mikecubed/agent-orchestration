@@ -150,6 +150,23 @@ describe('shared skills layout', () => {
       assert.match(text, /## Required Gates/);
       assert.match(text, /## Stop Conditions/);
       assert.match(text, /## Example/);
+
+      // Phase 2 – discovery / factual brief language
+      assert.match(text, /factual\s+(brief|context|facts)/i,
+        `${skill} should reference factual brief or shared facts language`);
+
+      // Phase 3 – rescue policy language
+      assert.match(text, /\brescue\b/i,
+        `${skill} should reference rescue policy`);
+
+      // Phase 4 – durable artifact / report gates
+      assert.match(text, /\bdurable\b[\s\S]{1,80}\b(?:artifact|report|summary)\b/,
+        `${skill} should reference durable artifacts or reports`);
+
+      // T024 – exclusion of persistent orchestration
+      assert.match(text,
+        /(?:persistent\s+team|squad|fleet)[\s\S]{0,120}out of scope|out of scope[\s\S]{0,120}(?:persistent\s+team|squad|fleet)/i,
+        `${skill} should scope out persistent team, squad, or fleet orchestration`);
     });
   }
 });
