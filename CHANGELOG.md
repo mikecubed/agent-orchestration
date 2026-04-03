@@ -6,6 +6,25 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-04-03
+
+### Added
+
+- **D1 — `map-codebase` skill**: guided codebase discovery producing a structured, factual
+  context brief across 5 parallel discovery dimensions (structure, dependencies, tests,
+  architecture, hotspots). Records `brief-path` in SESSION.md `## Decisions` for downstream
+  skill consumption.
+- **D2 — `architecture-review` skill**: structured architecture analysis using ARCH-1 through
+  ARCH-6 as the analytical framework (layer violations, circular imports, missing public API,
+  dependency direction, god modules, abstraction boundaries). Consumes `map-codebase` output
+  via `brief-path` when available. Integrates with `clean-code-codex` `arch-check` skill.
+- **D3 — `brainstorm-ideation` skill**: pre-spec Socratic ideation skill that surfaces
+  constraints, trade-offs, and risks before the developer is ready for formal specification.
+  5-step dialogue with reviewer sanity-check gate; hands off to `sdd.specify` when ready.
+- All 3 new skills include: `## Default Roles` with model-selection priority chain and
+  6-row defaults table, full-schema SESSION.md write-points, and binary PASS/FAIL
+  verification checklists.
+
 ## [0.7.0] - 2026-04-04
 
 ### Added

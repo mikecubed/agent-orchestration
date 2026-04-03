@@ -12,6 +12,9 @@ This plugin provides:
 - `final-pr-readiness-gate`
 - `swarm-orchestration`
 - `systematic-debugging`
+- `map-codebase`
+- `architecture-review`
+- `brainstorm-ideation`
 
 Install locally from the umbrella repo:
 

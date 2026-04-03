@@ -1,7 +1,7 @@
 {
   "name": "workflow-orchestration",
-  "description": "Planning, implementation, systematic debugging, review-resolution, PR-readiness, and swarm orchestration skills.",
-  "version": "0.7.0",
+  "description": "Planning, codebase mapping, architecture review, brainstorm ideation, implementation, systematic debugging, review-resolution, PR-readiness, and swarm orchestration skills.",
+  "version": "0.8.0",
   "author": {
     "name": "Michael Henderson"
   },
