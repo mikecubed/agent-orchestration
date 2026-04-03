@@ -6,6 +6,22 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-04-02
+
+### Added
+
+- new `swarm-orchestration` skill in `workflow-orchestration`: dynamic runtime topology selection (coordinator-worker, pipeline, wave/batch, hierarchical, mesh), SWARM.md shared knowledge base lifecycle (create → update → archive/delete), five-role model selection (coordinator, scout, domain, synthesizer, reviewer), three token budget modes (`minimal` / `standard` / `deep`), bounded convergence rounds, rescue policy, and durable swarm summary artifact gate
+- `docs/competitor-comparison.md`: full feature comparison of `agent-orchestration` against Superpowers and GSD with eight mermaid diagrams (architecture, workflow, coverage matrix, gap analysis, auto-trigger behavior, installation experience, roadmap, plugin composition)
+- `docs/swarm-orchestration.md`: swarm orchestration research reference with eight mermaid diagrams (five topologies, system-to-topology map, gap analysis, token cost curves, model selection decision tree, failure modes, proposed skill flow, decision guide)
+
+### Changed
+
+- bumped `workflow-orchestration` plugin, umbrella package, and all marketplace manifests to `0.6.0`
+- broadened root `package.json` `files` allowlist from three specific doc entries to `docs/` so all current and future docs ship in the published package
+- synced `workflow-orchestration` description across both marketplace manifests to include "swarm orchestration"
+
+## [0.5.0] - 2026-04-02
+
 ### Added
 
 - umbrella marketplace groundwork for `agent-orchestration`, including a companion `plugins/sdd-workflow/` bundle and a new `planning-orchestration` skill
@@ -17,6 +33,7 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 - renamed the root plugin identity from `agent-workflow-skills` to `workflow-orchestration`
 - updated marketplace metadata to expose both `workflow-orchestration` and `sdd-workflow`
 - moved `workflow-orchestration` into `plugins/workflow-orchestration/` and converted the repo root to umbrella-only marketplace, docs, and validation infrastructure
+- bumped the shared package, plugin manifests, and marketplace metadata to `0.5.0`
 
 ## [0.4.0] - 2026-04-02
 
