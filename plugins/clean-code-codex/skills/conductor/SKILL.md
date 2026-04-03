@@ -58,7 +58,7 @@ Identify the operation type from the user's request:
 | "review", "check", "audit", "what's wrong", "PR review" | `review` |
 | "refactor", "clean up", "improve", "rename", "extract" | `refactor` |
 | "fix test", "add test", "test coverage", "failing test" | `test` |
-| "security audit", "check for secrets", "vulnerabilities" | `security` |
+| "security audit", "check for secrets", "vulnerabilities", "IaC review", "Terraform", "CloudFormation", "Kubernetes manifest", "infrastructure security" | `security` |
 | "check dependencies", "update deps", "CVE" | `dependency` |
 | "incident", "on call", "debugging production" | `incident` |
 
@@ -71,10 +71,10 @@ Load **only** the listed checks. Never pre-load all checks.
 | Situation | Checks to load | Language refs |
 |-----------|---------------|---------------|
 | **write** — new code | `tdd-check` + `type-check` + `naming-check` | Yes for all three |
-| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` | Yes for type, naming |
+| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` | Yes for type, naming |
 | **refactor** — existing code | `tdd-check` (gate only) + `arch-check` + `naming-check` + `size-check` + `dead-check` | Yes for naming |
 | **test** — writing/fixing tests | `tdd-check` + `test-check` | Yes for tdd |
-| **security** — security audit | `sec-check` | No |
+| **security** — security audit | `sec-check` + `iac-check` | No |
 | **dependency** — dep update | `dep-check` | No |
 | **incident** — production issue | `obs-check` + `sec-check` | No |
 | **new service** — scaffold | `tdd-check` + `arch-check` + `sec-check` | Yes for tdd |
