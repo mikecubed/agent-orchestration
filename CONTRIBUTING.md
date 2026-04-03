@@ -1,6 +1,6 @@
 # Contributing
 
-This repository is an umbrella marketplace for separate **GitHub Copilot CLI** and **Claude Code** plugins. The main bundles currently live under `plugins/workflow-orchestration/` and `plugins/sdd-workflow/`.
+This repository is an umbrella marketplace for separate **GitHub Copilot CLI** and **Claude Code** plugins. The main bundles currently live under `plugins/workflow-orchestration/`, `plugins/sdd-workflow/`, and `plugins/clean-code-codex/`.
 
 ## What to change
 
@@ -8,6 +8,7 @@ This repository is an umbrella marketplace for separate **GitHub Copilot CLI** a
 - Change marketplace packaging or identity in `.github/plugin/marketplace.json` or `.claude-plugin/marketplace.json`.
 - Change umbrella validation rules in `test/umbrella-layout.test.js`.
 - Change workflow plugin validation rules in `plugins/workflow-orchestration/test/plugin-layout.test.js`.
+- Change Codex plugin validation rules in `plugins/clean-code-codex/test/plugin-layout.test.js`.
 - Change local/runtime verification behavior in `scripts/verify-runtime.mjs`.
 
 ## Skill authoring rules
@@ -60,6 +61,12 @@ Run the workflow plugin test suite directly:
 
 ```bash
 npm --prefix plugins/workflow-orchestration test
+```
+
+Run the Codex plugin test suite directly:
+
+```bash
+npm --prefix plugins/clean-code-codex test
 ```
 
 ## Runtime-specific manifest notes

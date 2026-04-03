@@ -1,0 +1,9 @@
+{
+  "name": "clean-code-codex",
+  "version": "1.1.2",
+  "description": "Composable, multi-language, TDD-first clean code enforcement system. Orchestrates 10 check sub-skills (tdd, arch, type, naming, size, dead, test, sec, dep, obs) across TypeScript, JavaScript, Python, Go, and Rust.",
+  "author": {
+    "name": "mikecubed"
+  },
+  "skills": "./skills/"
+}

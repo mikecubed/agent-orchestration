@@ -4,16 +4,18 @@
 
 - Use Node 22 or newer. The repo is ESM-only and the root and plugin package manifests declare `node >=22.0.0`.
 - Install dependencies with `npm install`.
-- Run the full validation suite with `npm run validate:plugin` or `npm test`. The root suite runs the umbrella tests and the nested workflow plugin tests.
-- Run local runtime verification with `npm run validate:runtime`. It performs isolated Copilot install/list/uninstall checks and real plugin-load checks for both `workflow-orchestration` and `sdd-workflow` in both Copilot CLI and Claude Code, so it requires authenticated CLIs and may consume model requests.
+- Run the full validation suite with `npm run validate:plugin` or `npm test`. The root suite runs the umbrella tests and the nested workflow and Codex plugin tests.
+- Run local runtime verification with `npm run validate:runtime`. It performs isolated Copilot install/list/uninstall checks and real plugin-load checks for `workflow-orchestration`, `sdd-workflow`, and `clean-code-codex` in both Copilot CLI and Claude Code, so it requires authenticated CLIs and may consume model requests.
 - Run the umbrella-only test file with `node --test test/umbrella-layout.test.js`.
 - Run the workflow plugin test file with `node --test plugins/workflow-orchestration/test/plugin-layout.test.js`.
+- Run the Codex plugin test file with `node --test plugins/clean-code-codex/test/plugin-layout.test.js`.
 
 ## High-level architecture
 
 - This repository is an umbrella marketplace repo for both GitHub Copilot CLI and Claude Code.
 - `plugins/workflow-orchestration/skills/*/SKILL.md` is the single source of truth for the workflow-orchestration skills.
 - `plugins/workflow-orchestration/plugin.json` and `plugins/workflow-orchestration/.claude-plugin/plugin.json` are the workflow plugin manifests.
+- `plugins/clean-code-codex/` contains the vendored Codex bundle and its plugin-local tests.
 - `.github/plugin/marketplace.json` and `.claude-plugin/marketplace.json` are umbrella marketplace metadata for distributing multiple plugins from one repo.
 - `test/umbrella-layout.test.js` verifies the umbrella package and marketplace layout.
 - `plugins/workflow-orchestration/test/plugin-layout.test.js` verifies the workflow plugin manifests, package contents, and required structure inside each workflow `SKILL.md`.

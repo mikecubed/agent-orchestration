@@ -36,6 +36,22 @@ copilot plugin install ./plugins/sdd-workflow
 claude --plugin-dir ./plugins/sdd-workflow
 ```
 
+### `plugins/clean-code-codex`
+
+Clean-code enforcement plugin with:
+
+- `conductor`
+- `tdd-check`, `arch-check`, `type-check`, `naming-check`
+- `size-check`, `dead-check`, `test-check`, `sec-check`, `dep-check`, `obs-check`
+- supporting command, agent, scripts, and enforcement hooks
+
+Local install:
+
+```bash
+copilot plugin install ./plugins/clean-code-codex
+claude --plugin-dir ./plugins/clean-code-codex
+```
+
 ## Marketplace role
 
 The repo root is umbrella-only infrastructure:
@@ -69,4 +85,3 @@ npm --prefix plugins/workflow-orchestration run validate:runtime
 ```
 
 Plugin names stay precise even though the marketplace is shared. Prefer plugin-qualified names such as `/workflow-orchestration:planning-orchestration` and `/sdd-workflow:sdd.plan`.
-

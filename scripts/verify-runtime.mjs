@@ -25,6 +25,14 @@ const PLUGIN_TARGETS = new Map([
       claudeSkillDir: 'skills',
     },
   ],
+  [
+    'clean-code-codex',
+    {
+      root: path.join(ROOT, 'plugins', 'clean-code-codex'),
+      copilotSkillDir: 'skills',
+      claudeSkillDir: 'skills',
+    },
+  ],
 ]);
 
 function executableNames(command) {
@@ -76,11 +84,17 @@ function outputIncludesToken(output, expectedToken) {
 }
 
 function outputIncludesQualifiedSkill(output, qualifiedSkillName) {
+  const slashQualifiedSkillName = qualifiedSkillName.replace(':', '/');
+
   return (
     output.includes(qualifiedSkillName) ||
     output.includes(`/${qualifiedSkillName}`) ||
+    output.includes(slashQualifiedSkillName) ||
+    output.includes(`/${slashQualifiedSkillName}`) ||
     outputIncludesToken(output, qualifiedSkillName) ||
-    outputIncludesToken(output, `/${qualifiedSkillName}`)
+    outputIncludesToken(output, `/${qualifiedSkillName}`) ||
+    outputIncludesToken(output, slashQualifiedSkillName) ||
+    outputIncludesToken(output, `/${slashQualifiedSkillName}`)
   );
 }
 

@@ -4,7 +4,7 @@
     "name": "Michael Henderson"
   },
   "metadata": {
-    "description": "Marketplace metadata for companion planning, workflow, and SDD plugins.",
+    "description": "Marketplace metadata for companion planning, workflow, SDD, and clean-code enforcement plugins.",
     "version": "0.5.0"
   },
   "plugins": [
@@ -62,6 +62,35 @@
       ],
       "skills": [
         "copilot-skills/"
+      ]
+    },
+    {
+      "name": "clean-code-codex",
+      "source": "plugins/clean-code-codex",
+      "description": "Composable, multi-language, TDD-first clean code enforcement system. Orchestrates 10 check sub-skills across TypeScript, JavaScript, Python, Go, and Rust.",
+      "version": "1.1.2",
+      "author": {
+        "name": "mikecubed"
+      },
+      "license": "MIT",
+      "keywords": [
+        "copilot",
+        "clean-code",
+        "tdd",
+        "architecture",
+        "security",
+        "observability"
+      ],
+      "category": "developer-tools",
+      "tags": [
+        "code-review",
+        "quality",
+        "security",
+        "claude-compatible"
+      ],
+      "agents": "agents/",
+      "skills": [
+        "skills/"
       ]
     }
   ]

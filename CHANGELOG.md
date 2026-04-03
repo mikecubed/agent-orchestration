@@ -10,6 +10,7 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 - umbrella marketplace groundwork for `agent-orchestration`, including a companion `plugins/sdd-workflow/` bundle and a new `planning-orchestration` skill
 - umbrella docs for marketplace overview, install guidance, and companion-plugin composition
+- vendored `plugins/clean-code-codex/` as a third separate marketplace bundle with its current skills, scripts, command, agent, and hooks
 
 ### Changed
 
