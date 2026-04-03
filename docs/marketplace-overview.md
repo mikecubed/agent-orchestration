@@ -14,6 +14,7 @@ flowchart TD
     RUNTIME[scripts/verify-runtime.mjs]
     WO[plugins/workflow-orchestration/]
     SDD[plugins/sdd-workflow/]
+    CODEX[plugins/clean-code-codex/]
 
     ROOT --> GH
     ROOT --> CC
@@ -22,6 +23,7 @@ flowchart TD
     ROOT --> RUNTIME
     ROOT --> WO
     ROOT --> SDD
+    ROOT --> CODEX
 ```
 
 ## Responsibilities
@@ -29,6 +31,6 @@ flowchart TD
 - **Repo root**: umbrella docs, marketplace metadata, aggregate validation
 - **`plugins/workflow-orchestration/`**: planning and workflow-loop plugin
 - **`plugins/sdd-workflow/`**: companion SDD plugin bundle
+- **`plugins/clean-code-codex/`**: clean-code enforcement and audit plugin
 
 The plugin identities stay precise even though the marketplace is shared.
-

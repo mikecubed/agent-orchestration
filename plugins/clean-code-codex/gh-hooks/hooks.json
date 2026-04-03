@@ -1,0 +1,52 @@
+{
+  "_comment": "GitHub Copilot CLI hook configuration for clean-code-codex. Script paths are relative to this file's location (gh-hooks/). Installation: set hooks path in your Copilot CLI config to point to this file.",
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-sec-write.sh",
+        "timeoutSec": 30,
+        "description": "SEC-1: Warn on hardcoded secrets before write (Claude Code: block, Copilot: warn-only)"
+      },
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-sec-bash.sh",
+        "timeoutSec": 10,
+        "description": "SEC-7: Block dangerous bash injection patterns before execution"
+      },
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-arch-write.sh",
+        "timeoutSec": 10,
+        "description": "ARCH-1: Warn on domain-layer imports of app/infra before write (Claude Code: block, Copilot: warn-only)"
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-quality.sh",
+        "timeoutSec": 15,
+        "description": "SIZE-1/DEAD-1: Warn on oversized functions and commented-out code after write"
+      },
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-dep.sh",
+        "timeoutSec": 60,
+        "description": "DEP-1: Warn on known vulnerabilities after manifest write"
+      },
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-coverage-delta.sh",
+        "timeoutSec": 15,
+        "description": "TEST: Warn on coverage delta after write"
+      },
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-obs-write.sh",
+        "timeoutSec": 10,
+        "description": "OBS-1: Warn on missing observability patterns after write"
+      }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+# Generated / vendor / build output paths — excluded from all hook analysis.
+# Files whose resolved path contains any of these patterns are skipped entirely.
+# Each line is a literal substring match against the file path.
+# Lines starting with '#' and blank lines are ignored.
+
+# Package managers
+node_modules/
+vendor/
+.vendor/
+bower_components/
+
+# Build outputs
+dist/
+build/
+out/
+target/
+.next/
+.nuxt/
+.output/
+__pycache__/
+.pytest_cache/
+.egg-info/
+.eggs/
+
+# Minified / compiled assets
+.min.js
+.min.css
+.bundle.js
+.chunk.js
+
+# Lock files (not source, but avoid false positives)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+poetry.lock
+Cargo.lock
+go.sum
+
+# IDE / tooling caches
+.cache/
+.parcel-cache/
+.turbo/
+.vite/
+
+# Coverage reports
+coverage/
+.nyc_output/
+htmlcov/
+
+# Test fixture paths — trigger WARN-only downgrade (not full exclusion)
+# Hook scripts check these separately to downgrade block→warn.
+__fixtures__/
+testdata/
+test/data/
+spec/fixtures/
+fixtures/

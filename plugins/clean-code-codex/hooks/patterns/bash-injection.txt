@@ -1,0 +1,30 @@
+# Bash injection / dangerous command patterns (ERE) — match blocks execution
+# Applied to TOOL_COMMAND for Bash tool calls on both CLIs.
+# Each line is one extended regular expression. Blank lines and '#' lines ignored.
+
+# Pipe remote script directly to shell interpreter (curl | sh/bash/zsh)
+curl[^|]*\|[[:space:]]*(sudo[[:space:]]+)?(ba)?sh
+
+# wget equivalent
+wget[^|]*\|[[:space:]]*(sudo[[:space:]]+)?(ba)?sh
+
+# eval of a subshell or variable (code injection vector)
+eval[[:space:]]*\$\(
+
+# base64-encoded payload piped to shell
+base64[^|]*\|[[:space:]]*(sudo[[:space:]]+)?(ba)?sh
+
+# Arbitrary code download and execute via python/node
+(python|python3|node)[[:space:]]-c[[:space:]]*['"](import urllib|require\('http)
+
+# Reverse shell patterns (common attack vectors)
+(ba)?sh[[:space:]]-i[[:space:]]*>&[[:space:]]*/dev/tcp/
+
+# nc/ncat reverse shell
+(nc|ncat)[[:space:]]+-e[[:space:]]+(ba)?sh
+
+# Process substitution executing remote content
+\$\(curl[^)]+\)
+
+# Obfuscated execution via printf | sh
+printf[^|]+\|[[:space:]]*(ba)?sh

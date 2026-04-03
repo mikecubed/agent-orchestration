@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "test": "node --test test/**/*.test.js && npm --prefix plugins/workflow-orchestration test",
+    "test": "node --test test/**/*.test.js && npm --prefix plugins/workflow-orchestration test && npm --prefix plugins/clean-code-codex test",
     "validate:plugin": "npm test",
     "validate:runtime": "node scripts/verify-runtime.mjs"
   },

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository role
 
-This repository is an umbrella marketplace repo for **GitHub Copilot CLI** and **Claude Code** plugins. The `workflow-orchestration` plugin now lives under `plugins/workflow-orchestration/`, and `sdd-workflow` lives under `plugins/sdd-workflow/`.
+This repository is an umbrella marketplace repo for **GitHub Copilot CLI** and **Claude Code** plugins. The `workflow-orchestration` plugin now lives under `plugins/workflow-orchestration/`, `sdd-workflow` lives under `plugins/sdd-workflow/`, and `clean-code-codex` lives under `plugins/clean-code-codex/`.
 
 ## Validation commands
 
@@ -14,12 +14,14 @@ This repository is an umbrella marketplace repo for **GitHub Copilot CLI** and *
 - Run runtime verification with `npm run validate:runtime`. This performs isolated install/list/uninstall checks and session-only plugin loading checks for both plugin bundles in Copilot CLI and Claude Code.
 - Run the umbrella-only test file with `node --test test/umbrella-layout.test.js`.
 - Run the workflow plugin test file with `node --test plugins/workflow-orchestration/test/plugin-layout.test.js`.
+- Run the Codex plugin test file with `node --test plugins/clean-code-codex/test/plugin-layout.test.js`.
 
 ## Architecture
 
 - `.github/plugin/marketplace.json` and `.claude-plugin/marketplace.json` are the umbrella marketplace manifests.
 - `plugins/workflow-orchestration/` contains the workflow plugin package, manifests, shared skills, tests, and plugin-local docs.
 - `plugins/sdd-workflow/` contains the vendored SDD companion plugin bundle.
+- `plugins/clean-code-codex/` contains the vendored Codex plugin bundle, including skills, command, agent, scripts, and hooks.
 - `test/umbrella-layout.test.js` enforces the umbrella marketplace/package layout.
 - `plugins/workflow-orchestration/test/plugin-layout.test.js` enforces the workflow plugin manifests, skill contract, and package contents.
 - `scripts/verify-runtime.mjs` performs real runtime verification against the installed CLIs for both plugin bundles.
