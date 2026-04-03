@@ -17,7 +17,8 @@ REPO_ROOT="$(git -C "${HOOK_WORKING_DIR:-.}" rev-parse --show-toplevel 2>/dev/nu
   exit 0
 }
 
-STATE_FILE="${TMPDIR:-/tmp}/codex-verify-$(basename "$REPO_ROOT").state"
+_REPO_HASH="$(echo "$REPO_ROOT" | sha256sum | cut -c1-12)"
+STATE_FILE="${TMPDIR:-/tmp}/codex-verify-${_REPO_HASH}.state"
 
 # --- Helper: find validation commands ---
 find_validation_commands() {
@@ -69,21 +70,21 @@ if [[ -z "$VALIDATION_CMDS" ]]; then
   exit 0
 fi
 
+# Read previous change time BEFORE updating it
+PREV_CHANGED="$(cat "${STATE_FILE}.changed" 2>/dev/null || echo "0")"
+
 # Record that a code change happened (fail-open on write failure)
 date +%s > "${STATE_FILE}.changed" 2>/dev/null || {
   echo "[codex:verification] WARNING: Cannot write state file; skipping gate." >&2
   exit 0
 }
 
-# Check if validation is current
-if [[ -f "${STATE_FILE}.validated" ]]; then
-  LAST_VALIDATED="$(cat "${STATE_FILE}.validated" 2>/dev/null || echo "0")"
-  LAST_CHANGED="$(cat "${STATE_FILE}.changed" 2>/dev/null || echo "0")"
+# Check if validation is current relative to the PREVIOUS change
+LAST_VALIDATED="$(cat "${STATE_FILE}.validated" 2>/dev/null || echo "0")"
 
-  if [[ "$LAST_VALIDATED" =~ ^[0-9]+$ ]] && [[ "$LAST_CHANGED" =~ ^[0-9]+$ ]]; then
-    if (( LAST_VALIDATED >= LAST_CHANGED )); then
-      exit 0  # Validation is current
-    fi
+if [[ "$LAST_VALIDATED" =~ ^[0-9]+$ ]] && [[ "$PREV_CHANGED" =~ ^[0-9]+$ ]]; then
+  if (( LAST_VALIDATED >= PREV_CHANGED )); then
+    exit 0  # Validation is current relative to the last change before this one
   fi
 fi
 
