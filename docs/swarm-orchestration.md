@@ -229,18 +229,18 @@ stateDiagram-v2
         Executing --> Done
     }
 
-    AgentWork --> UpdateKnowledgeBase: agent appends findings\nto SWARM.md
+    AgentWork --> ReportToCoordinator: agent reports findings\nto coordinator
 
-    UpdateKnowledgeBase --> ConvergenceCheck: coordinator checks\nis knowledge base sufficient?
+    ReportToCoordinator --> ConvergenceCheck: coordinator checks\nis coverage sufficient?
 
     ConvergenceCheck --> SpawnSpecialists: no — spawn targeted agents\n(adversarial critic, edge-case researcher)
-    ConvergenceCheck --> Synthesis: yes — synthesize SWARM.md
+    ConvergenceCheck --> Synthesis: yes — synthesize results
 
-    Synthesis --> Implementation: hand full SWARM.md\nto implementer agent
+    Synthesis --> Implementation: hand synthesis\nto implementer agent
 
     Implementation --> Verification: verifier runs tests\nand validation commands
 
-    Verification --> DurableReport: publish SWARM.md\n+ execution log
+    Verification --> DurableReport: publish swarm summary artifact\n(SWARM.md archived/deleted)
 
     DurableReport --> [*]
 ```

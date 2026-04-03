@@ -1,6 +1,6 @@
 # Plugin Ecosystem Comparison
 
-Comparison of **copilot-skills** against [Superpowers](https://github.com/obra/superpowers) and [GSD](https://github.com/gsd-build/get-shit-done).
+Comparison of **agent-orchestration** (`workflow-orchestration` · `sdd-workflow` · `clean-code-codex`) against [Superpowers](https://github.com/obra/superpowers) and [GSD](https://github.com/gsd-build/get-shit-done).
 
 ---
 
@@ -8,11 +8,11 @@ Comparison of **copilot-skills** against [Superpowers](https://github.com/obra/s
 
 ```mermaid
 graph TD
-    subgraph US["copilot-skills (ours)"]
+    subgraph US["agent-orchestration (ours)"]
         direction LR
         US1["clean-code-codex\nsec · tdd · arch · type · naming\nsize · dead · test · obs · dep"]
         US2["sdd-workflow\nsdd.specify · sdd.plan · sdd.tasks"]
-        US3["workflow-orchestration\nplanning · parallel-impl · pr-review · readiness-gate"]
+        US3["workflow-orchestration\nplanning · parallel-impl · swarm-orchestration · pr-review · readiness-gate"]
     end
 
     subgraph SP["Superpowers"]
@@ -50,7 +50,7 @@ flowchart LR
 
     IDEA -. "sdd-feature-workflow auto-activates" .-> US_SPEC["sdd.specify / sdd.plan / sdd.tasks"]
     US_SPEC -.-> US_IMPL["parallel-implementation-loop / planning-orchestration"]
-    US_IMPL -.-> US_QUALITY["clean-code-codex: 64 rules auto-enforced"]
+    US_IMPL -.-> US_QUALITY["clean-code-codex: 65 rules auto-enforced"]
     US_QUALITY -.-> US_REVIEW["pr-review-resolution-loop / final-pr-readiness-gate"]
 
     IDEA -. "brainstorming: Socratic design" .-> SP_SPEC["writing-plans"]
@@ -97,9 +97,9 @@ xychart-beta
     title "Capability Coverage Score (0–5)"
     x-axis ["Spec/\nBrainstorm", "Planning", "Impl\nOrchestration", "Code\nQuality", "Security\nScanning", "Debugging", "Session\nState", "Easy\nInstall", "Platform\nReach", "PR\nWorkflow"]
     y-axis "Score" 0 --> 5
-    bar [3, 4, 4, 5, 5, 0, 1, 1, 2, 5]
-    bar [4, 4, 4, 2, 0, 4, 2, 3, 4, 3]
-    bar [4, 5, 5, 1, 2, 4, 4, 5, 5, 3]
+    bar "agent-orchestration" [3, 4, 4, 5, 5, 0, 1, 1, 2, 5]
+    bar "Superpowers" [4, 4, 4, 2, 0, 4, 2, 3, 4, 3]
+    bar "GSD" [4, 5, 5, 1, 2, 4, 4, 5, 5, 3]
 ```
 
 > **Legend:** Blue = copilot-skills · Orange = Superpowers · Green = GSD
@@ -112,10 +112,12 @@ xychart-beta
 stateDiagram-v2
     direction LR
 
-    state "copilot-skills" as CS {
-        [*] --> Manual: User invokes skill
-        Manual --> sdd_feature: "build a X feature"
-        Manual --> conductor: write / review / refactor
+    state "agent-orchestration" as CS {
+        [*] --> auto_detect: User message matches pattern
+        [*] --> manual_invoke: User invokes skill directly
+        auto_detect --> sdd_feature: auto-activates on feature-request patterns
+        auto_detect --> conductor: auto-activates on write / review / refactor
+        manual_invoke --> swarm: swarm-orchestration / planning-orchestration
         conductor --> checks: routes to 1–10 sub-skills
     }
 

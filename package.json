@@ -13,9 +13,7 @@
   "files": [
     ".github/plugin/",
     ".claude-plugin/",
-    "docs/marketplace-overview.md",
-    "docs/install-guide.md",
-    "docs/plugin-composition.md",
+    "docs/",
     "plugins/",
     "README.md",
     "LICENSE",

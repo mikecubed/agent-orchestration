@@ -11,7 +11,7 @@
     {
       "name": "workflow-orchestration",
       "source": "plugins/workflow-orchestration",
-      "description": "Planning, implementation, review-resolution, and PR-readiness orchestration skills.",
+      "description": "Planning, swarm orchestration, implementation, review-resolution, and PR-readiness orchestration skills.",
       "version": "0.6.0",
       "author": {
         "name": "Michael Henderson"
