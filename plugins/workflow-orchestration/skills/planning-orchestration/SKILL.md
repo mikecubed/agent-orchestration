@@ -152,7 +152,7 @@ Record the chosen mode and rationale in the planning artifact.
 
 At this gate (after the planning mode is chosen and scope is confirmed), write
 `.agent/SESSION.md` with the current session state using the canonical schema
-(`plugins/workflow-orchestration/docs/session-md-schema.md`). Record:
+(`docs/session-md-schema.md`). Record:
 - `current-task`: the overall task description
 - `current-phase`: "requirements-confirmed"
 - `next-action`: the exact next step after this gate

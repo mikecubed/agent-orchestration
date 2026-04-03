@@ -1,7 +1,7 @@
 {
   "name": "workflow-orchestration",
   "version": "0.7.0",
-  "description": "Planning, implementation, review-resolution, PR-readiness, and swarm orchestration skills.",
+  "description": "Planning, implementation, systematic debugging, review-resolution, PR-readiness, and swarm orchestration skills.",
   "type": "module",
   "license": "MIT",
   "private": true,
