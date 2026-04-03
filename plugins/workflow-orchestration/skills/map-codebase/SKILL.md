@@ -179,7 +179,7 @@ The `brief-path` must be recorded in SESSION.md `## Decisions` so downstream ski
 
 Before declaring the mapping complete, confirm ALL of the following. Any failing item blocks the "mapping complete" declaration.
 
-- [ ] All 5 discovery streams returned results — PASS / FAIL
+- [ ] All 5 discovery dimensions were attempted, and each has results or a documented failure note — PASS / FAIL
 - [ ] Brief artifact exists at the recorded path — PASS / FAIL
 - [ ] SESSION.md written with correct phase and brief-path — PASS / FAIL
 - [ ] Brief contains only factual content (no recommendations) — PASS / FAIL
