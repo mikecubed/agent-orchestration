@@ -30,3 +30,16 @@
 - Write skill content in repo-agnostic workflow language. The skills are meant to be reusable across repositories, so avoid baking in project-specific branch names, validation commands, or Hydra-specific assumptions.
 - When extending a skill, keep the separation of responsibilities intact: implementation parallelism, review-resolution, and final readiness are modeled as three separate skills rather than one combined workflow.
 - Prefer plugin-qualified invocation names in docs and examples, such as `/workflow-orchestration:parallel-implementation-loop`, because the README treats plugin namespacing as the normal usage pattern.
+
+## Session continuity — SESSION.md
+
+At the start of every session, check for `.agent/SESSION.md` in the project root.
+
+- **If absent**: proceed normally without mentioning it.
+- **If present and valid**: within the first response turn, announce the session state —
+  current task, current phase, next action, workspace. List active blockers. If blockers
+  are non-empty, ask the developer whether they have been resolved before proceeding.
+- **If present but malformed** (YAML parse error or missing required fields): report the
+  parse failure, ignore the file, and proceed as if it were absent.
+
+Schema reference: `plugins/workflow-orchestration/docs/session-md-schema.md`

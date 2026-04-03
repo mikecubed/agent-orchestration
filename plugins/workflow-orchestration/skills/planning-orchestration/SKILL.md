@@ -148,6 +148,25 @@ Based on the brief, the planner chooses one of these modes:
 
 Record the chosen mode and rationale in the planning artifact.
 
+### SESSION.md write — requirements confirmed
+
+At this gate (after the planning mode is chosen and scope is confirmed), write
+`.agent/SESSION.md` with the current session state using the canonical schema
+(`docs/session-md-schema.md`). Record:
+- `current-task`: the overall task description
+- `current-phase`: "requirements-confirmed"
+- `next-action`: the exact next step after this gate
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 datetime
+- `## Decisions`: decisions confirmed during requirements review (including chosen planning mode)
+- `## Files Touched`: files read so far
+- `## Open Questions`: unresolved questions for the developer
+- `## Blockers`: active blockers (empty if none)
+- `## Failed Hypotheses`: (empty — not applicable for this skill)
+
+If the write fails (permission error, no `.agent/` directory): log a warning and continue.
+The write must not block the skill's primary workflow.
+
 ### 3. Produce the draft plan
 
 If using **SDD-backed planning**, orchestrate:
@@ -223,6 +242,20 @@ A planning session is not complete until:
 - the resulting plan was reviewed for substantive gaps;
 - review found no unresolved substantive planning issues or the remaining issues were explicitly escalated;
 - a durable planning artifact or planning summary was produced.
+
+### Verification checklist — plan accepted
+
+Before marking the planning session complete, confirm ALL of the following.
+
+- [ ] Every stated requirement from the input is explicitly addressed in the output plan — PASS / FAIL
+  (Scan the input against the plan section by section. An unaddressed requirement is
+  a failing item.)
+- [ ] Risks are documented in the plan — PASS / FAIL
+- [ ] Review found no unresolved substantive planning issues — PASS / FAIL
+- [ ] A durable planning artifact or planning summary has been produced — PASS / FAIL
+
+If any item is FAIL: surface the uncovered requirement or unresolved issue.
+Do not mark the plan as accepted.
 
 ## Stop Conditions
 

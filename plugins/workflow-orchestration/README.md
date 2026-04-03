@@ -10,6 +10,8 @@ This plugin provides:
 - `parallel-implementation-loop`
 - `pr-review-resolution-loop`
 - `final-pr-readiness-gate`
+- `swarm-orchestration`
+- `systematic-debugging`
 
 Install locally from the umbrella repo:
 
