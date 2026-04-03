@@ -376,7 +376,7 @@ Before declaring the swarm run done, confirm ALL of the following.
   recorded reason in the swarm summary — PASS / FAIL
   (A track with no convergence record and no abandonment record is a failing item.)
 - [ ] SWARM.md has been deleted or archived — PASS / FAIL
-- [ ] Repository quality gates ran and passed on the synthesised result — PASS / FAIL
+- [ ] Repository quality gates ran and passed on the synthesized result — PASS / FAIL
 
 If any item is FAIL: surface the failing item, state what must be resolved,
 and do not advance to "done."

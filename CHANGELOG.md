@@ -10,7 +10,7 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ### Added
 
-- **D1 — Verification-Before-Completion**: added explicit binary verification checklists to the `## Required Gates` section of all 6 `workflow-orchestration` skills (`planning-orchestration`, `parallel-implementation-loop`, `pr-review-resolution-loop`, `final-pr-readiness-gate`, `swarm-orchestration`). Each checklist uses PASS / FAIL binary conditions and explicitly blocks completion on any failing item — preventing false-positive "done" declarations
+- **D1 — Verification-Before-Completion**: added explicit binary verification checklists to the `## Required Gates` section of all 6 `workflow-orchestration` skills (`planning-orchestration`, `parallel-implementation-loop`, `pr-review-resolution-loop`, `final-pr-readiness-gate`, `swarm-orchestration`, `systematic-debugging`). Each checklist uses PASS / FAIL binary conditions and explicitly blocks completion on any failing item — preventing false-positive "done" declarations
 - **D2 — Session-Start Hook + SESSION.md**: added session continuity infrastructure for both Claude Code and Copilot CLI:
   - `plugins/workflow-orchestration/docs/session-md-schema.md`: canonical SESSION.md schema reference with YAML frontmatter spec, five required markdown sections (`## Decisions`, `## Files Touched`, `## Open Questions`, `## Blockers`, `## Failed Hypotheses`), writer rules, and reader rules including DO-NOT-RETRY semantics for `## Failed Hypotheses`
   - `.claude/hooks/session-start.md`: working Claude Code session-start hook that announces session state, surfaces active blockers, and handles malformed files gracefully
