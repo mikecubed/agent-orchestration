@@ -367,17 +367,19 @@ The SDLC phase analysis above covers *what* developers build. These items from t
 |---|---|---|---|
 | **Map-codebase command** | Parallel multi-agent codebase discovery: architecture tour, dependency graph, hotspots, entry points | `planning-orchestration` has a per-task scout pass but no standalone shareable codebase brief | 🟠 High |
 | **Pause/resume session state** | Persists work-in-progress across conversations; agent picks up exactly where it left off | No session state. Complex work spanning conversations is restarted from scratch. | 🟠 High |
-| **npx / one-line installer** | `npx get-shit-done-cc@latest` — zero friction setup across any machine | Install requires git clone + copy steps. High friction kills adoption. | 🟠 High |
+| **npx / one-line installer** | `npx get-shit-done-cc@latest` — zero friction setup across any machine | Install requires git clone + copy steps. High friction kills adoption. | Post-1.0 |
 | **Runtime hooks** (4 types) | `context-monitor`, `workflow-guard`, `statusline`, `prompt-guard` fire automatically | 8 codex hooks exist but no session-level orchestration hooks | 🟡 Medium |
 
 ### Cross-Cutting: Platform Reach
 
-| Feature | What it does | Our gap | Priority |
+> **Scope note:** Claude Code and GitHub Copilot CLI are the only targets until post-1.0. The items below are documented for completeness but are explicitly deferred.
+
+| Feature | What it does | Our gap | Status |
 |---|---|---|---|
-| **Cursor support** | Skills surfaced in Cursor (`.cursor/rules`) | Only Copilot CLI + Claude Code. 60%+ of AI-coding devs use Cursor. | 🟠 High |
-| **Windsurf support** | Skills surfaced in Windsurf (`windsurf.md`) | Not supported | 🟡 Medium |
-| **Gemini CLI support** | Skills surfaced in Google's Gemini CLI | Not supported. Market expanding fast. | 🟡 Medium |
-| **Versioned plugin packaging** | Semver-locked installs, changelogs surfaced at install | Packaging ships code but version isn't surfaced cleanly to users | 🟡 Medium |
+| **Cursor support** | Skills surfaced in Cursor (`.cursor/rules`) | Only Copilot CLI + Claude Code | Post-1.0 |
+| **Windsurf support** | Skills surfaced in Windsurf (`windsurf.md`) | Not supported | Post-1.0 |
+| **Gemini CLI support** | Skills surfaced in Google's Gemini CLI | Not supported | Post-1.0 |
+| **Versioned plugin packaging** | Semver-locked installs, changelogs surfaced at install | Packaging ships code but version isn't surfaced cleanly to users | Post-1.0 |
 
 ---
 
@@ -418,17 +420,19 @@ graph TD
 
 ## Updated Roadmap — Version Milestones
 
+> **Scope:** Claude Code and GitHub Copilot CLI only. Platform adapters (Cursor, Windsurf, Gemini CLI) and npx installer are post-1.0 work.
+
 ```mermaid
 graph LR
     V06["v0.6.0\ntoday\n5 WO skills\n65 Codex rules\n3 SDD agents"]
 
-    V07["v0.7.0\nRuntime Experience\n+ session-start hook\n+ verification-before-completion hook\n+ systematic-debugging skill\n+ incident-rca skill\n+ docs-check · resilience-check"]
+    V07["v0.7.0\nTrust + Reliability\n+ verification-before-completion\n  (instruction pattern in all skills)\n+ session-start hook + SESSION.md\n+ systematic-debugging skill"]
 
-    V08["v0.8.0\nDiscovery + Contracts\n+ map-codebase command\n+ contract-generator\n+ OpenAPI from spec\n+ E2E test generation\n+ architecture-review skill"]
+    V08["v0.8.0\nContext + Architecture\n+ map-codebase skill\n+ architecture-review skill\n+ context hygiene rule\n+ HANDOFF.json (graduate session state)"]
 
-    V09["v0.9.0\nPlatform + Security\n+ Cursor adapter\n+ npx installer\n+ session state store\n+ iac-check · a11y-check · perf-check\n+ SBOM / supply-chain"]
+    V09["v0.9.0\nQuality Depth\n+ incident-rca skill\n+ E2E test generation (scoped)\n+ iac-check · perf-check\n+ verification codex hook\n  (graduate from pattern)"]
 
-    V10["v1.0.0\nFull SDLC\n+ Windsurf · Gemini CLI\n+ cicd-scaffold\n+ release-orchestration\n+ observability instrumentation\n+ dev-toolkit plugin GA"]
+    V10["v1.0.0\nContracts + Stability\n+ contract-generator\n  (sdd → OpenAPI/schema bridge)\n+ release-orchestration\n+ full SDLC flow closes"]
 
     V06 --> V07 --> V08 --> V09 --> V10
 
@@ -439,57 +443,74 @@ graph LR
     style V10 fill:#4a0f4a,color:#fff
 ```
 
+### Rationale
+
+| Version | Theme | Why this order |
+|---|---|---|
+| v0.7.0 | Trust + Reliability | Correctness and context loss are the #1 daily pain. Every session and every skill output benefits. Lowest implementation risk — hooks and instruction patterns, no fragile artifact generation. |
+| v0.8.0 | Context + Architecture | Once sessions are reliable, the next bottleneck is wrong-direction turns. Upfront codebase understanding and architecture validation prevent expensive rework. |
+| v0.9.0 | Quality Depth | Extends coverage into high-value but lower-frequency concerns. Incident debugging, E2E, IaC security. Graduates verification from instruction pattern to passive codex hook backed by real usage evidence. |
+| v1.0.0 | Contracts + Stability | Contracts close the spec→implementation gap. Release orchestration closes the merge→ship gap. Together they complete the core loop. |
+
+### Deferred Post-1.0
+
+| Item | Reason for deferral |
+|---|---|
+| Cursor / Windsurf / Gemini CLI adapters | Out of scope — Claude Code + Copilot CLI only until post-1.0 |
+| npx / one-line installer | Platform adoption concern; premature before core quality is proven |
+| `cicd-scaffold` | Too fragile and system-specific; high risk of generating broken pipelines |
+| `observability instrumentation generation` | Extremely system-specific; existing tools (OTel SDKs) do this better |
+| `docs-generator` | Low-leverage; rarely the bottleneck in software quality |
+| `onboard-generator` | Useful but not a blocker for any core workflow |
+
 ---
 
 ## What This Unlocks at v1.0.0
 
+Claude Code and GitHub Copilot CLI — full loop from idea to shipped, verified code.
+
 ```mermaid
 flowchart TD
-    IDEA(["💡 Idea"]) --> IDEATION["ideation-facilitation\nproblem validation · constraints · alternatives"]
-    IDEATION --> SPEC["sdd.specify\nformal spec + NFRs + compliance flags"]
+    IDEA(["💡 Idea"]) --> SPEC["sdd.specify\nformal spec + NFRs"]
     SPEC --> CONTRACT["contract-generator\nOpenAPI · JSON Schema · BDD scenarios"]
     CONTRACT --> PLAN["sdd.plan + architecture-review\nADRs · design pattern validation"]
-    PLAN --> IMPL["parallel-implementation-loop / swarm-orchestration\nTDD-gated · codex-enforced"]
-    IMPL --> TEST["E2E test generation\ncontract tests · perf tests · a11y"]
+    PLAN --> IMPL["parallel-implementation-loop / swarm-orchestration\nTDD-gated · codex-enforced · verification gate"]
+    IMPL --> TEST["E2E test generation\ncontract tests · perf tests · iac-check"]
     TEST --> REVIEW["pr-review-resolution-loop\nfinal-pr-readiness-gate"]
-    REVIEW --> RELEASE["release-orchestration\nsemver · changelog · tag · pipeline"]
-    RELEASE --> DEPLOY["cicd-scaffold\nGitHub Actions · K8s · Helm"]
-    DEPLOY --> OBS["observability instrumentation\nstructured logs · spans · metrics · SLOs"]
-    OBS --> INCIDENT["incident-rca\nblameless postmortem · remediation tracking"]
+    REVIEW --> RELEASE["release-orchestration\nsemver · changelog · tag"]
+    RELEASE --> INCIDENT["incident-rca\ndebugging · postmortem · remediation"]
     INCIDENT --> IDEA
 
+    style SPEC fill:#1a5c2a,color:#fff
     style IMPL fill:#1a5c2a,color:#fff
     style REVIEW fill:#1a5c2a,color:#fff
-    style OBS fill:#1a3a5c,color:#fff
     style INCIDENT fill:#3d0f0f,color:#fff
+    style CONTRACT fill:#3d2000,color:#fff
 ```
 
 ---
 
 ## Summary Table
 
-| SDLC Phase | Current Coverage | Gap Severity | Proposed Solution |
+| SDLC Phase | Current Coverage | Gap Severity | Roadmap Target |
 |---|---|---|---|
-| Discovery / Ideation | ❌ None | 🟠 High | `ideation-facilitation` skill |
-| Requirements / Spec | ✅ `sdd.specify` | 🔴 Critical (NFRs, contracts) | `contract-generator` plugin |
-| Architecture / Design | 🟡 Post-hoc only | 🟠 High | `architecture-review` skill |
-| Implementation | ✅ Strong | 🟡 Medium (scaffolding, a11y) | `a11y-check`, `resilience-check` |
-| Testing | 🟡 Unit/TDD only | 🔴 Critical (E2E, perf, contract) | E2E generator, `perf-check` |
-| Code Quality | ✅ Strong (65 rules) | 🟡 Low (complexity, docs) | `docs-check`, complexity scoring |
-| Security | 🟡 Code-level only | 🔴 Critical (IaC, supply chain) | `iac-check`, SBOM, `supply-chain` |
-| Documentation | ❌ None | 🟠 High | `docs-generator` plugin |
-| CI/CD / Deployment | ❌ None | 🟠 High | `cicd-scaffold`, `release-orchestration` |
-| Observability | 🟡 Validation only | 🟠 High | Instrumentation generation |
-| Incident Response | 🟡 Reactive only | 🟠 High | `incident-rca` skill |
-| Dependency Mgmt | ✅ `dep-check` | 🟡 Medium (automation) | Upgrade automation |
-| Onboarding / DX | ❌ None | 🟡 Medium | `onboard-generator` plugin |
-| Refactoring / Debt | 🟡 Diagnosis only | 🟡 Medium | Automated refactoring |
-| Performance | ❌ None | 🔴 Critical | `perf-check`, load test generation |
-| **Session-start hook** | ❌ None | 🔴 High | New hook in `workflow-orchestration` |
-| **Verification-before-completion** | ❌ None | 🔴 High | New codex hook, fires on every response |
-| **Systematic debugging** | ❌ None | 🟠 High | `systematic-debugging` skill |
-| **Map-codebase command** | 🟡 Per-task scout only | 🟠 High | Standalone `map-codebase` command |
-| **Session state (pause/resume)** | ❌ None | 🟠 High | SESSION.md store + skill awareness |
-| **npx / one-line install** | ❌ None | 🟠 High | `npx agent-orchestration@latest` |
-| **Cursor support** | ❌ None | 🟠 High | `.cursor/rules` adapter |
-| **Windsurf / Gemini support** | ❌ None | 🟡 Medium | Platform adapters |
+| Requirements / Spec | ✅ `sdd.specify` | 🔴 Critical (NFRs, contracts) | v1.0.0 `contract-generator` |
+| Architecture / Design | 🟡 Post-hoc only | 🟠 High | v0.8.0 `architecture-review` |
+| Implementation | ✅ Strong | 🟡 Medium | — |
+| Testing | 🟡 Unit/TDD only | 🔴 Critical (E2E, perf, contract) | v0.9.0 E2E generator, `perf-check` |
+| Code Quality | ✅ Strong (65 rules) | 🟡 Low | — |
+| Security | 🟡 Code-level only | 🔴 Critical (IaC) | v0.9.0 `iac-check` |
+| CI/CD / Deployment | ❌ None | 🟡 Low | Post-1.0 (fragile to generate) |
+| Observability | 🟡 Pattern enforcement | 🟡 Low | Post-1.0 (system-specific) |
+| Incident Response | 🟡 Reactive only | 🟠 High | v0.9.0 `incident-rca` |
+| Dependency Mgmt | ✅ `dep-check` | 🟡 Medium | — |
+| Performance | ❌ None | 🔴 Critical | v0.9.0 `perf-check` (runtime) |
+| Documentation | ❌ None | 🟡 Low | Post-1.0 |
+| Onboarding / DX | ❌ None | 🟡 Low | Post-1.0 |
+| **Session-start hook** | ❌ None | 🔴 High | v0.7.0 |
+| **Verification-before-completion** | ❌ None | 🔴 High | v0.7.0 (pattern) · v0.9.0 (hook) |
+| **Systematic debugging** | ❌ None | 🟠 High | v0.7.0 |
+| **Map-codebase** | 🟡 Per-task scout only | 🟠 High | v0.8.0 |
+| **Session state (pause/resume)** | ❌ None | 🟠 High | v0.7.0 SESSION.md · v0.8.0 HANDOFF.json |
+| **Cursor / Windsurf / Gemini** | ❌ None | — | Post-1.0 (out of scope) |
+| **npx installer** | ❌ None | — | Post-1.0 (out of scope) |
