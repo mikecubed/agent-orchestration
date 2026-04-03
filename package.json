@@ -1,6 +1,6 @@
 {
   "name": "agent-orchestration",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Umbrella marketplace for workflow orchestration and spec-driven development plugins.",
   "type": "module",
   "license": "MIT",
@@ -13,9 +13,7 @@
   "files": [
     ".github/plugin/",
     ".claude-plugin/",
-    "docs/marketplace-overview.md",
-    "docs/install-guide.md",
-    "docs/plugin-composition.md",
+    "docs/",
     "plugins/",
     "README.md",
     "LICENSE",
