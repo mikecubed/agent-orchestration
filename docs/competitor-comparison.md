@@ -61,20 +61,20 @@ flowchart LR
     QUALITY --> REVIEW["Code\nReview"]
     REVIEW --> MERGE["Merge /\nShip"]
 
-    IDEA -. "sdd-feature-workflow\nauto-activates" .-> US_SPEC["sdd.specify\nsdd.plan\nsdd.tasks"]
-    US_SPEC -. "" .-> US_IMPL["parallel-implementation-loop\nplanning-orchestration"]
-    US_IMPL -. "" .-> US_QUALITY["🔷 clean-code-codex\n64 rules auto-enforced"]
-    US_QUALITY -. "" .-> US_REVIEW["pr-review-resolution-loop\nfinal-pr-readiness-gate"]
+    IDEA -. "sdd-feature-workflow auto-activates" .-> US_SPEC["sdd.specify / sdd.plan / sdd.tasks"]
+    US_SPEC -.-> US_IMPL["parallel-implementation-loop / planning-orchestration"]
+    US_IMPL -.-> US_QUALITY["clean-code-codex: 64 rules auto-enforced"]
+    US_QUALITY -.-> US_REVIEW["pr-review-resolution-loop / final-pr-readiness-gate"]
 
-    IDEA -. "brainstorming\nSocratic design" .-> SP_SPEC["writing-plans"]
-    SP_SPEC -. "" .-> SP_IMPL["subagent-driven-development\nusing-git-worktrees"]
-    SP_IMPL -. "test-driven-development\nverification-before-completion" .-> SP_QUALITY["⚠️ No enforcement\nrules"]
-    SP_QUALITY -. "" .-> SP_REVIEW["requesting-code-review\nreceiving-code-review\nfinishing-a-development-branch"]
+    IDEA -. "brainstorming: Socratic design" .-> SP_SPEC["writing-plans"]
+    SP_SPEC -.-> SP_IMPL["subagent-driven-development / using-git-worktrees"]
+    SP_IMPL -. "test-driven-development / verification-before-completion" .-> SP_QUALITY["No enforcement rules"]
+    SP_QUALITY -.-> SP_REVIEW["requesting-code-review / receiving-code-review / finishing-a-development-branch"]
 
-    IDEA -. "new-project\ndiscuss-phase" .-> GSD_SPEC["plan-phase\nresearch-phase"]
-    GSD_SPEC -. "map-codebase\nwave execution" .-> GSD_IMPL["execute-phase\nautonomous"]
-    GSD_IMPL -. "validate-phase\nverify-work" .-> GSD_QUALITY["⚠️ No enforcement\nrules"]
-    GSD_QUALITY -. "" .-> GSD_REVIEW["review\npr-branch\nship"]
+    IDEA -. "new-project / discuss-phase" .-> GSD_SPEC["plan-phase / research-phase"]
+    GSD_SPEC -. "map-codebase / wave execution" .-> GSD_IMPL["execute-phase / autonomous"]
+    GSD_IMPL -. "validate-phase / verify-work" .-> GSD_QUALITY["No enforcement rules"]
+    GSD_QUALITY -.-> GSD_REVIEW["review / pr-branch / ship"]
 
     style US_QUALITY fill:#1a5c2a,color:#fff
     style SP_QUALITY fill:#5c1a1a,color:#fff
