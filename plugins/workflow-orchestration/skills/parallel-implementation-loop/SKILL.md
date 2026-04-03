@@ -355,6 +355,22 @@ A track is not complete until:
 - review found no unresolved substantive issues;
 - a durable track report artifact has been updated to reflect the final track state (see `docs/workflow-artifact-templates.md` for the template).
 
+### SESSION.md write — track merged
+
+At this gate (per track, after the track gate passes), write `.agent/SESSION.md`. Record:
+- `current-task`: the overall batch task description
+- `current-phase`: "track-[N]-merged" (substitute the track number or name)
+- `next-action`: the next pending track or "run integration gate" if all tracks are merged
+- `workspace`: the integration target branch
+- `last-updated`: current ISO-8601 datetime
+- `## Decisions`: which tracks are merged, which are pending
+- `## Files Touched`: files merged in this track
+- `## Open Questions`: any open questions from the track review
+- `## Blockers`: active blockers (empty if none)
+- `## Failed Hypotheses`: (empty — not applicable for this skill)
+
+If the write fails: log a warning and continue. Do not block track completion.
+
 ### Batch gate
 
 The batch is not complete until:
@@ -364,6 +380,24 @@ The batch is not complete until:
 - the final readiness workflow has run on the stable integrated diff;
 - temporary work surfaces are cleaned up or explicitly retained;
 - a durable batch summary artifact has been produced that captures merged tracks, retained or abandoned tracks, validations run, and unresolved follow-ups (see `docs/workflow-artifact-templates.md` for the template).
+
+### Verification checklist — batch complete
+
+Before declaring the batch complete, confirm ALL of the following.
+Any failing item blocks the "batch complete" declaration.
+
+**Track merge gate (per track)**
+- [ ] Track branch is merged to the integration target — PASS / FAIL
+- [ ] Track-local validation commands ran and exited 0 — PASS / FAIL
+- [ ] Changed files are within the track's declared scope (no out-of-scope files modified) — PASS / FAIL
+
+**Integration gate (whole batch)**
+- [ ] Integration validation commands ran on the combined branch and exited 0 — PASS / FAIL
+- [ ] No previously-passing tests now fail on the integrated branch — PASS / FAIL
+- [ ] Durable batch summary artifact has been produced — PASS / FAIL
+
+If any item is FAIL: report the failing item(s) by name, state what must be done to
+resolve each, and do not advance past the gate.
 
 ## Stop Conditions
 

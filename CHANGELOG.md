@@ -6,6 +6,23 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-04-04
+
+### Added
+
+- **D1 — Verification-Before-Completion**: added explicit binary verification checklists to the `## Required Gates` section of all 6 `workflow-orchestration` skills (`planning-orchestration`, `parallel-implementation-loop`, `pr-review-resolution-loop`, `final-pr-readiness-gate`, `swarm-orchestration`). Each checklist uses PASS / FAIL binary conditions and explicitly blocks completion on any failing item — preventing false-positive "done" declarations
+- **D2 — Session-Start Hook + SESSION.md**: added session continuity infrastructure for both Claude Code and Copilot CLI:
+  - `plugins/workflow-orchestration/docs/session-md-schema.md`: canonical SESSION.md schema reference with YAML frontmatter spec, five required markdown sections (`## Decisions`, `## Files Touched`, `## Open Questions`, `## Blockers`, `## Failed Hypotheses`), writer rules, and reader rules including DO-NOT-RETRY semantics for `## Failed Hypotheses`
+  - `.claude/hooks/session-start.md`: working Claude Code session-start hook that announces session state, surfaces active blockers, and handles malformed files gracefully
+  - `.github/copilot-instructions.md` session continuity section: equivalent Copilot CLI behavior (absent / valid / malformed branches)
+  - SESSION.md write points added to `planning-orchestration` (after requirements confirmed), `parallel-implementation-loop` (per-track merged), `pr-review-resolution-loop` (triage complete + per fix-batch complete), and `swarm-orchestration` (per topology-phase converged)
+  - `.gitignore` exclusion for `.agent/SESSION.md` (runtime artifact, not version-controlled)
+- **D3 — Systematic Debugging Skill**: new `systematic-debugging` skill with four structured phases (hypothesis → reproduce → isolate → fix), mandatory context-hygiene pause-and-resume after `max-failed-attempts` (default: 3) failed hypotheses, DO-NOT-RETRY enforcement for `## Failed Hypotheses`, SESSION.md writes at all five phase boundaries, and durable debugging summary requirement
+
+### Changed
+
+- bumped `workflow-orchestration` plugin, umbrella package, and all marketplace manifests to `0.7.0`
+
 ## [0.6.0] - 2026-04-02
 
 ### Added

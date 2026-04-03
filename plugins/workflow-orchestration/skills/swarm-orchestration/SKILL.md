@@ -257,6 +257,23 @@ After all domain agents complete or stop:
 4. update SWARM.md convergence log;
 5. if full convergence is not reached within the maximum rounds, escalate to the developer.
 
+### SESSION.md write — topology phase converged
+
+At this gate (per topology phase, after convergence is reached or escalated), write
+`.agent/SESSION.md`. Record:
+- `current-task`: the overall swarm goal description
+- `current-phase`: "phase-[N]-converged" (substitute the phase name or number)
+- `next-action`: "begin next topology phase or run swarm completion gate"
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 datetime
+- `## Decisions`: convergence decisions — resolved gaps, escalated conflicts, topology adjustments
+- `## Files Touched`: files touched by domain agents in this phase
+- `## Open Questions`: interface conflicts or gaps escalated to the developer
+- `## Blockers`: active blockers (empty if none)
+- `## Failed Hypotheses`: hypotheses tried and ruled out during reconciliation
+
+If the write fails: log a warning and continue. Do not block convergence completion.
+
 ### 7. Synthesize
 
 Dispatch the synthesizer with:
@@ -349,6 +366,20 @@ The swarm run is not complete until:
 - final readiness workflow ran on the stable diff;
 - the durable swarm summary artifact has been produced;
 - SWARM.md has been deleted or archived from the scratch location.
+
+### Verification checklist — swarm run complete
+
+Before declaring the swarm run done, confirm ALL of the following.
+
+- [ ] A durable swarm summary artifact was produced and committed to the appropriate sink — PASS / FAIL
+- [ ] Every agent track either converged successfully OR was explicitly abandoned with a
+  recorded reason in the swarm summary — PASS / FAIL
+  (A track with no convergence record and no abandonment record is a failing item.)
+- [ ] SWARM.md has been deleted or archived — PASS / FAIL
+- [ ] Repository quality gates ran and passed on the synthesised result — PASS / FAIL
+
+If any item is FAIL: surface the failing item, state what must be resolved,
+and do not advance to "done."
 
 ## Stop Conditions
 

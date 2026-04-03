@@ -91,6 +91,7 @@ describe('workflow-orchestration skills layout', () => {
     'pr-review-resolution-loop',
     'final-pr-readiness-gate',
     'swarm-orchestration',
+    'systematic-debugging',
   ];
 
   for (const skill of skills) {
@@ -137,6 +138,7 @@ describe('workflow-orchestration package contents', () => {
       'pr-review-resolution-loop',
       'final-pr-readiness-gate',
       'swarm-orchestration',
+      'systematic-debugging',
     ]) {
       assert.ok(files.includes(`skills/${skill}/SKILL.md`));
     }

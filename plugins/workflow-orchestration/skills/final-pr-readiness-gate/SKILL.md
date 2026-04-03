@@ -269,6 +269,27 @@ A final readiness pass is not complete until:
 - an explicit readiness verdict was produced;
 - a durable readiness report following `docs/workflow-artifact-templates.md` has been published.
 
+### Verification checklist — readiness verdict
+
+Before issuing a readiness verdict, confirm ALL of the following.
+
+**CI state gate**
+- [ ] All CI checks are in a terminal state (passed or failed) — none are pending — PASS / FAIL
+  If any check is still pending: block and instruct the developer to wait for all checks
+  to settle before the skill produces a verdict.
+
+**Review state gate**
+- [ ] No unresolved review comments exist on the PR — PASS / FAIL
+  (A comment is "unresolved" if it has not been replied to or marked resolved.
+  If human confirmation is needed, pause and ask — do not auto-pass.)
+
+**Diff integrity gate**
+- [ ] The diff matches the stated intent of the PR description — PASS / FAIL
+  (This item requires human confirmation. Pause and ask the developer before marking PASS.)
+
+If any item is FAIL or requires human confirmation: surface the item, ask what is needed,
+and do not issue a "ready to merge" verdict until all items are PASS.
+
 ## Stop Conditions
 
 - the review surface is still changing materially;

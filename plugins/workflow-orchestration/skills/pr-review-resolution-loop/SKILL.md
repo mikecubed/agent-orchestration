@@ -173,6 +173,22 @@ Process accepted items in this default priority order:
 5. architecture concerns;
 6. lower-priority polish.
 
+### SESSION.md write — triage complete
+
+At this gate (after all review items are triaged), write `.agent/SESSION.md`. Record:
+- `current-task`: the overall PR review task description
+- `current-phase`: "triage-complete"
+- `next-action`: "begin fix batch 1"
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 datetime
+- `## Decisions`: triage decisions (accepted, declined, clarify-first) per item
+- `## Files Touched`: files read so far
+- `## Open Questions`: items needing developer clarification
+- `## Blockers`: active blockers (empty if none)
+- `## Failed Hypotheses`: (empty — not applicable for this skill)
+
+If the write fails: log a warning and continue. Do not block triage completion.
+
 ### 3. Batch independent fixes when safe
 
 If multiple accepted fixes are independent:
@@ -321,6 +337,22 @@ A fix is not complete until:
 - review finds no unresolved substantive issue;
 - touched files stay scoped to the real concern.
 
+### SESSION.md write — fix batch complete
+
+At this gate (per fix batch, after the fix gate passes), write `.agent/SESSION.md`. Record:
+- `current-task`: the overall PR review task description
+- `current-phase`: "fix-batch-[N]-complete" (substitute the batch number)
+- `next-action`: "begin next fix batch or run post-fix validation"
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 datetime
+- `## Decisions`: which items were fixed in this batch, which remain pending
+- `## Files Touched`: files changed in this fix batch
+- `## Open Questions`: any open questions from the fix review
+- `## Blockers`: active blockers (empty if none)
+- `## Failed Hypotheses`: (empty — not applicable for this skill)
+
+If the write fails: log a warning and continue. Do not block fix batch completion.
+
 ### Review batch gate
 
 The batch is not complete until:
@@ -330,6 +362,23 @@ The batch is not complete until:
 - the final readiness workflow has been run;
 - a durable review-resolution summary has been published using the template from `docs/workflow-artifact-templates.md`;
 - remaining issues are explicitly reported.
+
+### Verification checklist — resolution loop complete
+
+Before declaring the resolution loop done, confirm ALL of the following.
+
+**Per-thread gate**
+- [ ] Every review thread has a recorded resolution state: ACCEPTED or DECLINED — PASS / FAIL
+  (A thread with no recorded state is a failing item — silent declines are not permitted.)
+- [ ] Declined threads have a recorded reason visible in the resolution artifact — PASS / FAIL
+
+**Post-fix gate**
+- [ ] Post-fix validation ran on the final diff and exited 0 — PASS / FAIL
+- [ ] No previously-passing tests now fail — PASS / FAIL
+- [ ] Durable resolution summary artifact has been produced — PASS / FAIL
+
+If any item is FAIL: list the unresolved thread IDs or failing validation output.
+Do not declare the loop done.
 
 ## Stop Conditions
 
