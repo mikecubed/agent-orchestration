@@ -160,9 +160,18 @@ Based on the brief, form a ranked list of hypotheses ordered by:
 Announce the hypothesis list to the developer before testing any hypothesis. Allow the
 developer to add, remove, or reorder before proceeding.
 
-Write `.agent/SESSION.md` at the end of this phase:
+Write `.agent/SESSION.md` at the end of this phase as a complete, schema-compliant
+document (see `docs/session-md-schema.md`). All five YAML frontmatter fields are required
+on every write — do not write a partial file:
+- `current-task`: the bug description being investigated
 - `current-phase`: `"hypothesis"`
-- `next-action`: "begin reproduction"
+- `next-action`: `"begin reproduction"`
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 timestamp
+
+Include all five `##` sections (`Decisions`, `Files Touched`, `Open Questions`, `Blockers`,
+`Failed Hypotheses`), updating each with the current session state. An empty body is
+acceptable for sections with nothing to record yet.
 
 ### Phase 2 — Reproduce
 
@@ -174,9 +183,18 @@ Attempt to reproduce the bug using the top hypothesis.
    hypothesis ruled out, and return to Phase 1 to form the next hypothesis.
 4. If reproducible: proceed to Phase 3.
 
-Write `.agent/SESSION.md` at the end of this phase:
+Write `.agent/SESSION.md` at the end of this phase as a complete, schema-compliant
+document (see `docs/session-md-schema.md`). All five YAML frontmatter fields are required
+on every write — do not write a partial file:
+- `current-task`: the bug description being investigated
 - `current-phase`: `"reproduce"`
-- `next-action`: "begin isolation"
+- `next-action`: `"begin isolation"`
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 timestamp
+
+Include all five `##` sections (`Decisions`, `Files Touched`, `Open Questions`, `Blockers`,
+`Failed Hypotheses`), updating each with the current session state. An empty body is
+acceptable for sections with nothing to record yet.
 
 ### Phase 3 — Isolate
 
@@ -191,9 +209,18 @@ Narrow the reproduction to the smallest failing case:
 5. If `max-failed-attempts` is reached: trigger the **context-hygiene cycle** (see Core
    Rules §3) before continuing.
 
-Write `.agent/SESSION.md` at the end of this phase:
+Write `.agent/SESSION.md` at the end of this phase as a complete, schema-compliant
+document (see `docs/session-md-schema.md`). All five YAML frontmatter fields are required
+on every write — do not write a partial file:
+- `current-task`: the bug description being investigated
 - `current-phase`: `"isolate"`
-- `next-action`: "form fix proposal"
+- `next-action`: `"form fix proposal"`
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 timestamp
+
+Include all five `##` sections (`Decisions`, `Files Touched`, `Open Questions`, `Blockers`,
+`Failed Hypotheses`), updating each with the current session state. An empty body is
+acceptable for sections with nothing to record yet.
 
 ### Phase 4 — Fix
 
@@ -207,9 +234,18 @@ Write `.agent/SESSION.md` at the end of this phase:
 5. Write a root-cause note to `.agent/SESSION.md` `## Decisions`.
 6. Commit the fix with a message that names the root cause.
 
-Write `.agent/SESSION.md` at the end of this phase:
+Write `.agent/SESSION.md` at the end of this phase as a complete, schema-compliant
+document (see `docs/session-md-schema.md`). All five YAML frontmatter fields are required
+on every write — do not write a partial file:
+- `current-task`: the bug description being investigated
 - `current-phase`: `"fix-complete"`
-- `next-action`: "done"
+- `next-action`: `"done"`
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 timestamp
+
+Include all five `##` sections (`Decisions`, `Files Touched`, `Open Questions`, `Blockers`,
+`Failed Hypotheses`), updating each with the current session state including the root-cause
+note in `## Decisions`. An empty body is acceptable for sections with nothing to record.
 
 If the proposed fix does not resolve the bug: do not mark the hypothesis as confirmed.
 Increment the failed-attempt counter, record the failed fix attempt in `## Failed Hypotheses`,
@@ -219,9 +255,20 @@ and return to Phase 1.
 
 When triggered (failed-attempt counter = `max-failed-attempts`):
 
-Write `.agent/SESSION.md` with `current-phase: "context-hygiene-pause"` and all current
-state. Announce the pause. Begin a fresh session loading only the allowed context (see Core
-Rules §3). The fresh session MUST NOT re-attempt any hypothesis in `## Failed Hypotheses`.
+Write `.agent/SESSION.md` as a complete, schema-compliant document (see
+`docs/session-md-schema.md`) — do not write a partial file. All five YAML frontmatter
+fields are required:
+- `current-task`: the bug description being investigated
+- `current-phase`: `"context-hygiene-pause"`
+- `next-action`: `"resume in fresh session — load confirmed steps + Failed Hypotheses only"`
+- `workspace`: the active branch or PR reference
+- `last-updated`: current ISO-8601 timestamp
+
+Include all five `##` sections (`Decisions`, `Files Touched`, `Open Questions`, `Blockers`,
+`Failed Hypotheses`), populating `## Failed Hypotheses` with every ruled-out hypothesis
+(DO-NOT-RETRY). Announce the pause. Begin a fresh session loading only the allowed context
+(see Core Rules §3). The fresh session MUST NOT re-attempt any hypothesis in
+`## Failed Hypotheses`.
 
 ## Required Gates
 
