@@ -26,6 +26,28 @@ loads only the sub-skills required for that specific session.
 
 ---
 
+## 0. IaC Dialect Detection (Pre-Language Gate)
+
+Before running language detection, check whether the target files are
+Infrastructure-as-Code. IaC files bypass the 5-language gate and route
+directly to `iac-check`.
+
+**IaC file indicators**:
+- `.tf`, `.tfvars` → Terraform HCL
+- `.yaml` / `.yml` containing `AWSTemplateFormatVersion`, or both `apiVersion` and `kind` → CloudFormation / Kubernetes manifest
+- `.json` containing `AWSTemplateFormatVersion` → CloudFormation JSON
+
+**Routing rules**:
+1. If IaC indicators are detected AND operation is `security` or `review`:
+   skip language detection entirely → load `iac-check` (and any other checks
+   from the dispatch table for that operation).
+2. If IaC indicators are detected AND operation is `write`:
+   `iac-check` does not apply to write operations — fall through to normal
+   language detection below.
+3. If no IaC indicators are found: proceed to language detection as normal.
+
+---
+
 ## 1. Language Detection
 
 Detect language **in this priority order** before loading any check:
