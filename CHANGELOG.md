@@ -6,6 +6,28 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-04-04
+
+### Added (workflow-orchestration 1.0.0)
+
+- **`contract-generator` skill**: derives machine-readable contracts from a `spec.md` or
+  natural-language endpoint description. Emits `openapi.yaml` (OpenAPI 3.x) with `x-fr-id`
+  annotations, `schema/{EntityName}.json` (JSON Schema draft-07/2020-12) per domain entity,
+  and `features/{feature-name}.feature` (Gherkin) per acceptance scenario. Produces a
+  durable `contracts-summary.md` artifact recording FR-ID mapping results and any
+  low-confidence extractions. Integrates between `sdd.specify` and `sdd.plan` in the SDLC
+  flow. Output defaults to `.sdd/{feature-dir}/contracts/`.
+- **`release-orchestration` skill**: automates the full release pipeline — conventional
+  commit semver calculation (`feat:` → minor, `fix:` → patch, breaking footer → major),
+  `CHANGELOG.md` update in the project's existing dated-section format, git tag creation,
+  and optional GitHub release creation. Supports explicit `--version` override and
+  `--create-release` flag. Emits a durable `release-summary.md` artifact at every
+  invocation. Duplicate-tag detection halts the skill before any state mutation.
+- **Version sync**: workflow-orchestration bumped from `0.9.0` to `1.0.0` across all five
+  manifest and marketplace files (`plugin.json`, `.claude-plugin/plugin.json`,
+  `package.json`, `.github/plugin/marketplace.json`, `.claude-plugin/marketplace.json`).
+  Umbrella `metadata.version` updated to `1.0.0`.
+
 ## [0.9.0] - 2026-04-03
 
 ### Added (workflow-orchestration 0.9.0)

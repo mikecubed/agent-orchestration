@@ -145,3 +145,22 @@ Use a committed artifact when:
 - the result is part of the repository's durable design or review history.
 
 Do not commit the artifact when it is only scratch work for a single local session.
+
+## Contracts summary
+
+Use for `contract-generator`.
+
+```text
+Feature dir: <.sdd/{feature-dir}/>
+Spec input: <path to spec.md or natural-language description>
+Generated: <ISO 8601 timestamp>
+Output files:
+- openapi.yaml: <generated | skipped — reason>
+- schema/<EntityName>.json: <list of files generated>
+- features/<feature-name>.feature: <list of files generated>
+FR-IDs mapped: <count> — <FR-001, FR-002, ...>
+FR-IDs unresolved: <count> — <FR-004 (domain rule, no endpoint), ...>
+Low-confidence extractions:
+- <section name> | <reason> | <output annotation>
+Regenerated from prior run: <yes | no>
+```

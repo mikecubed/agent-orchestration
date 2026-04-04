@@ -97,6 +97,8 @@ describe('workflow-orchestration skills layout', () => {
     'brainstorm-ideation',
     'incident-rca',
     'e2e-test-generation',
+    'contract-generator',
+    'release-orchestration',
   ];
 
   for (const skill of skills) {
@@ -149,6 +151,8 @@ describe('workflow-orchestration package contents', () => {
       'brainstorm-ideation',
       'incident-rca',
       'e2e-test-generation',
+      'contract-generator',
+      'release-orchestration',
     ]) {
       assert.ok(files.includes(`skills/${skill}/SKILL.md`));
     }
