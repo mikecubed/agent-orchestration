@@ -36,7 +36,8 @@ loop body, causing O(n) queries for a list of n items.
    - `items.map(async item => await repo.findBy(item.id))`
 3. Python: `for item in items:` with `session.query(...)` or `Model.objects.get()`
    inside the loop body
-4. Go: `for _, item := range items` with `db.QueryRow()` or `db.Query()` inside
+4. Go: `for _, item := range items` with `db.QueryRow()` or `db.Query()`
+   inside the loop body
 
 **agent_action**:
 1. Cite: `PERF-1 (BLOCK): N+1 query pattern at {file}:{line_range} — '{pattern}' called inside loop.`

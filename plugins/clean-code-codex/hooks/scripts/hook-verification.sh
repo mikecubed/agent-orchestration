@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # hook-verification.sh — PostToolUse Write/Edit
-# Checks whether validation was run since the last code change.
+# Fires on each Write/Edit. Blocks if validation has not run since the
+# write before this one (i.e., enforces: validate between consecutive
+# edits). The first edit after validation is always allowed; only the
+# second consecutive unvalidated edit triggers a block.
 # Exits non-zero with guidance if validation is overdue.
 # Exits 0 silently if validation is current.
 # Exits 0 with a warning on infrastructure failures (fail-open).
@@ -17,7 +20,34 @@ REPO_ROOT="$(git -C "${HOOK_WORKING_DIR:-.}" rev-parse --show-toplevel 2>/dev/nu
   exit 0
 }
 
-_REPO_HASH="$(echo "$REPO_ROOT" | sha256sum | cut -c1-12)"
+# --- Helper: compute a portable repo hash ---
+compute_repo_hash() {
+  local input="$1"
+  local hash=""
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    hash="$(printf '%s' "$input" | sha256sum 2>/dev/null | awk '{print $1}')" || true
+  elif command -v shasum >/dev/null 2>&1; then
+    hash="$(printf '%s' "$input" | shasum -a 256 2>/dev/null | awk '{print $1}')" || true
+  elif command -v python3 >/dev/null 2>&1; then
+    hash="$(python3 -c "
+import hashlib, sys
+print(hashlib.sha256(sys.argv[1].encode('utf-8')).hexdigest())
+" "$input" 2>/dev/null)" || true
+  fi
+
+  if [[ "$hash" =~ ^[0-9a-fA-F]{12,}$ ]]; then
+    printf '%s\n' "${hash:0:12}"
+    return 0
+  fi
+
+  return 1
+}
+
+_REPO_HASH="$(compute_repo_hash "$REPO_ROOT")" || {
+  echo "[codex:verification] WARNING: Cannot compute repo hash; skipping gate." >&2
+  exit 0
+}
 STATE_FILE="${TMPDIR:-/tmp}/codex-verify-${_REPO_HASH}.state"
 
 # --- Helper: find validation commands ---

@@ -308,6 +308,13 @@ test.describe('DELETE /api/payments/refund/:id', () => {
     expect(response.status()).toBe(200);
   });
 
+  test('returns 400 for invalid refund ID', async ({ request }) => {
+    const response = await request.delete('/api/payments/refund/invalid-id!', {
+      headers: { 'x-api-key': process.env.TEST_API_KEY, 'x-role': 'admin' },
+    });
+    expect(response.status()).toBe(400);
+  });
+
   test('returns 403 without admin role', async ({ request }) => {
     const response = await request.delete('/api/payments/refund/charge_123', {
       headers: { 'x-api-key': process.env.TEST_API_KEY, 'x-role': 'viewer' },
@@ -334,8 +341,8 @@ Reviewer confirms: all files syntactically valid, all seams covered.
 |--------------------------------|------------|------------|---------------|
 | POST /api/payments/charge      | ✓          | ✓ (400)    | ✓ (401)       |
 | GET /api/payments/status/:id   | ✓          | ✓ (404)    | —             |
-| DELETE /api/payments/refund/:id | ✓          | —          | ✓ (403)       |
+| DELETE /api/payments/refund/:id | ✓          | ✓ (400)    | ✓ (403)       |
 
-**Total:** 3 endpoints × 2–3 scenarios = 7 test cases scaffolded.
+**Total:** 3 endpoints × 2–3 scenarios = 8 test cases scaffolded.
 **Gaps:** None.
 ```

@@ -25,7 +25,10 @@ print(ti.get('command', ti.get('cmd', '')))
 
 # Only act on validation commands
 case "$TOOL_COMMAND" in
-  *"npm test"*|*"npm run validate:plugin"*|*"npm run validate "*)
+  # Matches: npm test, npm run validate, npm run validate:plugin,
+  # npm run validate:runtime, etc. The hook is advisory/fail-open so
+  # a slight over-match (e.g. npm run validate-schema) is acceptable.
+  *"npm test"*|*"npm run validate"*)
     ;;
   *)
     exit 0
@@ -34,7 +37,35 @@ esac
 
 # Determine repo root and state file (same logic as hook-verification.sh)
 REPO_ROOT="$(git -C "${HOOK_WORKING_DIR:-.}" rev-parse --show-toplevel 2>/dev/null)" || exit 0
-_REPO_HASH="$(echo "$REPO_ROOT" | sha256sum | cut -c1-12)"
+
+# --- Helper: compute a portable repo hash ---
+compute_repo_hash() {
+  local input="$1"
+  local hash=""
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    hash="$(printf '%s' "$input" | sha256sum 2>/dev/null | awk '{print $1}')" || true
+  elif command -v shasum >/dev/null 2>&1; then
+    hash="$(printf '%s' "$input" | shasum -a 256 2>/dev/null | awk '{print $1}')" || true
+  elif command -v python3 >/dev/null 2>&1; then
+    hash="$(python3 -c "
+import hashlib, sys
+print(hashlib.sha256(sys.argv[1].encode('utf-8')).hexdigest())
+" "$input" 2>/dev/null)" || true
+  fi
+
+  if [[ "$hash" =~ ^[0-9a-fA-F]{12,}$ ]]; then
+    printf '%s\n' "${hash:0:12}"
+    return 0
+  fi
+
+  return 1
+}
+
+_REPO_HASH="$(compute_repo_hash "$REPO_ROOT")" || {
+  echo "[codex:validation-record] WARNING: Cannot compute repo hash; skipping." >&2
+  exit 0
+}
 STATE_FILE="${TMPDIR:-/tmp}/codex-verify-${_REPO_HASH}.state"
 
 # Check whether the validation command succeeded before recording.
