@@ -11,7 +11,7 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 ### Added (workflow-orchestration 1.1.0)
 
 - **HANDOFF.json machine-readable session state**: companion to `.agent/SESSION.md`.
-  Full schema documented in `docs/session-md-schema.md`. Writer/reader rules added to
+  Full schema documented in `plugins/workflow-orchestration/docs/session-md-schema.md`. Writer/reader rules added to
   `.claude/hooks/session-start.md` and `.github/copilot-instructions.md`. Absent or
   malformed `SESSION.md` now routes through HANDOFF.json fallback before proceeding
   normally. `.agent/HANDOFF.json` added to `.gitignore`.
