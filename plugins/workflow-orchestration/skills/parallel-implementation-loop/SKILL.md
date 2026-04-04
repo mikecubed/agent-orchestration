@@ -33,7 +33,7 @@ Before you start, identify:
 - the integration branch and final review target;
 - the validation commands for each track;
 - the repository's testing and quality gates;
-- the approved branch, worktree, or sandbox strategy;
+- the worktree path for each parallel track (required when launching ≥2 tracks simultaneously);
 - any local rules for opening draft pull requests or track branches;
 - the maximum revision rounds per track before escalation (default: 2).
 
@@ -209,14 +209,23 @@ Skip reason: <if discovery was skipped, why>
 
 **Skip condition**: Skip the scout when the task is already narrow and fully scoped — one file, one well-defined bug fix, one known test failure, or one already-triaged review comment. When skipped, record the skip reason in the brief.
 
-### 3. Launch implementation tracks
+### 3. Pre-flight gate (parallel tracks only)
+
+Before launching any agents, verify:
+
+- every track has a dedicated work surface at a unique path — Copilot CLI: `git worktree add ../wt-{track} {branch}`; Claude Code: Agent tool with `isolation: "worktree"`;
+- no two tracks share the same working tree.
+
+**Do not launch any agent until all worktrees exist and paths are confirmed.**
+
+### 4. Launch implementation tracks
 
 For each track:
 
 1. choose the execution mode:
    - standard scoped agents by default;
    - Fleet or agent-team mode only for explicitly approved, high-leverage tracks;
-2. create an isolated work surface if the repository uses them;
+2. create or confirm the dedicated worktree for this track (from the pre-flight gate above);
 3. create or update a durable track report using the template shape in `docs/workflow-artifact-templates.md`, initializing the known fields:
    - track name;
    - owned tasks;
@@ -226,20 +235,21 @@ For each track:
    - work surface;
    - current state;
    - next action.
-4. provide the implementer with:
+3. provide the implementer with:
    - exact task IDs;
    - exact files or modules;
+   - worktree path to operate in;
    - TDD expectations;
    - reuse constraints;
    - validation commands;
    - instruction to stay within scope;
-5. require the track to report:
+4. require the track to report:
    - files changed;
    - tests added or updated;
    - validation performed;
    - uncertainties or blockers.
 
-### 4. Coordinator progress and rescue policy
+### 5. Coordinator progress and rescue policy
 
 After launching tracks, the coordinator monitors each track through a bounded lifecycle of budget transitions. This policy prevents silent stalls and ensures partial work is never lost.
 
@@ -262,7 +272,7 @@ After launching tracks, the coordinator monitors each track through a bounded li
 
 The coordinator re-evaluates budget status after every delegation round. Do not wait for a track to go fully silent before checking.
 
-### 5. Review each completed track
+### 6. Review each completed track
 
 After a track finishes:
 
@@ -278,7 +288,7 @@ Do not spend review budget on style-only nits.
 
 Update the track report after review so it records the current state, validation outcome, unresolved issues, and next action before moving to revision or integration.
 
-### 6. Revise if needed
+### 7. Revise if needed
 
 If the reviewer finds real issues:
 
@@ -306,7 +316,7 @@ When a convergence rule fires, record the trigger, the action taken, and the out
 
 When a resend or rescue occurs, update the track report's state, revision rounds, rescue history, unresolved issues, and next action so the final track gate has a durable record of what changed.
 
-### 7. Integrate tracks carefully
+### 8. Integrate tracks carefully
 
 When tracks are ready:
 
@@ -317,7 +327,7 @@ When tracks are ready:
 
 After merge, update each track report to reflect the final track state (`merged`, `abandoned`, `blocked`, or retained for later work).
 
-### 8. Final validation and cleanup
+### 9. Final validation and cleanup
 
 After all track work is integrated:
 
@@ -327,7 +337,7 @@ After all track work is integrated:
 4. retire clean temporary work surfaces;
 5. keep any retained work surface only with an explicit reason.
 
-### 9. Record the batch outcome
+### 10. Record the batch outcome
 
 Before stopping, publish one durable batch summary that includes:
 
