@@ -6,6 +6,42 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-04-03
+
+### Added (workflow-orchestration 0.9.0)
+
+- **`incident-rca` skill**: structured production incident triage with 4-phase workflow —
+  Hypothesis (service-context gathering, ranked candidate list), Reproduce (staging/canary
+  confirmation or degraded-mode declaration), Isolate (narrow to component/line with
+  evidence), Fix + Verify (implement, validate, confirm symptom resolved). Produces a durable
+  RCA summary artifact at every invocation (complete or partial). Distinct from
+  `systematic-debugging` (general sessions); targets live alerts, on-call pages, and
+  SLA-impacting failures.
+- **`e2e-test-generation` skill**: scaffolded E2E test generation for integration seams —
+  REST endpoints, UI flows, and service boundaries. Auto-detects E2E framework from
+  package.json / pyproject.toml / go.mod (Playwright, Cypress, pytest, httptest, etc.).
+  Generates happy-path + error-boundary + auth-boundary scaffolds with per-language naming
+  conventions. Falls back to framework-agnostic stubs with setup instructions when no
+  framework is detected. Produces a durable scaffold generation summary.
+
+### Added (clean-code-codex 1.2.0)
+
+- **`iac-check` sub-skill**: IaC security analysis for Terraform HCL, CloudFormation
+  YAML/JSON, and Kubernetes manifests. Detects five rule classes: IAC-1 public storage
+  buckets, IAC-2 containers running as root, IAC-3 missing encryption-at-rest, IAC-4
+  wildcard IAM policies, IAC-5 exposed ports in security groups. Wired into the conductor's
+  `security` and `review` operations. Unsupported IaC dialects (Pulumi, CDK, Bicep) are
+  skipped gracefully.
+- **`perf-check` sub-skill**: static performance analysis for TypeScript, JavaScript, Python,
+  Go, and Rust. Detects three rule classes: PERF-1 N+1 query patterns (queries inside loops),
+  PERF-2 unbounded loops over collections (no limit/pagination guard), PERF-3 missing
+  pagination on list endpoints. Wired into the conductor's `review` operation.
+- **`verification` hook**: graduates verification-before-completion from instruction pattern
+  to an actively enforced PostToolUse gate. Fires on Write/Edit events, checks whether the
+  repository's validation suite has been run since the last code change. Blocks with guidance
+  when validation is overdue; passes silently when current; warns (non-blocking) when no
+  validation config is found.
+
 ## [0.8.0] - 2026-04-03
 
 ### Added

@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Marketplace metadata for companion planning, workflow, SDD, and clean-code enforcement plugins.",
-    "version": "0.8.0"
+    "version": "0.9.0"
   },
   "plugins": [
     {
       "name": "workflow-orchestration",
       "source": "plugins/workflow-orchestration",
-      "description": "Planning, codebase mapping, architecture review, brainstorm ideation, implementation, systematic debugging, review-resolution, PR-readiness, and swarm orchestration skills.",
-      "version": "0.8.0",
+      "description": "Planning, codebase mapping, architecture review, brainstorm ideation, implementation, systematic debugging, incident RCA, e2e test generation, review-resolution, PR-readiness, and swarm orchestration skills.",
+      "version": "0.9.0",
       "author": {
         "name": "Michael Henderson"
       },
@@ -67,8 +67,8 @@
     {
       "name": "clean-code-codex",
       "source": "plugins/clean-code-codex",
-      "description": "Composable, multi-language, TDD-first clean code enforcement system. Orchestrates 10 check sub-skills across TypeScript, JavaScript, Python, Go, and Rust.",
-      "version": "1.1.2",
+      "description": "Composable, multi-language, TDD-first clean code enforcement system. Orchestrates 12 check sub-skills across TypeScript, JavaScript, Python, Go, and Rust.",
+      "version": "1.2.0",
       "author": {
         "name": "mikecubed"
       },

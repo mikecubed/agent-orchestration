@@ -2,7 +2,7 @@
 
 A composable, multi-language, TDD-first clean code enforcement system for AI agents.
 
-**Version**: 1.1.2 | **Languages**: TypeScript · Python · Go · Rust · JavaScript
+**Version**: 1.2.0 | **Languages**: TypeScript · Python · Go · Rust · JavaScript
 
 ---
 

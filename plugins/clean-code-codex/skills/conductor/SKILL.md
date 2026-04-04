@@ -6,9 +6,11 @@ description: >
   JavaScript. Detects language, routes to targeted check sub-skills, enforces the
   TDD gate on write operations, and runs a Boy Scout check at session end.
   Do NOT invoke for documentation-only edits, configuration files (JSON/YAML/TOML),
-  or non-code content.
+  or non-code content. (Exception: IaC files such as Terraform HCL, CloudFormation
+  YAML/JSON, and Kubernetes manifests should be passed to the conductor with the
+  `security` or `review` operation to trigger `iac-check`.)
 version: "1.0.0"
-last-reviewed: "2026-03-04"
+last-reviewed: "2026-04-03"
 languages: [typescript, python, go, rust, javascript]
 changelog: "../../CHANGELOG.md"
 tools: Read, Grep, Glob, Bash
@@ -21,6 +23,28 @@ permissionMode: default
 The conductor is the **single always-loaded entry point** to Clean Code Codex.
 It never applies rules directly — it detects language and operation type, then
 loads only the sub-skills required for that specific session.
+
+---
+
+## 0. IaC Dialect Detection (Pre-Language Gate)
+
+Before running language detection, check whether the target files are
+Infrastructure-as-Code. IaC files bypass the 5-language gate and route
+directly to `iac-check`.
+
+**IaC file indicators**:
+- `.tf`, `.tfvars` → Terraform HCL
+- `.yaml` / `.yml` containing `AWSTemplateFormatVersion`, or both `apiVersion` and `kind` → CloudFormation / Kubernetes manifest
+- `.json` containing `AWSTemplateFormatVersion` → CloudFormation JSON
+
+**Routing rules**:
+1. If IaC indicators are detected AND operation is `security` or `review`:
+   skip language detection entirely → load `iac-check` (and any other checks
+   from the dispatch table for that operation).
+2. If IaC indicators are detected AND operation is `write`:
+   `iac-check` does not apply to write operations — fall through to normal
+   language detection below.
+3. If no IaC indicators are found: proceed to language detection as normal.
 
 ---
 
@@ -58,7 +82,7 @@ Identify the operation type from the user's request:
 | "review", "check", "audit", "what's wrong", "PR review" | `review` |
 | "refactor", "clean up", "improve", "rename", "extract" | `refactor` |
 | "fix test", "add test", "test coverage", "failing test" | `test` |
-| "security audit", "check for secrets", "vulnerabilities" | `security` |
+| "security audit", "check for secrets", "vulnerabilities", "IaC review", "Terraform", "CloudFormation", "Kubernetes manifest", "infrastructure security" | `security` |
 | "check dependencies", "update deps", "CVE" | `dependency` |
 | "incident", "on call", "debugging production" | `incident` |
 
@@ -71,10 +95,10 @@ Load **only** the listed checks. Never pre-load all checks.
 | Situation | Checks to load | Language refs |
 |-----------|---------------|---------------|
 | **write** — new code | `tdd-check` + `type-check` + `naming-check` | Yes for all three |
-| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` | Yes for type, naming |
+| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` | Yes for type, naming |
 | **refactor** — existing code | `tdd-check` (gate only) + `arch-check` + `naming-check` + `size-check` + `dead-check` | Yes for naming |
 | **test** — writing/fixing tests | `tdd-check` + `test-check` | Yes for tdd |
-| **security** — security audit | `sec-check` | No |
+| **security** — security audit | `sec-check` + `iac-check` | No |
 | **dependency** — dep update | `dep-check` | No |
 | **incident** — production issue | `obs-check` + `sec-check` | No |
 | **new service** — scaffold | `tdd-check` + `arch-check` + `sec-check` | Yes for tdd |
@@ -96,7 +120,7 @@ Sequential fallback: if the platform does not support parallel Tasks, dispatch i
 |---|---|---|
 | Typical — write, TypeScript (no `--fix`) | conductor + tdd-check + type-check + naming-check + 3 TS refs | ~10,274 |
 | Minimal — security audit | conductor + sec-check | ~4,723 |
-| Worst-case — CI / full check (no `--fix`) | conductor + all 10 checks + 1 lang ref (largest) | ~22,898 |
+| Worst-case — CI / full check (no `--fix`) | conductor + all 12 checks + 1 lang ref (largest) | ~22,898 |
 | `--fix` session: add auto-fix-eligibility.md | +1 file on demand | +~1,310 |
 
 > Note: SC-007 (≤1,000) and SC-008 (≤2,000) targets reflect the design goal of a
