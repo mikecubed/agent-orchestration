@@ -6,6 +6,43 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-04-04
+
+### Added (workflow-orchestration 1.1.0)
+
+- **HANDOFF.json machine-readable session state**: companion to `.agent/SESSION.md`.
+  Full schema documented in `docs/session-md-schema.md`. Writer/reader rules added to
+  `.claude/hooks/session-start.md` and `.github/copilot-instructions.md`. Absent or
+  malformed `SESSION.md` now routes through HANDOFF.json fallback before proceeding
+  normally. `.agent/HANDOFF.json` added to `.gitignore`.
+
+### Added (clean-code-codex 1.3.0)
+
+- **`resilience-check` sub-skill** (RESILIENCE-1–4): detects missing retry/backoff
+  (BLOCK), absent circuit breakers, unbounded timeouts, and missing Go deadline
+  propagation. Scoped to HTTP/network calls in TypeScript, JavaScript, Python, and Go.
+- **`a11y-check` sub-skill** (A11Y-1–5): detects missing alt text on `<img>`/`<Image>`
+  (BLOCK), non-semantic HTML, missing ARIA roles, inaccessible keyboard targets, and
+  unlabeled form inputs. TSX/JSX only.
+- **`docs-check` sub-skill** (DOCS-1–3): detects missing JSDoc/docstrings on public
+  symbols (TypeScript, JavaScript, Python), stale inline comments, and missing
+  top-level README. Does not overlap with `dead-check`.
+- **`i18n-check` sub-skill** (I18N-1–3): detects hardcoded user-visible strings,
+  locale-unaware date/number formatting, and missing translation keys. Config-aware:
+  flat-key (`keySeparator: false`) and nested key stores handled correctly.
+- **`ctx-check` sub-skill** (CTX-1–3): language-agnostic context hygiene. Warns on
+  stale/absent session state, exceeded failed-hypothesis budget (≥3), and missing
+  codebase brief before non-trivial implementation tasks.
+- **Conductor dispatch table updated**: all five new sub-skills wired into `write`,
+  `review`, and `new-service` operations.
+
+### Fixed (workflow-orchestration 1.1.0)
+
+- **`parallel-implementation-loop` pre-flight gate**: added Step 3 requiring all
+  worktrees to be created before any agent launches. Prevents the race condition where
+  parallel agents share a working tree. Worktree path is now a required input and a
+  required field in every implementer agent prompt.
+
 ## [1.0.0] - 2026-04-04
 
 ### Added (workflow-orchestration 1.0.0)

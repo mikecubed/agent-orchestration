@@ -70,7 +70,7 @@ describe('agent-orchestration marketplace metadata', () => {
     assert.ok(codexEntry, 'expected clean-code-codex plugin entry');
     assert.equal(codexEntry.source, 'plugins/clean-code-codex');
     assert.deepEqual(codexEntry.skills, ['skills/']);
-    assert.equal(codexEntry.version, '1.2.0');
+    assert.equal(codexEntry.version, '1.3.0');
   });
 
   it('defines a Claude marketplace with workflow-orchestration, sdd-workflow, and clean-code-codex entries', () => {
@@ -94,7 +94,7 @@ describe('agent-orchestration marketplace metadata', () => {
     assert.ok(codexEntry, 'expected clean-code-codex plugin entry');
     assert.equal(codexEntry.source, './plugins/clean-code-codex');
     assert.equal(codexEntry.skills, './skills/');
-    assert.equal(codexEntry.version, '1.2.0');
+    assert.equal(codexEntry.version, '1.3.0');
   });
 });
 
