@@ -28,31 +28,30 @@ Precedence in the overall system: SEC → TDD → ARCH/TYPE →
 ### A11Y-1 — Missing Alt Text on Images
 **Severity**: BLOCK | **Languages**: TypeScript (TSX), JavaScript (JSX) | **Source**: CCC
 
-**What it prohibits**: `<img>` elements without an `alt` attribute, or with
-`alt=""` when the image is meaningful (not decorative). Decorative images must
-explicitly have `alt=""` and `role="presentation"`.
+**What it prohibits**: `<img>` elements without an `alt` attribute at all, or
+meaningful (non-decorative) images that use `alt=""` when they clearly convey
+content. Decorative images with `alt=""` are valid per W3C spec and must not
+be flagged.
 
 **Prohibited patterns**:
 ```tsx
 // No alt attribute at all
 <img src="/hero.png" />
 
-// Empty alt without role="presentation" — ambiguous intent
-<img src="/hero.png" alt="" />
-
 // Next.js Image component with no alt
 <Image src="/hero.png" width={800} height={600} />
 ```
 
 **Exemptions**:
-- `<img alt="" role="presentation" />` is explicitly allowed for decorative images
+- `<img alt="" />` alone is valid for decorative images per W3C spec — do not flag
+- `<img alt="" role="presentation" />` is also valid; `role="presentation"` is optional, not required
 - SVG elements used as icons with `aria-hidden="true"` are not covered by this rule
 
 **Detection**:
 1. Grep for `<img` or `<Image` tags in `.tsx` and `.jsx` files
 2. For each match: check if the tag contains an `alt=` attribute
-3. If `alt=""` is present: check if `role="presentation"` is also present
-4. Flag tags missing `alt` or having ambiguous `alt=""`
+3. If `alt=""` is present: accept it as a valid decorative image — do not flag
+4. Flag only tags missing the `alt` attribute entirely
 
 **agent_action**:
 1. Cite: `A11Y-1 (BLOCK): Image at {file}:{line} has no alt text — screen readers cannot describe it.`
@@ -62,15 +61,15 @@ explicitly have `alt=""` and `role="presentation"`.
    // Meaningful image: add descriptive alt text
    <img src="/hero.png" alt="Team collaborating around a whiteboard" />
 
-   // Decorative image: mark explicitly as presentational
-   <img src="/divider.png" alt="" role="presentation" />
+   // Decorative image: alt="" alone is sufficient
+   <img src="/divider.png" alt="" />
    ```
 4. If `--fix`: add a placeholder `alt="TODO: describe image"` — require human
    to fill in the actual description
 
-**Bypass prohibition**: "It's just a decorative image" without `role="presentation"`
-→ Refuse. Cite A11Y-1. Decorative images must have both `alt=""` AND
-`role="presentation"` to be unambiguous.
+**Bypass prohibition**: "It's just a decorative image" without any `alt` attribute
+→ Refuse. Cite A11Y-1. Decorative images must have `alt=""` to be valid.
+`role="presentation"` is optional but `alt=""` is the minimum requirement.
 
 ---
 
