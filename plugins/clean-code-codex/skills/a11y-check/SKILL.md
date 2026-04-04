@@ -28,10 +28,8 @@ Precedence in the overall system: SEC → TDD → ARCH/TYPE →
 ### A11Y-1 — Missing Alt Text on Images
 **Severity**: BLOCK | **Languages**: TypeScript (TSX), JavaScript (JSX) | **Source**: CCC
 
-**What it prohibits**: `<img>` elements without an `alt` attribute at all, or
-meaningful (non-decorative) images that use `alt=""` when they clearly convey
-content. Decorative images with `alt=""` are valid per W3C spec and must not
-be flagged.
+**What it prohibits**: `<img>` elements without an `alt` attribute at all.
+Decorative images with `alt=""` are valid per W3C spec and must not be flagged.
 
 **Prohibited patterns**:
 ```tsx
