@@ -234,20 +234,27 @@ return <span>{t('dashboard.welcomeBanner')}</span>;  // key missing from locale
 **agent_action**:
 1. Cite: `I18N-3 (WARN): Translation key '{key}' at {file}:{line} not found in default locale file '{localeFile}'.`
 2. Show the i18n call and the expected locale file path
-3. Propose adding the key to the default locale file:
-   ```json
-   // en.json — add the missing key
-   {
-     "user": {
-       "profile": {
-         "newFeature": "TODO: add translation"
+3. Propose adding the key to the default locale file. The format depends on the project config:
+   - **Flat-key project** (`keySeparator: false` detected): add as a top-level literal key:
+     ```json
+     // en.json — add the missing key (flat key store)
+     {
+       "user.profile.newFeature": "TODO: add translation"
+     }
+     ```
+   - **Nested project** (default): add as nested JSON:
+     ```json
+     // en.json — add the missing key (nested)
+     {
+       "user": {
+         "profile": {
+           "newFeature": "TODO: add translation"
+         }
        }
      }
-   }
-   ```
+     ```
 4. If the locale file cannot be found: `I18N-3 (WARN): Could not locate default locale file. Ensure i18n is configured and the locale file path is discoverable.`
-5. If `--fix`: add the key with a `"TODO: add translation"` placeholder value
-   — require human to provide the actual translation
+5. If `--fix`: add the key with a `"TODO: add translation"` placeholder value using the format appropriate for the detected config (flat literal key or nested) — require human to provide the actual translation
 
 ---
 
