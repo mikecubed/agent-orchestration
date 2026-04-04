@@ -94,14 +94,14 @@ Load **only** the listed checks. Never pre-load all checks.
 
 | Situation | Checks to load | Language refs |
 |-----------|---------------|---------------|
-| **write** — new code | `tdd-check` + `type-check` + `naming-check` | Yes for all three |
-| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` | Yes for type, naming |
+| **write** — new code | `tdd-check` + `type-check` + `naming-check` + `ctx-check` | Yes for tdd, type, naming |
+| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` + `resilience-check` + `a11y-check` + `docs-check` + `i18n-check` + `ctx-check` | Yes for type, naming |
 | **refactor** — existing code | `tdd-check` (gate only) + `arch-check` + `naming-check` + `size-check` + `dead-check` | Yes for naming |
 | **test** — writing/fixing tests | `tdd-check` + `test-check` | Yes for tdd |
 | **security** — security audit | `sec-check` + `iac-check` | No |
 | **dependency** — dep update | `dep-check` | No |
 | **incident** — production issue | `obs-check` + `sec-check` | No |
-| **new service** — scaffold | `tdd-check` + `arch-check` + `sec-check` | Yes for tdd |
+| **new service** — scaffold | `tdd-check` + `arch-check` + `sec-check` + `ctx-check` | Yes for tdd |
 | **observability** | `obs-check` | No |
 | **CI / full check** | All checks | Yes for tdd, type, naming |
 | **boy scout** (session end) | `size-check` + `dead-check` + `naming-check` | Yes for naming |
@@ -118,9 +118,9 @@ Sequential fallback: if the platform does not support parallel Tasks, dispatch i
 
 | Session type | Components loaded | ~Tokens |
 |---|---|---|
-| Typical — write, TypeScript (no `--fix`) | conductor + tdd-check + type-check + naming-check + 3 TS refs | ~10,274 |
+| Typical — write, TypeScript (no `--fix`) | conductor + tdd-check + type-check + naming-check + ctx-check + 3 TS refs | ~11,500 |
 | Minimal — security audit | conductor + sec-check | ~4,723 |
-| Worst-case — CI / full check (no `--fix`) | conductor + all 12 checks + 1 lang ref (largest) | ~22,898 |
+| Worst-case — CI / full check (no `--fix`) | conductor + all 17 checks + 1 lang ref (largest) | ~29,000 |
 | `--fix` session: add auto-fix-eligibility.md | +1 file on demand | +~1,310 |
 
 > Note: SC-007 (≤1,000) and SC-008 (≤2,000) targets reflect the design goal of a
