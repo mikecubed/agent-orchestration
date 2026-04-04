@@ -25,10 +25,9 @@ Precedence in the overall system: SEC → TDD → ARCH/TYPE →
 ### RESILIENCE-1 — Missing Retry / Backoff
 **Severity**: BLOCK | **Languages**: TypeScript, JavaScript, Python, Go | **Source**: CCC
 
-**What it prohibits**: Network calls, database queries, and external API calls
-that fail hard on first attempt with no retry or backoff strategy. Operations
-that throw/return errors immediately on transient failures without any retry
-logic.
+**What it prohibits**: HTTP/network calls and external API calls that fail hard
+on first attempt with no retry or backoff strategy. Operations that
+throw/return errors immediately on transient failures without any retry logic.
 
 **Prohibited patterns**:
 ```typescript
@@ -43,10 +42,6 @@ httpx.get(url)                       # no retry wrapper
 // Go
 http.Get(url)                        // no retry wrapper
 http.Post(url, contentType, body)    // no retry wrapper
-
-// All languages
-// DB queries in a loop with no retry on connection error
-// gRPC calls with no retry policy configured
 ```
 
 **Exemptions**:
