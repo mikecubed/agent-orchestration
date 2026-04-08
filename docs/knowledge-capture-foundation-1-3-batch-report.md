@@ -92,7 +92,7 @@ Follow-ups: none
 
 ## Batch outcome
 
-Status: in progress
+Status: complete
 
 Merged tracks:
 - foundation
@@ -109,7 +109,32 @@ Validations run:
 - npm --prefix plugins/workflow-orchestration test
 - npm --prefix plugins/workflow-orchestration test
 - npm run validate:plugin
+- npm --prefix plugins/workflow-orchestration test
+- npm --prefix plugins/workflow-orchestration run validate:runtime
+- npm run validate:plugin
+- npm test
+- npm run validate:plugin
+- npm --prefix plugins/workflow-orchestration test
+- npm --prefix plugins/workflow-orchestration run validate:runtime
 
 Unresolved follow-ups:
-- run final plugin, runtime, umbrella, and combined validation gates on the integrated branch
-- run final-pr-readiness-gate on the stabilized diff
+- none
+
+Workflow outcome measures:
+- discovery-reuse: yes
+- rescue-attempts: 1
+- abandonment-events: 0
+- re-review-loops:
+  planning-reuse: 1
+  foundation: 0
+  diff-review-reuse: 0
+  docs-metadata: 0
+- final-gate-result: ready
+
+Verification checklist — batch complete:
+- Track branch is merged to the integration target — PASS
+- Track-local validation commands ran and exited 0 — PASS
+- Changed files are within the track's declared scope — PASS
+- Integration validation commands ran on the combined branch and exited 0 — PASS
+- No previously-passing tests now fail on the integrated branch — PASS
+- Durable batch summary artifact has been produced — PASS
