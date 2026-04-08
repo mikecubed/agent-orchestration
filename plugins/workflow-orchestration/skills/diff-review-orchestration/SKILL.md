@@ -106,7 +106,7 @@ Delegate to `workflow-orchestration:final-pr-readiness-gate` with:
 - any codex findings from the previous step (or a note that codex was skipped);
 - the factual context brief.
 
-When codex findings were already gathered in step 4, pass them as prior structured-check results so the readiness gate reuses them directly. The gate must skip any redundant structured-check rerun on the same code-bearing diff and focus exclusively on whole-diff readiness judgment (merge-blocking issues, coverage gaps, outstanding review threads).
+When codex findings were already gathered in step 4, pass them as prior structured-check context for the readiness gate to consider alongside the rest of the review inputs. Treat those findings as supporting evidence for the gate's whole-diff readiness judgment (merge-blocking issues, coverage gaps, outstanding review threads), without assuming any specific internal reuse or skip behavior beyond what that skill defines.
 
 The readiness gate produces its own verdict. Do not duplicate its logic — consume and relay its output.
 

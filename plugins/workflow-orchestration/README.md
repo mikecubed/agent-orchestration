@@ -41,25 +41,25 @@ Expected namespaced usage:
 The review chain moves code from implementation-complete through structured
 review to merge-ready. Use the skills in this order:
 
-1. **`workflow-orchestration:diff-review-orchestration`** — Run first once
+1. **`/workflow-orchestration:diff-review-orchestration`** — Run first once
    implementation is complete. This skill performs a structured diff review
    across every changed file, surfacing bugs, security issues, style
    violations, and logic gaps. It produces a categorised findings report that
    feeds directly into the next step.
 
-2. **`workflow-orchestration:pr-review-resolution-loop`** — Address the
+2. **`/workflow-orchestration:pr-review-resolution-loop`** — Address the
    findings from the diff review. This skill triages each comment, applies
    scoped fixes, and closes review threads one by one until no unresolved
    items remain.
 
-3. **`workflow-orchestration:final-pr-readiness-gate`** — Run last as the
+3. **`/workflow-orchestration:final-pr-readiness-gate`** — Run last as the
    merge gate. It re-checks the branch holistically — CI status, test
    coverage, documentation, and any remaining open threads — and produces a
    go / no-go verdict.
 
 **Optional setup:** If you are working across multiple worktrees or need
 isolated review branches, invoke
-`workflow-orchestration:git-worktree-orchestration` before starting the
+`/workflow-orchestration:git-worktree-orchestration` before starting the
 review chain. It provisions and manages dedicated worktrees so parallel
 review and implementation workflows do not interfere with each other.
 

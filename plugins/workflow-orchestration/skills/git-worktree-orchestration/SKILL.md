@@ -56,7 +56,7 @@ Before creating any worktrees, verify every environment precondition:
 6. confirm the requested worktree paths do not collide with existing directories or existing worktrees;
 7. confirm there is no path collision between any two requested tracks.
 
-If any check fails, stop immediately and report the failure. Do not create partial worktrees.
+If any precondition check fails, stop immediately and report the failure. Because creation has not started yet at this stage, there should be no partial worktrees to clean up.
 
 Produce a factual context brief summarizing the precondition results so the caller can inspect them:
 
@@ -79,7 +79,7 @@ For each track:
 4. verify the worktree was created and the branch exists;
 5. record the mapping of track name → worktree path → branch name.
 
-Create worktrees sequentially, not in parallel. If a creation step fails, attempt rescue by diagnosing the error (e.g., branch already exists, path already in use) and reporting the specific failure. Do not proceed with remaining worktrees if a creation failure cannot be resolved.
+Create worktrees sequentially, not in parallel. If a creation step fails, attempt rescue by diagnosing the error (e.g., branch already exists, path already in use) and reporting the specific failure. If the failure still cannot be resolved, stop before creating any additional worktrees, record the mappings already created in this run, and either clean them up or explicitly hand them off with documentation.
 
 ### 3. Detect conflicts
 
@@ -163,7 +163,7 @@ If any item is FAIL: report the failing item(s) by name, state what must be done
 - Worktree creation fails after a rescue attempt (e.g., branch name conflict that cannot be resolved).
 - The developer or calling workflow asks to stop.
 
-When stopping, record partial results — any worktrees that were successfully created, any that failed, and the reason for stopping. Ensure no orphaned worktrees or branches are left behind without documentation.
+When stopping after creation has started, record partial results — any worktrees that were successfully created, any that failed, and the reason for stopping. Clean up any worktrees or branches created by the failed attempt unless the developer explicitly wants to keep them, and never leave retained worktrees undocumented.
 
 ## Example
 
