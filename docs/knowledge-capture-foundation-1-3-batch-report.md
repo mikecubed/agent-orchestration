@@ -9,6 +9,7 @@ Task boundaries: In scope = workflow skill, docs, metadata, and version changes 
 Validation commands: `npm --prefix plugins/workflow-orchestration test`, `npm --prefix plugins/workflow-orchestration run validate:runtime`, `npm run validate:plugin`, `npm test`
 Dependencies: T001 -> T002 -> T003 -> (T004 || T005) -> (T006 || T007) -> (T008 || T009) -> T010 -> T011 -> T012 -> T013 -> T014
 Comparison baseline: `main`
+Prior-learnings consulted: skipped
 Open questions: none
 Skip reason: none
 
@@ -20,7 +21,7 @@ Tasks: T001, T002, T003, T004, T005
 Files: plugins/workflow-orchestration/docs/workflow-artifact-templates.md, plugins/workflow-orchestration/skills/knowledge-compound/SKILL.md, plugins/workflow-orchestration/test/plugin-layout.test.js
 Dependencies: none
 Validation: npm --prefix plugins/workflow-orchestration test; npm test
-Work surface: /home/mikecubed/projects/wt-kc13-foundation
+Work surface: feat/knowledge-capture-foundation-1-3-foundation (wt-kc13-foundation)
 State: merged
 Validation outcome: pass
 Unresolved issues:
@@ -39,7 +40,7 @@ Tasks: T006
 Files: plugins/workflow-orchestration/skills/planning-orchestration/SKILL.md
 Dependencies: T004 or T005 done
 Validation: npm --prefix plugins/workflow-orchestration test
-Work surface: /home/mikecubed/projects/wt-kc13-planning
+Work surface: feat/knowledge-capture-foundation-1-3-planning (wt-kc13-planning)
 State: merged
 Validation outcome: pass
 Unresolved issues:
@@ -58,7 +59,7 @@ Tasks: T007
 Files: plugins/workflow-orchestration/skills/diff-review-orchestration/SKILL.md
 Dependencies: T004 or T005 done
 Validation: npm --prefix plugins/workflow-orchestration test
-Work surface: /home/mikecubed/projects/wt-kc13-review
+Work surface: feat/knowledge-capture-foundation-1-3-review (wt-kc13-review)
 State: merged
 Validation outcome: pass
 Unresolved issues:
@@ -77,7 +78,7 @@ Tasks: T008, T009, T010
 Files: plugins/workflow-orchestration/README.md, plugins/workflow-orchestration/plugin.json, plugins/workflow-orchestration/.claude-plugin/plugin.json, plugins/workflow-orchestration/package.json, package.json, .github/plugin/marketplace.json, .claude-plugin/marketplace.json, CHANGELOG.md
 Dependencies: T006 and T007 done
 Validation: npm --prefix plugins/workflow-orchestration test; npm run validate:plugin
-Work surface: /home/mikecubed/projects/wt-kc13-docs
+Work surface: feat/knowledge-capture-foundation-1-3-docs (wt-kc13-docs)
 State: merged
 Validation outcome: pass
 Unresolved issues:
@@ -122,6 +123,7 @@ Unresolved follow-ups:
 
 Workflow outcome measures:
 - discovery-reuse: yes
+- prior-learnings: skipped
 - rescue-attempts: 1
 - abandonment-events: 0
 - re-review-loops:

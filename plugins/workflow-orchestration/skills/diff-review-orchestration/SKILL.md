@@ -69,7 +69,7 @@ After the discovery brief is ready, search for knowledge artifacts whose applica
 
 Matching rules:
 
-- Scan repository-local knowledge sinks (e.g., a `docs/knowledge/` directory, issue labels, or another project-configured location). The specific sink location is a project-level decision; if no knowledge sink is discoverable, skip this step and record `prior-learnings: none-found` in the outcome measures.
+- Scan repository-local knowledge sinks (e.g., a `docs/knowledge/` directory, issue labels, or another project-configured location). The specific sink location is a project-level decision; if no knowledge sink is discoverable, skip this step and record `prior-learnings: skipped` in the outcome measures and `Prior-learnings consulted: skipped` in the discovery brief.
 - Match by file path overlap (any changed file or its parent directory appears in a knowledge artifact's source references or applicability) or by technology/topic overlap (the artifact's applicability mentions a framework, library, or pattern present in the diff).
 - Keep the lookup read-only — do not create, modify, or retire knowledge artifacts during a diff review.
 
