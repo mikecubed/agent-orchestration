@@ -1,0 +1,232 @@
+---
+name: diff-review-orchestration
+description: Coordinate a structured diff review by routing to codex checks, readiness assessment, and review-resolution skills.
+---
+
+## Purpose
+
+Use this skill to run a structured, coordinator-shaped diff review that delegates to existing specialist skills rather than re-implementing their logic. It routes work to:
+
+- `clean-code-codex:conductor` — for automated code-quality checks on the diff;
+- `workflow-orchestration:final-pr-readiness-gate` — for a final readiness assessment;
+- `workflow-orchestration:pr-review-resolution-loop` — for triaging and resolving existing review comments.
+
+The coordinator gathers factual context about the diff, decides which downstream skills apply, invokes them in sequence, and produces a unified review report.
+
+Persistent team, squad, or fleet-style long-lived orchestration is out of scope for this skill. Use a separate orchestration layer if persistent coordination is needed.
+
+## When to Use It
+
+Activate when the developer asks for things like:
+
+- "review this diff"
+- "run a full code review on my branch"
+- "check this PR for issues"
+- "give me a diff review report"
+
+This skill supports two modes:
+
+- **Interactive mode** (default) — the coordinator pauses at decision points, surfaces findings incrementally, and allows the developer to guide triage and fixes in real time.
+- **Report-only mode** — the coordinator runs all checks end-to-end without pausing, collects all findings, and produces a single consolidated review report at the end. Use this mode for CI integration or when the developer wants a hands-off review pass.
+
+## Project-Specific Inputs
+
+Before you start, identify:
+
+- **Diff target** — the branch, PR number, or commit range to review (e.g., `HEAD~3..HEAD`, `PR #42`, `feat/widget`).
+- **Mode flag** — `interactive` (default) or `report-only`. If unspecified, default to interactive.
+- **`--base` override** — the comparison baseline branch or commit. Defaults to the repository's default branch (usually `main`) if not provided.
+- **Codex availability** — whether `clean-code-codex:conductor` is loaded and available in the current session. Check for the plugin at startup; if unavailable, the coordinator degrades gracefully (see § Codex unavailable fallback).
+
+If the diff target or comparison baseline cannot be determined, ask the developer before proceeding.
+
+## Workflow
+
+### 1. Validate the diff surface
+
+Before delegating to any downstream skill:
+
+1. Resolve the diff target and `--base` to concrete git refs.
+2. Run an empty-diff check — if the diff is empty (no changed files), stop immediately with a clear message and skip all downstream work.
+3. Catalog the changed files: classify each as code, test, config, docs, or binary.
+4. **Skip binary files** — exclude binary files from all downstream checks and note them in the review report as skipped with a brief explanation.
+5. **Large merge-commit diffs** — if the diff contains more than roughly 80 changed files or spans multiple unrelated topics (heuristic: files spread across more than 5 top-level directories with no common intent), warn the developer and suggest splitting the review into smaller, focused passes before proceeding.
+
+### 2. Gather factual context
+
+Produce a discovery brief per `docs/workflow-artifact-templates.md` containing at minimum:
+
+- task summary describing the review scope;
+- relevant files from the diff;
+- comparison baseline;
+- validation commands for the repository.
+
+Reuse any factual brief or factual context already present in the current session rather than rediscovering. If prior context exists, note that discovery was reused.
+
+### 3. Check for existing review comments
+
+If the diff target is a pull request with existing review comments:
+
+1. Surface the unresolved comment count to the developer.
+2. In interactive mode, ask whether to resolve existing comments first via `workflow-orchestration:pr-review-resolution-loop` before running new checks.
+3. In report-only mode, record the unresolved comment count and recommend handoff to `workflow-orchestration:pr-review-resolution-loop` in the final report. Do not auto-run the resolution loop — report-only mode must remain non-mutating.
+
+If there are no existing comments, skip this step.
+
+### 4. Run codex checks
+
+If `clean-code-codex:conductor` is available:
+
+1. Scope the conductor to the relevant files in the diff: include code-bearing files and IaC-style config that the conductor can review (for example Terraform, Kubernetes manifests, or CloudFormation); exclude docs-only files and non-IaC config-only files from code-focused checks.
+2. Run the conductor in report-only mode — collect findings without automatically changing files.
+3. Collect and classify findings by severity.
+
+#### Codex unavailable fallback
+
+If `clean-code-codex:conductor` is not loaded or not available in the current session:
+
+- Do not fail the entire review.
+- Degrade gracefully: skip the codex checks, record the skipped checks in the review report with a note explaining that the codex plugin was unavailable, and continue with the readiness assessment.
+- In interactive mode, inform the developer that codex checks were skipped and suggest loading the plugin for future reviews.
+
+#### Rescue policy for codex delays
+
+When the codex conductor stalls, times out, or the diff is large enough to cause processing delays, apply a rescue-before-abandon sequence:
+
+1. **Narrow scope** — reduce to the highest-risk files using the discovery brief.
+2. **Drop non-critical checks** — skip stylistic or low-severity rules.
+3. **Serialize** — run remaining checks sequentially rather than concurrently.
+4. **Re-evaluate** — if the reduced scope completes, proceed normally. If rescue also stalls, record the failure and continue to the readiness assessment with a note about skipped checks.
+
+### 5. Run readiness assessment
+
+Delegate to `workflow-orchestration:final-pr-readiness-gate` with:
+
+- the diff surface and comparison baseline;
+- any codex findings from the previous step (or a note that codex was skipped);
+- the factual context brief.
+
+When codex findings were already gathered in step 4, pass them as prior structured-check context for the readiness gate to consider alongside the rest of the review inputs. Treat those findings as supporting evidence for the gate's whole-diff readiness judgment (merge-blocking issues, coverage gaps, outstanding review threads), without assuming any specific internal reuse or skip behavior beyond what that skill defines.
+
+The readiness gate produces its own verdict. Do not duplicate its logic — consume and relay its output.
+
+### 6. Produce mode-specific output
+
+#### Interactive mode
+
+1. Present findings incrementally as each downstream skill completes.
+2. Pause after codex findings to let the developer triage before proceeding to readiness.
+3. Surface the readiness verdict with actionable next steps.
+
+#### Report-only mode
+
+Produce a single consolidated review report as a durable artifact following the template in `docs/workflow-artifact-templates.md`. The report must include:
+
+- diff target and comparison baseline;
+- file classification summary (code / test / config / docs / binary-skipped);
+- existing-comment summary (unresolved count and handoff recommendation), if applicable;
+- codex findings and their severity classification, or a note that codex was skipped;
+- readiness verdict from the final-pr-readiness-gate;
+- skipped checks with reasons;
+- next action recommendation.
+
+Include workflow outcome measures:
+
+- `discovery-reuse` — `yes`, `no`, or `skipped`;
+- `rescue-attempts` — integer count, or `0`;
+- `codex-available` — `yes` or `no`;
+- `final-gate-result` — one of `ready`, `ready-with-follow-ups`, `not-ready`, or `stopped`.
+
+Store the durable report as a durable summary artifact so the next actor can make a decision quickly.
+
+## Required Gates
+
+A diff review is not complete until:
+
+- the diff surface was validated (non-empty, files classified);
+- codex checks were run or explicitly skipped with a recorded reason;
+- the readiness assessment was completed via `workflow-orchestration:final-pr-readiness-gate`;
+- a durable review report or artifact was produced (report-only mode) or findings were surfaced to the developer (interactive mode);
+- workflow outcome measures were recorded.
+
+### Verification checklist
+
+Before declaring the review complete, confirm ALL of the following:
+
+- [ ] Diff surface is non-empty and validated — PASS / FAIL
+- [ ] Binary files excluded and noted — PASS / FAIL / N/A
+- [ ] Existing review comments addressed or noted — PASS / FAIL / N/A
+- [ ] Codex checks completed or skipped with documented reason — PASS / FAIL
+- [ ] Readiness assessment completed — PASS / FAIL
+- [ ] Output delivered in the correct mode (interactive findings or durable report) — PASS / FAIL
+
+If any item is FAIL: report the failing item(s), state what must be done to resolve each, and do not declare the review complete.
+
+## Stop Conditions
+
+- The diff is empty — no changed files between the target and baseline.
+- Required inputs are missing (no diff target, no determinable baseline) and the developer cannot supply them.
+- `clean-code-codex:conductor` is unavailable and no fallback is acceptable to the developer — the developer explicitly declines to proceed without codex checks.
+- The diff is too large to review coherently and the developer declines to split it.
+- A downstream skill stalls after rescue attempts have been exhausted.
+- The developer asks to stop.
+
+When stopping, report why the review could not complete and preserve any partial results as a durable artifact so work is not lost.
+
+## Example
+
+### Interactive invocation
+
+```text
+Developer: /workflow-orchestration:diff-review-orchestration review this PR
+
+Coordinator:
+  Diff target: PR #87 against main
+  Changed files: 14 (11 code, 2 tests, 1 binary — logo.png skipped)
+  Mode: interactive
+
+  → Checking for existing review comments...
+    2 unresolved comments found.
+    Would you like to resolve these first via
+    /workflow-orchestration:pr-review-resolution-loop?
+
+Developer: yes, resolve them first
+
+  → Delegating to /workflow-orchestration:pr-review-resolution-loop...
+    [resolution results shown]
+
+  → Running /clean-code-codex:conductor on 11 code files...
+    [findings presented for triage]
+
+  → Delegating to /workflow-orchestration:final-pr-readiness-gate
+    (providing prior codex findings as context)...
+    Verdict: ready with follow-ups
+
+  Next action: address 1 fix-now item, then re-run readiness.
+```
+
+### Report-only invocation
+
+```text
+Developer: /workflow-orchestration:diff-review-orchestration review feat/auth --mode report-only --base main
+
+Coordinator:
+  Diff target: feat/auth against main
+  Changed files: 8 (6 code, 1 test, 1 config)
+  Mode: report-only
+
+  [runs all checks end-to-end without pausing]
+
+  --- Diff Review Report ---
+  Diff target: feat/auth against main
+  File summary: 6 code, 1 test, 1 config, 0 binary
+  Existing comments: none
+  Codex findings: 3 (1 fix-now, 2 follow-up)
+  Readiness verdict: ready with follow-ups
+  Skipped checks: none
+  Next action: address fix-now item in src/auth/validate.ts, then merge
+  discovery-reuse: no
+  rescue-attempts: 0
+  codex-available: yes
+  final-gate-result: ready-with-follow-ups
+```
