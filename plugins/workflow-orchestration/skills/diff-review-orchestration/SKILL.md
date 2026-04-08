@@ -77,7 +77,7 @@ If there are no existing comments, skip this step.
 
 If `clean-code-codex:conductor` is available:
 
-1. Scope the conductor to the code-bearing files in the diff (exclude docs-only and config-only files from code checks).
+1. Scope the conductor to the relevant files in the diff: include code-bearing files and IaC-style config that the conductor can review (for example Terraform, Kubernetes manifests, or CloudFormation); exclude docs-only files and non-IaC config-only files from code-focused checks.
 2. Run the conductor in report-only mode — collect findings without automatically changing files.
 3. Collect and classify findings by severity.
 
@@ -199,7 +199,7 @@ Developer: yes, resolve them first
     [findings presented for triage]
 
   → Delegating to /workflow-orchestration:final-pr-readiness-gate
-    (reusing prior codex findings — skipping redundant checks)...
+    (providing prior codex findings as context)...
     Verdict: ready with follow-ups
 
   Next action: address 1 fix-now item, then re-run readiness.
