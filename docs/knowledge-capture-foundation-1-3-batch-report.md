@@ -40,16 +40,16 @@ Files: plugins/workflow-orchestration/skills/planning-orchestration/SKILL.md
 Dependencies: T004 or T005 done
 Validation: npm --prefix plugins/workflow-orchestration test
 Work surface: /home/mikecubed/projects/wt-kc13-planning
-State: pending
-Validation outcome: not-run
+State: blocked
+Validation outcome: pass
 Unresolved issues:
-- none
+- Shared discovery-brief and outcome-measure template contract not yet aligned in plugins/workflow-orchestration/docs/workflow-artifact-templates.md
 Rescue history:
 - none
-Next action: launch scoped implementer and reviewer
+Next action: land the shared template-alignment fix in the docs worktree, then merge this reviewed branch
 Revision rounds: 0
-Summary: Pending foundation merge gate completion.
-Follow-ups: none
+Summary: Added optional prior-learning lookup guidance to planning-orchestration, but review found a shared template contract gap outside the track boundary.
+Follow-ups: merge after the shared template fix lands
 ```
 
 ```text
@@ -59,15 +59,15 @@ Files: plugins/workflow-orchestration/skills/diff-review-orchestration/SKILL.md
 Dependencies: T004 or T005 done
 Validation: npm --prefix plugins/workflow-orchestration test
 Work surface: /home/mikecubed/projects/wt-kc13-review
-State: pending
-Validation outcome: not-run
+State: merged
+Validation outcome: pass
 Unresolved issues:
 - none
 Rescue history:
 - none
-Next action: launch scoped implementer and reviewer
+Next action: continue with shared template alignment and docs/metadata work
 Revision rounds: 0
-Summary: Pending foundation merge gate completion.
+Summary: Added advisory prior-learning lookup guidance to diff-review-orchestration for interactive and report-only modes, then merged the reviewed track into the integration branch.
 Follow-ups: none
 ```
 
@@ -96,6 +96,7 @@ Status: in progress
 
 Merged tracks:
 - foundation
+- diff-review-reuse
 
 Retained or abandoned tracks:
 - none
@@ -103,8 +104,9 @@ Retained or abandoned tracks:
 Validations run:
 - npm --prefix plugins/workflow-orchestration test
 - npm test
+- npm --prefix plugins/workflow-orchestration test
 
 Unresolved follow-ups:
-- planning-reuse pending
-- diff-review-reuse pending
+- align the shared discovery-brief and outcome-measure contract for planning prior-learning lookup
+- merge the reviewed planning-reuse branch after that fix
 - docs-metadata pending

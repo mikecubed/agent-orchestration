@@ -63,7 +63,24 @@ Produce a discovery brief per `docs/workflow-artifact-templates.md` containing a
 
 Reuse any factual brief or factual context already present in the current session rather than rediscovering. If prior context exists, note that discovery was reused.
 
-### 3. Check for existing review comments
+### 3. Look up prior learnings
+
+After the discovery brief is ready, search for knowledge artifacts whose applicability overlaps with the reviewed scope — file paths, directories, or technology areas touched by the diff. Use the knowledge artifact template fields (Problem, Signals, Resolution, Guardrails, Applicability) defined in `docs/workflow-artifact-templates.md` to identify relevant matches.
+
+Matching rules:
+
+- Scan repository-local knowledge sinks (e.g., a `docs/knowledge/` directory, issue labels, or another project-configured location). The specific sink location is a project-level decision; if no knowledge sink is discoverable, skip this step and record `prior-learnings: none-found` in the outcome measures.
+- Match by file path overlap (any changed file or its parent directory appears in a knowledge artifact's source references or applicability) or by technology/topic overlap (the artifact's applicability mentions a framework, library, or pattern present in the diff).
+- Keep the lookup read-only — do not create, modify, or retire knowledge artifacts during a diff review.
+
+If one or more prior learnings match:
+
+- In **interactive mode**, surface the matching knowledge artifacts as advisory context before proceeding to downstream checks. Present each artifact's Problem and Resolution fields as a short summary. The developer may acknowledge, dismiss, or ask for details, but the learnings do not alter which checks run or how findings are triaged.
+- In **report-only mode**, collect the matching artifacts for inclusion in the durable report (see § Produce mode-specific output). Do not pause.
+
+If no prior learnings match, record the lookup result and continue. The lookup is advisory — it never blocks downstream steps or changes readiness-gate semantics.
+
+### 4. Check for existing review comments
 
 If the diff target is a pull request with existing review comments:
 
@@ -73,7 +90,7 @@ If the diff target is a pull request with existing review comments:
 
 If there are no existing comments, skip this step.
 
-### 4. Run codex checks
+### 5. Run codex checks
 
 If `clean-code-codex:conductor` is available:
 
@@ -98,7 +115,7 @@ When the codex conductor stalls, times out, or the diff is large enough to cause
 3. **Serialize** — run remaining checks sequentially rather than concurrently.
 4. **Re-evaluate** — if the reduced scope completes, proceed normally. If rescue also stalls, record the failure and continue to the readiness assessment with a note about skipped checks.
 
-### 5. Run readiness assessment
+### 6. Run readiness assessment
 
 Delegate to `workflow-orchestration:final-pr-readiness-gate` with:
 
@@ -106,17 +123,18 @@ Delegate to `workflow-orchestration:final-pr-readiness-gate` with:
 - any codex findings from the previous step (or a note that codex was skipped);
 - the factual context brief.
 
-When codex findings were already gathered in step 4, pass them as prior structured-check context for the readiness gate to consider alongside the rest of the review inputs. Treat those findings as supporting evidence for the gate's whole-diff readiness judgment (merge-blocking issues, coverage gaps, outstanding review threads), without assuming any specific internal reuse or skip behavior beyond what that skill defines.
+When codex findings were already gathered in step 5, pass them as prior structured-check context for the readiness gate to consider alongside the rest of the review inputs. Treat those findings as supporting evidence for the gate's whole-diff readiness judgment (merge-blocking issues, coverage gaps, outstanding review threads), without assuming any specific internal reuse or skip behavior beyond what that skill defines.
 
 The readiness gate produces its own verdict. Do not duplicate its logic — consume and relay its output.
 
-### 6. Produce mode-specific output
+### 7. Produce mode-specific output
 
 #### Interactive mode
 
-1. Present findings incrementally as each downstream skill completes.
-2. Pause after codex findings to let the developer triage before proceeding to readiness.
-3. Surface the readiness verdict with actionable next steps.
+1. Surface prior learnings (if any) as advisory context before downstream checks begin.
+2. Present findings incrementally as each downstream skill completes.
+3. Pause after codex findings to let the developer triage before proceeding to readiness.
+4. Surface the readiness verdict with actionable next steps.
 
 #### Report-only mode
 
@@ -124,6 +142,7 @@ Produce a single consolidated review report as a durable artifact following the 
 
 - diff target and comparison baseline;
 - file classification summary (code / test / config / docs / binary-skipped);
+- prior-learnings summary — matching knowledge artifacts with Problem and Resolution fields, or a note that none were found;
 - existing-comment summary (unresolved count and handoff recommendation), if applicable;
 - codex findings and their severity classification, or a note that codex was skipped;
 - readiness verdict from the final-pr-readiness-gate;
@@ -133,6 +152,7 @@ Produce a single consolidated review report as a durable artifact following the 
 Include workflow outcome measures:
 
 - `discovery-reuse` — `yes`, `no`, or `skipped`;
+- `prior-learnings` — integer count of matching knowledge artifacts, or `none-found`;
 - `rescue-attempts` — integer count, or `0`;
 - `codex-available` — `yes` or `no`;
 - `final-gate-result` — one of `ready`, `ready-with-follow-ups`, `not-ready`, or `stopped`.
@@ -155,6 +175,7 @@ Before declaring the review complete, confirm ALL of the following:
 
 - [ ] Diff surface is non-empty and validated — PASS / FAIL
 - [ ] Binary files excluded and noted — PASS / FAIL / N/A
+- [ ] Prior-learnings lookup completed or skipped with reason — PASS / FAIL / N/A
 - [ ] Existing review comments addressed or noted — PASS / FAIL / N/A
 - [ ] Codex checks completed or skipped with documented reason — PASS / FAIL
 - [ ] Readiness assessment completed — PASS / FAIL
@@ -184,6 +205,11 @@ Coordinator:
   Diff target: PR #87 against main
   Changed files: 14 (11 code, 2 tests, 1 binary — logo.png skipped)
   Mode: interactive
+
+  → Looking up prior learnings for reviewed scope...
+    1 prior learning found:
+    — CI auth seed ordering: async seed must complete before auth fixture queries.
+    (advisory — does not change downstream checks)
 
   → Checking for existing review comments...
     2 unresolved comments found.
@@ -220,12 +246,14 @@ Coordinator:
   --- Diff Review Report ---
   Diff target: feat/auth against main
   File summary: 6 code, 1 test, 1 config, 0 binary
+  Prior learnings: none found
   Existing comments: none
   Codex findings: 3 (1 fix-now, 2 follow-up)
   Readiness verdict: ready with follow-ups
   Skipped checks: none
   Next action: address fix-now item in src/auth/validate.ts, then merge
   discovery-reuse: no
+  prior-learnings: none-found
   rescue-attempts: 0
   codex-available: yes
   final-gate-result: ready-with-follow-ups
