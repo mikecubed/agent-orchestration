@@ -99,6 +99,8 @@ describe('workflow-orchestration skills layout', () => {
     'e2e-test-generation',
     'contract-generator',
     'release-orchestration',
+    'diff-review-orchestration',
+    'git-worktree-orchestration',
   ];
 
   for (const skill of skills) {
@@ -153,6 +155,8 @@ describe('workflow-orchestration package contents', () => {
       'e2e-test-generation',
       'contract-generator',
       'release-orchestration',
+      'diff-review-orchestration',
+      'git-worktree-orchestration',
     ]) {
       assert.ok(files.includes(`skills/${skill}/SKILL.md`));
     }
