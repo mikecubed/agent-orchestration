@@ -101,6 +101,7 @@ describe('workflow-orchestration skills layout', () => {
     'release-orchestration',
     'diff-review-orchestration',
     'git-worktree-orchestration',
+    'knowledge-compound',
   ];
 
   for (const skill of skills) {
@@ -157,6 +158,7 @@ describe('workflow-orchestration package contents', () => {
       'release-orchestration',
       'diff-review-orchestration',
       'git-worktree-orchestration',
+      'knowledge-compound',
     ]) {
       assert.ok(files.includes(`skills/${skill}/SKILL.md`));
     }

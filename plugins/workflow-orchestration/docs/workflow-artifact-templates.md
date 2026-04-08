@@ -136,6 +136,24 @@ final-gate-result: ready | ready-with-follow-ups | not-ready | stopped
 - If the workflow stops early — due to user interruption, escalation, or a stop condition — record whatever measures are available and append an interruption note explaining which fields are incomplete and why.
 - One outcome-measures block per workflow invocation. Do not aggregate across separate workflow runs.
 
+## Knowledge artifact
+
+Use for `knowledge-compound` and any workflow that captures a reusable lesson from a completed task.
+
+```text
+Problem: <concise description of the problem that was solved>
+Signals: <observable symptoms, error messages, metric anomalies, or behavioral clues that indicated this problem>
+Resolution: <what was done to resolve the problem — the approach, not just the outcome>
+Guardrails: <conditions under which the resolution is safe to apply, and known edge cases or risks>
+Applicability: <when this knowledge applies — technology, context, failure shape, or constraints>
+Source references: <links or paths to the originating session, PR, issue, RCA, or commit>
+Sink reference: <where this artifact is durably stored — file path, issue URL, wiki page, or other repository-appropriate location>
+```
+
+**Sink requirement**: The sink must be durable and repository-appropriate — a committed file, an issue, a wiki page, or another persistent location that survives session end. Chat-only storage does not satisfy this requirement. The specific sink location is a project-level decision; this template does not mandate a global directory taxonomy.
+
+**Lifecycle**: Created at the end of a workflow that produced a reusable lesson. Consumed by future sessions, contributors, or agents encountering the same problem shape. Not retired unless the knowledge is superseded.
+
 ## When to use these templates
 
 Use a committed artifact when:
