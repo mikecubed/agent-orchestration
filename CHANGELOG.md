@@ -6,6 +6,22 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-08
+
+### Added (workflow-orchestration 1.2.0)
+
+- **`diff-review-orchestration` skill**: coordinates a structured diff review by routing
+  to codex checks, readiness assessment, and review-resolution so review findings can
+  move through one reusable workflow.
+- **`git-worktree-orchestration` skill**: manages git worktree lifecycle for parallel
+  implementation tracks with explicit setup, validation, and cleanup guidance.
+
+### Changed (workflow-orchestration 1.2.0)
+
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata bumped from
+  `1.1.0` to `1.2.0` across the root package, workflow plugin manifests, lockfile, and
+  marketplace metadata.
+
 ## [1.1.0] - 2026-04-04
 
 ### Added (workflow-orchestration 1.1.0)

@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Marketplace metadata for companion planning, workflow, SDD, and clean-code enforcement plugins.",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "plugins": [
     {
       "name": "workflow-orchestration",
       "source": "./plugins/workflow-orchestration",
-      "description": "Planning, codebase mapping, architecture review, brainstorm ideation, implementation, systematic debugging, incident RCA, e2e test generation, review-resolution, PR-readiness, swarm orchestration, contract generation, and release orchestration skills.",
-      "version": "1.1.0",
+      "description": "Planning, codebase mapping, architecture review, brainstorm ideation, implementation, systematic debugging, incident RCA, e2e test generation, review-resolution, PR-readiness, diff review, git worktree lifecycle, swarm orchestration, contract generation, and release orchestration skills.",
+      "version": "1.2.0",
       "author": {
         "name": "Michael Henderson"
       },
