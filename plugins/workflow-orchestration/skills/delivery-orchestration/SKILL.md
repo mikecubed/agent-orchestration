@@ -225,7 +225,156 @@ If the downstream skill is not available, inform the developer and suggest manua
 
 Before stopping, record the reason and any partial classification or context gathered so the developer can resume from a known state. Apply the rescue policy: narrow scope, request clarification, and offer one bounded retry before abandoning the routing attempt.
 
+## Post-Delivery Handoffs
+
+After the downstream skill completes its work, the coordinator recommends — but does not enforce — the appropriate next workflow phase. The coordinator's responsibility ends at the recommendation; it does not invoke or monitor the follow-up skill.
+
+### Default review handoff
+
+When the downstream skill signals completion (all tasks delivered, validation passing), the coordinator recommends routing the completed work into `/workflow-orchestration:diff-review-orchestration` as the default follow-up. This is the standard next step for any delivery that produced code changes.
+
+The handoff recommendation must include:
+
+1. the **diff surface** — branch name, commit range, or PR reference covering the delivered work;
+2. the **validation outcome** — whether the downstream skill's own validation passed, failed, or was not run;
+3. the **track report or delivery log** reference — so the reviewer has traceability back to the routing decision and delivered scope;
+4. a **mode suggestion** — `interactive` for complex or high-risk changes, `report-only` for routine or well-tested deliveries.
+
+If the delivery produced a non-empty diff — code, tests, configuration, or documentation — keep the default review handoff. Skip the review handoff only when the downstream skill produced no changes and note the reason.
+
+### Reusable-learning handoff
+
+When the delivery outcome contains a durable, reusable lesson — a non-obvious debugging insight, an unexpected dependency interaction, a configuration pattern worth preserving, or a resolution that future contributors would benefit from — the coordinator recommends routing the lesson into `/workflow-orchestration:knowledge-compound`.
+
+This handoff is **conditional**, not automatic. Recommend it only when the delivery produced knowledge that:
+
+- is not already captured in existing documentation or knowledge artifacts;
+- would be useful beyond the current task or session;
+- is specific enough to be actionable (not a general best practice).
+
+The handoff recommendation must include:
+
+1. the **source type** — the downstream skill that produced the knowledge (e.g., `systematic-debugging`, `parallel-implementation-loop`);
+2. the **source references** — links to the delivery session, commits, or track report;
+3. a **summary** — a brief description of what was learned;
+4. a **sink suggestion** — a proposed location for the knowledge artifact, following the repository's conventions.
+
+If no durable reusable lesson emerged from the delivery, do not recommend this handoff. Routine implementations that follow established patterns do not qualify.
+
+### Handoff sequence
+
+When both handoffs apply, recommend them in this order:
+
+1. **Review first** — `/workflow-orchestration:diff-review-orchestration` to validate the delivered code.
+2. **Knowledge capture second** — `/workflow-orchestration:knowledge-compound` to extract any reusable lessons after the review confirms the work is sound.
+
+This ordering ensures knowledge is captured from reviewed, validated work rather than from a potentially incomplete delivery.
+
+## Deflection Behavior
+
+The coordinator must not attempt delivery when the request belongs to a different workflow phase. The deflection rules in § Routing Contract define the triggers; this section provides additional guidance on recognizing and handling deflection scenarios.
+
+### Recognizing underspecified requests
+
+A request is underspecified when it lacks enough information to classify against the invocation matrix. Common signals:
+
+- no task IDs, plan reference, or change description;
+- no acceptance criteria or definition of done;
+- scope described only in terms of outcomes ("make it faster") without concrete targets;
+- the request assumes context that is not present in the session or repository.
+
+When the coordinator detects underspecification, it deflects to `/workflow-orchestration:planning-orchestration` with a brief explanation of what is missing. It does not attempt partial delivery or guess at scope.
+
+### Recognizing ideation-shaped requests
+
+A request is ideation-shaped when it explores possibilities rather than committing to a direction. Common signals:
+
+- phrased as a question: "should we…", "what if we…", "which approach…";
+- asks for trade-off analysis, comparison, or option enumeration;
+- seeks validation of an idea rather than execution of a decision.
+
+When the coordinator detects an ideation-shaped request, it deflects to `/workflow-orchestration:brainstorm-ideation` and states which signal triggered the deflection.
+
+### Deflection examples
+
+**Example — Underspecified request**
+
+```text
+Input: "Build the notification system."
+Classification: broad execution request
+Deflection rule: No scope — no plan, no task list, no acceptance criteria.
+Action: deflect → /workflow-orchestration:planning-orchestration
+Message: "This request has no accepted plan, task list, or scoped acceptance
+  criteria. Route to /workflow-orchestration:planning-orchestration to produce
+  a delivery-ready plan before returning here."
+```
+
+**Example — Ideation-shaped request**
+
+```text
+Input: "Should we use WebSockets or SSE for the live updates?"
+Classification: not a delivery request
+Deflection rule: Ideation-shaped — asks for comparison without a committed direction.
+Action: deflect → /workflow-orchestration:brainstorm-ideation
+Message: "This is an exploratory trade-off question, not bounded delivery work.
+  Route to /workflow-orchestration:brainstorm-ideation for structured analysis."
+```
+
+**Example — Release-shaped request**
+
+```text
+Input: "Bump the version to 2.0 and update the changelog."
+Classification: not a delivery request
+Deflection rule: Release-shaped — asks about versioning and changelog.
+Action: deflect → /workflow-orchestration:release-orchestration
+Message: "Version bumps and changelog updates belong to the release workflow.
+  Route to /workflow-orchestration:release-orchestration."
+```
+
+**Example — Review-shaped request**
+
+```text
+Input: "Check my PR for issues before I merge."
+Classification: not a delivery request
+Deflection rule: Review-shaped — asks to review an existing diff.
+Action: deflect → /workflow-orchestration:diff-review-orchestration
+Message: "This is a review request, not delivery work. Route to
+  /workflow-orchestration:diff-review-orchestration."
+```
+
+## Coordinator-Shape Contract
+
+This skill is a thin coordinator. The following invariants define its boundaries and must hold across all future changes:
+
+### What this skill does
+
+- Classifies incoming requests against the accepted input types.
+- Evaluates deflection rules and stops when one fires.
+- Walks the invocation matrix to select a single route outcome.
+- Records the routing rationale in a durable artifact.
+- Delegates to exactly one downstream skill per request.
+- Recommends post-delivery handoffs (review, knowledge capture) without invoking them.
+
+### What this skill does not do
+
+- **No implementation** — it never writes, modifies, or deletes code, tests, configuration, or documentation. All implementation belongs to the downstream skill.
+- **No planning** — it does not produce plans, specifications, task lists, or scope definitions. Planning belongs to `/workflow-orchestration:planning-orchestration` and optionally `sdd-workflow`.
+- **No review** — it does not review diffs, PRs, or code quality. Review belongs to `/workflow-orchestration:diff-review-orchestration` and the review chain.
+- **No release** — it does not bump versions, update changelogs, create tags, or publish artifacts. Release belongs to `/workflow-orchestration:release-orchestration`.
+- **No monitoring** — it does not track the progress of downstream skills after delegation. The downstream skill owns its own progress, rescue policy, and completion gates.
+- **No knowledge capture** — it does not extract or write knowledge artifacts. Capture belongs to `/workflow-orchestration:knowledge-compound`.
+
+### Boundary test
+
+Any proposed change to this skill should pass these questions:
+
+1. Does the change add behavior that an existing downstream skill already owns? → If yes, do not add it here; route to that skill instead.
+2. Does the change require this skill to persist state across multiple delegations? → If yes, this skill is growing beyond coordinator shape; reconsider the design.
+3. Does the change make this skill invoke more than one downstream skill per request? → If yes, the request should be decomposed or routed to `/workflow-orchestration:swarm-orchestration`.
+
 ## Example
+
+### Routing and delegation
 
 ```text
 Developer: "Deliver the next ready tasks from the plan."
@@ -249,4 +398,46 @@ Coordinator:
   7. Forwarded: task IDs [T007, T008, T009], track definitions, validation commands,
      factual brief.
   8. Routing decision recorded in track report.
+```
+
+### Post-delivery handoff
+
+```text
+Downstream skill signals: all three tasks delivered, validation passing.
+
+Coordinator post-delivery recommendation:
+  1. Review handoff → /workflow-orchestration:diff-review-orchestration
+     Diff surface: feat/feature-abc against main
+     Validation outcome: pass
+     Track report: docs/track-report-feature-abc.md
+     Mode suggestion: interactive (multiple files across two modules)
+
+  2. Knowledge capture handoff → /workflow-orchestration:knowledge-compound
+     (Conditional — only if the delivery produced a reusable lesson.)
+     In this case: the parallel track discovered that T007 and T009 required
+     serialization despite appearing independent — this file-coupling heuristic
+     is worth capturing.
+     Source type: parallel-implementation-loop
+     Source references: track report, commits on feat/feature-abc
+     Summary: "Tasks touching the same file must be serialized even when their
+       logical scopes are independent."
+     Sink suggestion: docs/knowledge/ (per repository convention)
+```
+
+### Full delivery loop
+
+The recommended default loop for bounded delivery work:
+
+```text
+1. /workflow-orchestration:planning-orchestration
+   → Produces an accepted plan with scoped tasks and acceptance criteria.
+
+2. /workflow-orchestration:delivery-orchestration
+   → Routes the ready tasks to the best-fit execution skill.
+
+3. /workflow-orchestration:diff-review-orchestration
+   → Reviews the delivered code changes (default post-delivery handoff).
+
+4. /workflow-orchestration:knowledge-compound
+   → Captures any durable reusable lessons (conditional post-delivery handoff).
 ```

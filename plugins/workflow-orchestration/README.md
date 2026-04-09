@@ -22,6 +22,7 @@ This plugin provides:
 - `diff-review-orchestration`
 - `git-worktree-orchestration`
 - `knowledge-compound`
+- `delivery-orchestration`
 
 Install locally from the umbrella repo:
 
@@ -36,6 +37,35 @@ Expected namespaced usage:
 /workflow-orchestration:planning-orchestration
 /workflow-orchestration:parallel-implementation-loop
 ```
+
+## Recommended Delivery Loop
+
+The default end-to-end loop for bounded delivery work follows four phases:
+
+1. **`/workflow-orchestration:planning-orchestration`** — Produce an accepted
+   plan with scoped tasks and acceptance criteria. Optionally compose with
+   `sdd-workflow` for feature-shaped work that benefits from specification.
+
+2. **`/workflow-orchestration:delivery-orchestration`** — Route the ready
+   tasks to the best-fit execution skill. The coordinator classifies the
+   request, selects between direct implementation, parallel tracks, swarm
+   decomposition, or systematic debugging, and delegates. It does not perform
+   implementation itself.
+
+3. **`/workflow-orchestration:diff-review-orchestration`** — Review the
+   delivered code changes. This is the default post-delivery handoff;
+   `delivery-orchestration` recommends it whenever the downstream skill
+   completes work that produced code changes.
+
+4. **`/workflow-orchestration:knowledge-compound`** — Capture any durable
+   reusable lessons from the delivery. This handoff is conditional —
+   `delivery-orchestration` recommends it only when the delivery produced
+   non-obvious insights worth preserving beyond the current session.
+
+Requests that lack scope, explore trade-offs, or ask about versioning never
+enter delivery. `delivery-orchestration` deflects them to the appropriate
+upstream skill (`planning-orchestration`, `brainstorm-ideation`, or
+`release-orchestration`) before any execution begins.
 
 ## Recommended Review Path
 
