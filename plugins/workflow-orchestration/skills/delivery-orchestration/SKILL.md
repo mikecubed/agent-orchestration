@@ -63,7 +63,7 @@ The coordinator must resolve every accepted request to exactly one of these outc
 
 | Outcome | Downstream skill | When to choose |
 |---------|-----------------|----------------|
-| **direct** | Implementer agent (no orchestration skill) | Single task, single file or tight module, no parallelism needed, clear scope and tests |
+| **direct** | Runtime-native scoped implementer agent | Single task, single file or tight module, no parallelism needed, clear scope and tests |
 | **parallel** | `/workflow-orchestration:parallel-implementation-loop` | ≥ 2 independent ready tasks touching different files or modules |
 | **swarm** | `/workflow-orchestration:swarm-orchestration` | Decomposition is non-trivial, emergent coupling expected, or multiple specializations needed concurrently |
 | **debug** | `/workflow-orchestration:systematic-debugging` | The request is a bug report, failing test, or regression investigation |
@@ -105,7 +105,7 @@ Use this decision matrix to resolve the route outcome. Evaluate conditions top-t
 | 5 | Request asks about versioning or release | **deflect → release** | "Tag a release" → `/workflow-orchestration:release-orchestration` |
 | 6 | Decomposition is non-trivial: scope is large, boundaries unclear, or multiple specializations needed | **swarm** | "Audit and harden the auth subsystem across 3 domains" → `/workflow-orchestration:swarm-orchestration` |
 | 7 | ≥ 2 independent ready tasks touching different files/modules | **parallel** | "Implement T003 (API routes) and T004 (UI components) in parallel" → `/workflow-orchestration:parallel-implementation-loop` |
-| 8 | Single well-scoped task, one file or tight module | **direct** | "Add input validation to src/api/users.ts with tests" → direct implementer agent |
+| 8 | Single well-scoped task, one file or tight module | **direct** | "Add input validation to src/api/users.ts with tests" → runtime-native scoped implementer agent |
 
 ### Decision examples
 
@@ -186,9 +186,14 @@ If no context exists and the request is non-trivial (more than a single well-sco
 
 Walk the invocation matrix top-to-bottom. The first matching row determines the route. Record the rationale (input classification, route, justification, forwarded inputs).
 
-### 5. Delegate to the downstream skill
+### 5. Delegate to the downstream execution path
 
-Invoke the chosen downstream skill with the forwarded inputs. The coordinator's job ends at delegation — it does not monitor or manage the downstream execution. The downstream skill owns its own progress tracking, rescue policy, and completion gates.
+Invoke the chosen downstream execution target with the forwarded inputs:
+
+- for **parallel**, **swarm**, and **debug**, delegate to the named downstream skill;
+- for **direct**, delegate to the runtime-native scoped implementer agent for the active environment (for example, the current coding agent running on the single-task slice).
+
+The coordinator's job ends at delegation — it does not monitor or manage the downstream execution. The downstream skill or scoped implementer agent owns its own progress tracking, rescue policy, and completion gates.
 
 ### 6. Record the routing decision
 
@@ -209,11 +214,11 @@ A routing decision is not valid until:
 
 Delegation is not valid until:
 
-- the downstream skill is available in the current session;
+- the downstream execution target is available in the current session or runtime;
 - all required project-specific inputs for the downstream skill have been identified and forwarded;
 - the routing rationale has been recorded.
 
-If the downstream skill is not available, inform the developer and suggest manual invocation or an alternative skill.
+If the downstream skill or scoped implementer agent is not available, inform the developer and suggest manual invocation or an alternative supported route.
 
 ## Stop Conditions
 
@@ -436,7 +441,7 @@ The recommended default loop for bounded delivery work:
    → Routes the ready tasks to the best-fit execution skill.
 
 3. /workflow-orchestration:diff-review-orchestration
-   → Reviews the delivered code changes (default post-delivery handoff).
+   → Reviews any non-empty delivered diff (default post-delivery handoff).
 
 4. /workflow-orchestration:knowledge-compound
    → Captures any durable reusable lessons (conditional post-delivery handoff).

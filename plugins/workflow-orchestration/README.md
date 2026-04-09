@@ -52,10 +52,10 @@ The default end-to-end loop for bounded delivery work follows four phases:
    decomposition, or systematic debugging, and delegates. It does not perform
    implementation itself.
 
-3. **`/workflow-orchestration:diff-review-orchestration`** — Review the
-   delivered code changes. This is the default post-delivery handoff;
+3. **`/workflow-orchestration:diff-review-orchestration`** — Review any
+   non-empty delivered diff. This is the default post-delivery handoff;
    `delivery-orchestration` recommends it whenever the downstream skill
-   completes work that produced code changes.
+   completes work that produced a non-empty diff.
 
 4. **`/workflow-orchestration:knowledge-compound`** — Capture any durable
    reusable lessons from the delivery. This handoff is conditional —

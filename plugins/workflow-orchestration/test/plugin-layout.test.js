@@ -134,9 +134,11 @@ describe('workflow-orchestration skills layout', () => {
 
   it('keeps delivery-orchestration coordinator-shaped with explicit deflection and handoff contracts', () => {
     const text = readText(ROOT, path.join('skills', 'delivery-orchestration', 'SKILL.md'));
+    const readme = readText(ROOT, 'README.md');
 
     assert.match(text, /## Post-Delivery Handoffs/);
     assert.match(text, /non-empty diff|non-empty delivered diff|non-empty diff — code, tests, configuration, or documentation/i);
+    assert.match(text, /Runtime-native scoped implementer agent/);
     assert.match(text, /\/workflow-orchestration:diff-review-orchestration/);
     assert.match(text, /\/workflow-orchestration:knowledge-compound/);
     assert.match(text, /## Deflection Behavior/);
@@ -146,6 +148,8 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /## Coordinator-Shape Contract/);
     assert.match(text, /\*\*No planning\*\*/);
     assert.match(text, /\*\*No release\*\*/);
+    assert.match(readme, /Review any\s+non-empty delivered diff/i);
+    assert.match(readme, /produced a non-empty diff/i);
   });
 });
 
