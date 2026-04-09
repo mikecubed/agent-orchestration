@@ -3,7 +3,7 @@ Tasks: T001, T002, T003, T004
 Files: plugins/workflow-orchestration/skills/delivery-orchestration/SKILL.md, plugins/workflow-orchestration/plugin.json, plugins/workflow-orchestration/.claude-plugin/plugin.json, plugins/workflow-orchestration/test/plugin-layout.test.js, docs/track-report-delivery-routing-core.md
 Dependencies: none before launch
 Validation: node --test plugins/workflow-orchestration/test/plugin-layout.test.js
-Work surface: /home/mikecubed/projects/wt-delivery14-routing
+Work surface: branch `feat/delivery-loop-mvp-1-4-routing`
 State: merged
 Validation outcome: PASS — 20/20 tests (up from 19 baseline)
 Unresolved issues:

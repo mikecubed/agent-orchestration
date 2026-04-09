@@ -3,7 +3,7 @@ Tasks: T005, T006, T007, T008, T009
 Files: plugins/workflow-orchestration/README.md, plugins/workflow-orchestration/skills/delivery-orchestration/SKILL.md, docs/track-report-delivery-handoff-docs.md
 Dependencies: T003 must land on the integration branch before this track starts
 Validation: npm --prefix plugins/workflow-orchestration test
-Work surface: /home/mikecubed/projects/wt-delivery14-docs
+Work surface: branch `feat/delivery-loop-mvp-1-4-docs`
 State: merged
 Validation outcome: pass
 Unresolved issues:
