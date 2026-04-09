@@ -6,6 +6,33 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-04-09
+
+### Added (workflow-orchestration 1.4.0)
+
+- **`delivery-orchestration` skill**: adds a thin delivery router that classifies
+  execution-ready requests, chooses between direct implementation, parallel tracks,
+  swarm orchestration, or systematic debugging, and deflects planning-, review-, and
+  release-shaped work to the correct upstream or downstream workflow.
+- **Default post-delivery handoffs**: `delivery-orchestration` now documents
+  `diff-review-orchestration` as the standard follow-up for any non-empty delivered
+  diff and `knowledge-compound` as the conditional follow-up when reviewed delivery
+  work produces a durable reusable lesson.
+- **Coordinator-boundary coverage**: workflow plugin tests now assert that
+  `delivery-orchestration` keeps explicit planning/release deflection rules and
+  no-planning/no-release coordinator invariants.
+
+### Changed (workflow-orchestration 1.4.0)
+
+- **Delivery loop docs**: the workflow README now presents the default path as
+  planning -> delivery -> diff review -> knowledge capture, and includes
+  `delivery-orchestration` in the published skill list.
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata bumped from
+  `1.3.0` to `1.4.0` across the root package, workflow plugin manifests, and marketplace
+  metadata.
+- **Description update**: workflow-orchestration descriptions now include "delivery
+  orchestration" across the synced plugin and marketplace manifests.
+
 ## [1.3.0] - 2026-04-08
 
 ### Added (workflow-orchestration 1.3.0)

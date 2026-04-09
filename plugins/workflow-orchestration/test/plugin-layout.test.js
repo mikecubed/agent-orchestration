@@ -102,6 +102,7 @@ describe('workflow-orchestration skills layout', () => {
     'diff-review-orchestration',
     'git-worktree-orchestration',
     'knowledge-compound',
+    'delivery-orchestration',
   ];
 
   for (const skill of skills) {
@@ -130,6 +131,26 @@ describe('workflow-orchestration skills layout', () => {
         `${skill} should scope out persistent team, squad, or fleet orchestration`);
     });
   }
+
+  it('keeps delivery-orchestration coordinator-shaped with explicit deflection and handoff contracts', () => {
+    const text = readText(ROOT, path.join('skills', 'delivery-orchestration', 'SKILL.md'));
+    const readme = readText(ROOT, 'README.md');
+
+    assert.match(text, /## Post-Delivery Handoffs/);
+    assert.match(text, /non-empty diff|non-empty delivered diff|non-empty diff — code, tests, configuration, or documentation/i);
+    assert.match(text, /Runtime-native scoped implementer agent/);
+    assert.match(text, /\/workflow-orchestration:diff-review-orchestration/);
+    assert.match(text, /\/workflow-orchestration:knowledge-compound/);
+    assert.match(text, /## Deflection Behavior/);
+    assert.match(text, /\/workflow-orchestration:planning-orchestration/);
+    assert.match(text, /\/workflow-orchestration:brainstorm-ideation/);
+    assert.match(text, /\/workflow-orchestration:release-orchestration/);
+    assert.match(text, /## Coordinator-Shape Contract/);
+    assert.match(text, /\*\*No planning\*\*/);
+    assert.match(text, /\*\*No release\*\*/);
+    assert.match(readme, /Review any\s+non-empty delivered diff/i);
+    assert.match(readme, /produced a non-empty diff/i);
+  });
 });
 
 describe('workflow-orchestration package contents', () => {
@@ -159,6 +180,7 @@ describe('workflow-orchestration package contents', () => {
       'diff-review-orchestration',
       'git-worktree-orchestration',
       'knowledge-compound',
+      'delivery-orchestration',
     ]) {
       assert.ok(files.includes(`skills/${skill}/SKILL.md`));
     }
