@@ -5,7 +5,8 @@ Dependencies: none before launch
 Validation: node --test plugins/workflow-orchestration/test/plugin-layout.test.js
 Work surface: branch `feat/delivery-loop-mvp-1-4-routing`
 State: merged
-Validation outcome: PASS — 20/20 tests (up from 19 baseline)
+Validation outcome: pass
+Validation detail: 20/20 tests passed (up from 19-test baseline)
 Unresolved issues:
 - none
 Rescue history:
