@@ -4,13 +4,13 @@ Files: plugins/workflow-orchestration/skills/delivery-orchestration/SKILL.md, pl
 Dependencies: none before launch
 Validation: node --test plugins/workflow-orchestration/test/plugin-layout.test.js
 Work surface: /home/mikecubed/projects/wt-delivery14-routing
-State: review
+State: merged
 Validation outcome: PASS — 20/20 tests (up from 19 baseline)
 Unresolved issues:
 - none
 Rescue history:
 - review drift on marketplace-facing description | reverted plugin-manifest description edits | keep routing-core scoped to T001-T004 without creating umbrella metadata drift before the serialized release pass | resolved | 1
-Next action: coordinator review; then downstream tracks (handoff-docs T005-T007, boundary T008-T009) can proceed
+Next action: launch the handoff-docs track from the updated integration branch, then serialize release/version work after both tracks merge
 Revision rounds: 1
 
 ## What changed
@@ -35,10 +35,14 @@ Revision rounds: 1
 - Baseline: 19/19 pass on main checkout
 - After test update (before SKILL.md): 2 failures (delivery-orchestration skill missing + tarball assertion) — red phase confirmed
 - After SKILL.md + manifest updates: 20/20 pass — green phase confirmed
-- After review fix: pending rerun of plugin layout validation
+- After review fix: 20/20 pass — plugin layout validation rerun succeeded
 
 ## Out of scope for downstream tracks
 - T005-T007 (handoff-docs track): review and knowledge-compound handoff wiring, workflow documentation
 - T008-T009 (boundary track): deflection behavior encoding, coordinator-shaped contract coverage
 - T010-T012 (release track): version bumps, changelog, umbrella release surfaces
 - No version bump or changelog entry was made in this track
+
+## Merge outcome
+- Merged into `feat/delivery-loop-mvp-1-4` from `feat/delivery-loop-mvp-1-4-routing`
+- Files stayed within the declared track scope
