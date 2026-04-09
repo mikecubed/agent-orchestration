@@ -75,6 +75,23 @@ function run(command, args, options = {}) {
   });
 }
 
+function tryRun(command, args, options = {}) {
+  try {
+    return {
+      ok: true,
+      stdout: run(command, args, options),
+      stderr: '',
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      stdout: error.stdout ?? '',
+      stderr: error.stderr ?? '',
+      error,
+    };
+  }
+}
+
 function outputIncludesToken(output, expectedToken) {
   return output
     .split(/\r?\n/)
@@ -156,7 +173,25 @@ function verifyCopilotRuntime(pluginRoot, relativeSkillDir) {
       );
     }
 
-    run('copilot', ['plugin', 'uninstall', '--config-dir', configDir, pluginName]);
+    const uninstallResult = tryRun(
+      'copilot',
+      ['plugin', 'uninstall', '--config-dir', configDir, pluginName],
+    );
+
+    if (!uninstallResult.ok) {
+      const installedAlias = `${pluginName}@agent-orchestration`;
+      const uninstallMissingKnownAlias = uninstallResult.stderr.includes(
+        `Plugin "${installedAlias}" is not installed`,
+      );
+
+      if (!uninstallMissingKnownAlias) {
+        throw uninstallResult.error;
+      }
+
+      console.warn(
+        `Copilot uninstall skipped for ${pluginName}: CLI reported missing ${installedAlias} in isolated config; removing config dir instead.`,
+      );
+    }
   } finally {
     fs.rmSync(configDir, { recursive: true, force: true });
   }

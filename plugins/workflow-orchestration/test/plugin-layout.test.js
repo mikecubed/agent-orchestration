@@ -103,6 +103,7 @@ describe('workflow-orchestration skills layout', () => {
     'git-worktree-orchestration',
     'knowledge-compound',
     'delivery-orchestration',
+    'pr-publish-orchestration',
   ];
 
   for (const skill of skills) {
@@ -151,6 +152,35 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(readme, /Review any\s+non-empty delivered diff/i);
     assert.match(readme, /produced a non-empty diff/i);
   });
+
+  it('keeps pr-publish-orchestration bounded to publication with readiness deflection', () => {
+    const text = readText(ROOT, path.join('skills', 'pr-publish-orchestration', 'SKILL.md'));
+    const templates = readText(ROOT, 'docs/workflow-artifact-templates.md');
+
+    assert.match(text, /stops at PR creation or update/i);
+    assert.match(text, /\/workflow-orchestration:final-pr-readiness-gate/);
+    assert.match(text, /exact tree that will be published/i);
+    assert.match(text, /\/workflow-orchestration:pr-review-resolution-loop/);
+    assert.match(text, /\/workflow-orchestration:release-orchestration/);
+    assert.match(text, /docs\/publish-summary-<topic>\.md/);
+    assert.match(text, /Publish summary/);
+    assert.doesNotMatch(text, /developer override/i);
+    assert.match(templates, /## Publish summary/);
+    assert.match(templates, /docs\/publish-summary-<topic>\.md/);
+  });
+
+  it('keeps diff-review-orchestration headless and autofix explicitly bounded', () => {
+    const text = readText(ROOT, path.join('skills', 'diff-review-orchestration', 'SKILL.md'));
+
+    assert.match(text, /This skill supports three modes/);
+    assert.match(text, /\bHeadless mode\b/);
+    assert.match(text, /mode:\s+headless/);
+    assert.match(text, /no downstream routing/i);
+    assert.match(text, /## Autofix Evaluation/);
+    assert.match(text, /### Decision: Deferred/);
+    assert.match(text, /Explicit opt-in/);
+    assert.match(text, /final-gate-result:\s+stopped/);
+  });
 });
 
 describe('workflow-orchestration package contents', () => {
@@ -181,6 +211,7 @@ describe('workflow-orchestration package contents', () => {
       'git-worktree-orchestration',
       'knowledge-compound',
       'delivery-orchestration',
+      'pr-publish-orchestration',
     ]) {
       assert.ok(files.includes(`skills/${skill}/SKILL.md`));
     }

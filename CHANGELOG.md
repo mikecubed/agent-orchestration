@@ -6,6 +6,42 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-04-09
+
+### Added (workflow-orchestration 1.5.0)
+
+- **`pr-publish-orchestration` skill**: adds a thin publication bridge that
+  accepts ready-to-publish work, performs commit/push/PR creation or update,
+  and explicitly deflects release-shaped requests to
+  `release-orchestration`.
+- **Publish summary template**: adds a shared `Publish summary` artifact
+  contract to `docs/workflow-artifact-templates.md`, including the suggested
+  `docs/publish-summary-<topic>.md` sink for committed publication records.
+- **Headless review mode**: `diff-review-orchestration` now documents a third
+  `headless` mode for non-interactive review environments and records a
+  self-contained review artifact with an explicit stopped state when downstream
+  human confirmation is unavailable.
+
+### Changed (workflow-orchestration 1.5.0)
+
+- **Bounded autofix decision**: `diff-review-orchestration` now records an
+  explicit defer decision for autofix plus the guardrails required before
+  future shipment.
+- **Start-here workflow docs**: the workflow README now presents the default
+  path as planning -> delivery -> diff review -> review resolution -> final
+  readiness -> PR publish, while keeping release management under
+  `release-orchestration`.
+- **Structural coverage**: workflow plugin tests now assert the new
+  `pr-publish-orchestration` boundary contract, the shared publish-summary
+  template, and the bounded headless/autofix review surface.
+- **Runtime verifier hardening**: the umbrella runtime checker now tolerates a
+  Copilot CLI uninstall anomaly for isolated `sdd-workflow` config dirs after
+  install/list/load verification succeeds, so full runtime validation can
+  complete reliably.
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata
+  bumped from `1.4.0` to `1.5.0` across the root package, lockfile, workflow
+  package/manifests, and marketplace metadata.
+
 ## [1.4.0] - 2026-04-09
 
 ### Added (workflow-orchestration 1.4.0)

@@ -121,13 +121,13 @@ PR publication and release management are separate concerns:
 
 - **`/workflow-orchestration:pr-publish-orchestration`** handles the last
   mile after readiness: commit, push, and PR creation or update. It requires
-  a passing readiness gate and does not perform tagging, changelog generation,
-  or artifact publishing.
+  a passing readiness gate on the exact tree being published and does not
+  perform tagging, changelog generation, or artifact publishing.
 
 - **`/workflow-orchestration:release-orchestration`** owns the release
   pipeline: conventional-commit semver calculation, CHANGELOG update, git tag
-  creation, and optional GitHub release. Invoke it only when a merge-ready
-  branch is ready for a versioned release.
+  creation, and optional GitHub release. Invoke it only after a branch or PR
+  has landed and a stable post-merge branch is ready for a versioned release.
 
 The two skills never overlap — `pr-publish-orchestration` deflects release
 requests to `release-orchestration`, and vice versa.

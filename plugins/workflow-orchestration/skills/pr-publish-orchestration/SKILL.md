@@ -38,21 +38,18 @@ Before you start, identify:
 - **Target branch** — the base branch for the PR (usually `main`; confirm with the developer if ambiguous).
 - **Commit message or strategy** — conventional commit message, squash preference, or message template. If none is provided, derive from the branch context.
 - **PR title and body** — explicit values or auto-derive from the commit log and branch description.
-- **Readiness evidence** — a prior readiness verdict from `/workflow-orchestration:final-pr-readiness-gate` or `/workflow-orchestration:diff-review-orchestration`, or CI status confirming the branch is ready.
+- **Readiness evidence** — a `ready` or `ready-with-follow-ups` verdict from `/workflow-orchestration:final-pr-readiness-gate` for the exact tree that will be published.
 - **Existing PR number** — if updating an existing PR rather than creating a new one.
 
 Gather factual context: confirm branch state, uncommitted changes, remote tracking status, and whether a PR already exists for the branch before proceeding.
 
 ## Readiness Prerequisite
 
-This skill requires evidence that the work is ready to publish. Acceptable evidence includes:
+This skill requires a `ready` or `ready-with-follow-ups` verdict from `/workflow-orchestration:final-pr-readiness-gate` for the exact tree that will be published.
 
-1. A `ready` or `ready-with-follow-ups` verdict from `/workflow-orchestration:final-pr-readiness-gate` in the current session.
-2. A passing readiness report from `/workflow-orchestration:diff-review-orchestration`.
-3. All CI checks passing on the branch with no unresolved review comments.
-4. Explicit developer override — the developer states the work is ready and accepts responsibility.
+Supporting context — such as a prior `/workflow-orchestration:diff-review-orchestration` report or passing CI state — may be recorded in the publish summary, but it does **not** replace the final readiness gate.
 
-If none of these conditions are met, **deflect** — do not publish. See § Deflection Rules.
+If that final readiness verdict is missing, stale, or applies to an earlier tree state, **deflect** — do not publish. See § Deflection Rules.
 
 ## Workflow
 
@@ -61,8 +58,8 @@ If none of these conditions are met, **deflect** — do not publish. See § Defl
 Before any publication action:
 
 1. Confirm the source branch exists and has commits ahead of the target branch.
-2. Check for uncommitted changes — if present, ask the developer whether to stage and commit them or abort.
-3. Verify readiness evidence (see § Readiness Prerequisite).
+2. Check for uncommitted changes — if present, ask the developer whether to stage and commit them or abort. Any new commit created during this workflow invalidates prior readiness evidence until `/workflow-orchestration:final-pr-readiness-gate` is rerun on the exact post-commit tree.
+3. Verify readiness evidence (see § Readiness Prerequisite) for the exact tree that is about to be pushed.
 4. Check whether a PR already exists for this branch against the target — this determines create vs. update path.
 
 ### 2. Commit (if needed)
@@ -72,6 +69,7 @@ If there are staged or unstaged changes that the developer wants included:
 1. Stage the relevant changes.
 2. Commit with the agreed message or a conventional-commit-formatted message derived from context.
 3. Do **not** amend or rebase unless the developer explicitly requests it.
+4. Re-run `/workflow-orchestration:final-pr-readiness-gate` on the exact post-commit tree before any push or PR publication step. If the gate does not return `ready` or `ready-with-follow-ups`, stop and record a partial publish summary.
 
 ### 3. Push
 
@@ -95,13 +93,16 @@ If there are staged or unstaged changes that the developer wants included:
 
 ### 5. Produce a durable publish summary
 
-Emit a publish summary artifact recording:
+Emit a publish summary artifact following the `Publish summary` template in `docs/workflow-artifact-templates.md`. For committed, durable artifacts in this repository, prefer `docs/publish-summary-<topic>.md`. If another durable sink is more appropriate — for example a PR description or issue comment — preserve the same field structure.
+
+Record:
 
 - **Branch** — source and target branches.
 - **Commits published** — list of commits pushed (short SHA + subject).
 - **PR action** — created (with PR number and URL) or updated (with PR number).
 - **Readiness evidence** — what satisfied the readiness prerequisite.
 - **Skipped steps** — any steps skipped with reasons (e.g., "commit skipped: working tree clean").
+- **Artifact sink** — the durable file path or other persistent sink used for the publish summary.
 - **Deflected concerns** — items explicitly out of scope for this invocation:
   - Versioning → `/workflow-orchestration:release-orchestration`
   - Changelog → `/workflow-orchestration:release-orchestration`
@@ -116,7 +117,7 @@ This skill deflects rather than attempting work outside its scope:
 
 | Condition | Deflection target | Action |
 |---|---|---|
-| Work is not ready (no readiness evidence) | `/workflow-orchestration:final-pr-readiness-gate` | Stop and recommend running the readiness gate first. |
+| Work is not ready (no current final-gate evidence for the exact tree) | `/workflow-orchestration:final-pr-readiness-gate` | Stop and recommend running the readiness gate first. |
 | Unresolved review comments on existing PR | `/workflow-orchestration:pr-review-resolution-loop` | Stop and recommend resolving comments before publishing updates. |
 | Developer requests versioning or changelog | `/workflow-orchestration:release-orchestration` | Acknowledge the request, note it in the publish summary, and recommend invoking release-orchestration after the PR merges. |
 | Developer requests tagging or release creation | `/workflow-orchestration:release-orchestration` | Same as above — deflect with a clear handoff note. |
@@ -128,7 +129,7 @@ When deflecting, always explain why and name the specific skill to invoke next.
 
 A publication pass is not complete until:
 
-- readiness evidence was verified or the developer explicitly overrode the check;
+- readiness evidence was verified;
 - all intended commits were pushed to the remote;
 - a PR was created or confirmed updated;
 - a durable publish summary artifact was produced recording branch state, actions taken, and deflected concerns.
@@ -137,7 +138,7 @@ A publication pass is not complete until:
 
 Before declaring publication complete, confirm ALL of the following:
 
-- [ ] Readiness evidence verified or developer override recorded — PASS / FAIL
+- [ ] Readiness evidence verified — PASS / FAIL
 - [ ] Branch pushed to remote with all intended commits — PASS / FAIL
 - [ ] PR created or updated successfully — PASS / FAIL
 - [ ] Publish summary artifact produced — PASS / FAIL
@@ -147,7 +148,7 @@ If any item is FAIL: surface the failing item, state what must be done to resolv
 
 ## Stop Conditions
 
-- Readiness evidence is missing and the developer declines to override — deflect to `/workflow-orchestration:final-pr-readiness-gate`.
+- Readiness evidence is missing, stale, or no longer matches the tree being published — deflect to `/workflow-orchestration:final-pr-readiness-gate`.
 - Push fails due to diverged history and the developer declines to resolve — stop and preserve the publish summary with the failure recorded.
 - PR creation or update fails (permissions, API errors) — stop, record the error, and surface the partial publish summary.
 - The developer asks to stop.
@@ -215,7 +216,7 @@ Developer: yes
   Branch: fix/null-check → main
   Commits published: b2c3d4e fix: add null guard in createWidget
   PR action: updated #98, marked ready for review
-  Readiness evidence: CI passing, no unresolved comments
+  Readiness evidence: final-pr-readiness-gate verdict "ready with follow-ups" on the current head commit
   Skipped steps: none
   Deflected concerns:
     - Versioning → /workflow-orchestration:release-orchestration

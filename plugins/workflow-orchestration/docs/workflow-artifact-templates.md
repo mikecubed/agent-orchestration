@@ -15,6 +15,7 @@ Suggested names:
 - `docs/track-report-<topic>.md`
 - `docs/review-resolution-<topic>.md`
 - `docs/readiness-report-<topic>.md`
+- `docs/publish-summary-<topic>.md`
 
 If this repository uses another durable sink for a workflow output — for example, a PR description, issue comment, or task tracker entry — reuse the same field structure from the matching template below.
 
@@ -85,6 +86,26 @@ Unresolved questions:
 Next action: <what should happen next for this readiness check>
 Verdict:
 - <ready for review / ready with follow-ups / not ready / stopped by user>
+```
+
+## Publish summary
+
+Use for `pr-publish-orchestration`.
+
+```text
+Publication request: <source branch> against <target branch>
+Readiness source: <final-pr-readiness-gate verdict / diff-review report / CI state>
+Current state: validating | committing | pushing | publishing | done | stopped
+Commits published:
+- <short SHA> <subject>, or none
+PR action:
+- <created #123 | updated #123 | not-run — reason>
+Skipped steps:
+- <step> — <reason>, or none
+Deflected concerns:
+- <request> -> <skill handoff>, or none
+Artifact sink: <docs/publish-summary-<topic>.md or another durable sink>
+Next action: <what should happen next>
 ```
 
 ## Discovery brief

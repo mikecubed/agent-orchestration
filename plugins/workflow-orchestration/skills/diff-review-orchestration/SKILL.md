@@ -28,7 +28,7 @@ This skill supports three modes:
 
 - **Interactive mode** (default) — the coordinator pauses at decision points, surfaces findings incrementally, and allows the developer to guide triage and fixes in real time. Suitable when a developer is present and wants to steer the review.
 - **Report-only mode** — the coordinator runs all checks end-to-end without pausing, collects all findings, and produces a single consolidated review report at the end. The report may recommend handoff to downstream skills (such as `workflow-orchestration:pr-review-resolution-loop`) for follow-up action. Use this mode when the developer wants a hands-off review pass but will act on the results afterward.
-- **Headless mode** — the coordinator runs all checks end-to-end deterministically, produces a self-contained review artifact, and exits. Unlike report-only mode, headless output does not recommend or route to downstream interactive skills within the same invocation — the artifact is designed for programmatic consumers (CI pipelines, scheduled checks, dashboards) that interpret findings without further skill invocations. Use this mode for fully automated review gates where no developer interaction is expected during or immediately after the run.
+- **Headless mode** — the coordinator runs non-interactively, produces a self-contained review artifact, and exits without prompts. Unlike report-only mode, headless output does not recommend or route to downstream interactive skills within the same invocation — the artifact is designed for programmatic consumers (CI pipelines, scheduled checks, dashboards) that interpret findings without further skill invocations. Use this mode for non-interactive review environments where a partial stopped artifact is acceptable unless prior human attestation or another project-approved non-interactive diff-integrity input is already available.
 
 ## Project-Specific Inputs
 
@@ -169,6 +169,8 @@ Produce a self-contained, deterministic review artifact suitable for programmati
 - **No downstream routing** — the artifact does not recommend handoff to `workflow-orchestration:pr-review-resolution-loop` or any other interactive skill. Existing-comment entries record the unresolved count only, without follow-up suggestions.
 - **No interactive prompts** — the coordinator never pauses, never asks for developer input, and never waits for confirmation at any step.
 - **Machine-consumable outcome** — include all workflow outcome measures plus a top-level `mode: headless` marker so consumers can distinguish the artifact from a report-only output.
+- **Explicit stopped state when human confirmation is required** — if `workflow-orchestration:final-pr-readiness-gate` or another downstream step cannot complete without interactive human confirmation, record that blocked step and emit a partial artifact with `final-gate-result: stopped` rather than pausing.
+- **Terminal ready verdicts need prior attestation** — because `workflow-orchestration:final-pr-readiness-gate` may require human confirmation for diff integrity, a headless run can only complete with `ready` or `ready-with-follow-ups` when that attestation is already available through a project-approved non-interactive input.
 
 The headless artifact must include the same fields as the report-only report:
 
@@ -181,7 +183,7 @@ The headless artifact must include the same fields as the report-only report:
 - skipped checks with reasons;
 - workflow outcome measures (same set as report-only, plus `mode: headless`).
 
-Store the artifact as a durable summary artifact. The headless artifact is terminal — it does not trigger or suggest further skill invocations.
+Store the artifact as a durable summary artifact. The headless artifact is terminal — it does not trigger or suggest further skill invocations, and it may end in a stopped state when downstream human confirmation is unavailable.
 
 ## Required Gates
 
@@ -212,7 +214,6 @@ If any item is FAIL: report the failing item(s), state what must be done to reso
 - The diff is empty — no changed files between the target and baseline.
 - Required inputs are missing (no diff target, no determinable baseline) and the developer cannot supply them.
 - `clean-code-codex:conductor` is unavailable and no fallback is acceptable to the developer — the developer explicitly declines to proceed without codex checks.
-- In headless mode, `clean-code-codex:conductor` is unavailable and no developer is present to approve the fallback — record the skipped checks and exit with a partial artifact.
 - The diff is too large to review coherently and the developer declines to split it.
 - A downstream skill stalls after rescue attempts have been exhausted.
 - The developer asks to stop.
@@ -328,11 +329,11 @@ Coordinator:
   Prior learnings: none found
   Existing comments: 1 unresolved
   Codex findings: 2 (1 fix-now, 1 follow-up)
-  Readiness verdict: not ready
-  Skipped checks: none
+  Readiness verdict: stopped
+  Skipped checks: diff-integrity confirmation requires a prior human attestation or project-approved non-interactive input
   discovery-reuse: no
   prior-learnings: none-found
   rescue-attempts: 0
   codex-available: yes
-  final-gate-result: not-ready
+  final-gate-result: stopped
 ```
