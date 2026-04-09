@@ -35,9 +35,10 @@ This skill supports three modes:
 Before you start, identify:
 
 - **Diff target** — the branch, PR number, or commit range to review (e.g., `HEAD~3..HEAD`, `PR #42`, `feat/widget`).
-- **Mode flag** — `interactive` (default), `report-only`, or `headless`. If unspecified, default to interactive.
+- **Mode flag** — `interactive` (default), `report-only`, or `headless`. If unspecified, default to interactive. When shared workflow defaults declare a preferred review mode (see `plugins/workflow-orchestration/docs/workflow-defaults-contract.md`), use that as the default instead. An explicit mode flag always overrides the configured default.
 - **`--base` override** — the comparison baseline branch or commit. Defaults to the repository's default branch (usually `main`) if not provided.
 - **Codex availability** — whether `clean-code-codex:conductor` is loaded and available in the current session. Check for the plugin at startup; if unavailable, the coordinator degrades gracefully (see § Codex unavailable fallback).
+- **Shared workflow defaults** — whether the repository declares shared workflow defaults. If present, consume relevant keys — preferred review mode, knowledge-sink location for prior-learning lookups, and artifact sink preferences for the durable review report. If defaults are absent or a specific key is missing, fall back to the per-invocation behavior described in each step below.
 
 If the diff target or comparison baseline cannot be determined, ask the developer before proceeding.
 
@@ -70,7 +71,7 @@ After the discovery brief is ready, search for knowledge artifacts whose applica
 
 Matching rules:
 
-- Scan repository-local knowledge sinks (e.g., a `docs/knowledge/` directory, issue labels, or another project-configured location). The specific sink location is a project-level decision; if no knowledge sink is discoverable, skip this step and record `prior-learnings: skipped` in the outcome measures and `Prior-learnings consulted: skipped` in the discovery brief.
+- Scan repository-local knowledge sinks (e.g., a `docs/knowledge/` directory, issue labels, or another project-configured location). When shared workflow defaults declare a knowledge-sink location, use that as the primary lookup path. If no knowledge sink is discoverable from defaults or project conventions, skip this step and record `prior-learnings: skipped` in the outcome measures and `Prior-learnings consulted: skipped` in the discovery brief.
 - Match by file path overlap (any changed file or its parent directory appears in a knowledge artifact's source references or applicability) or by technology/topic overlap (the artifact's applicability mentions a framework, library, or pattern present in the diff).
 - Keep the lookup read-only — do not create, modify, or retire knowledge artifacts during a diff review.
 
@@ -160,7 +161,7 @@ Include workflow outcome measures:
 - `codex-available` — `yes` or `no`;
 - `final-gate-result` — one of `ready`, `ready-with-follow-ups`, `not-ready`, or `stopped`.
 
-Store the durable report as a durable summary artifact so the next actor can make a decision quickly.
+Store the durable report as a durable summary artifact so the next actor can make a decision quickly. When shared workflow defaults declare an artifact sink for review reports, use that configured path as the default destination. When no default is configured, use the repository's conventional durable sink or ask the developer.
 
 #### Headless mode
 

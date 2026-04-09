@@ -44,9 +44,7 @@ Before you start, identify:
 - **source type** — the kind of workflow that produced the knowledge (e.g., `systematic-debugging`, `incident-rca`, `parallel-implementation-loop`, or a manual investigation);
 - **source references** — links or paths to the originating session, PR, issue, RCA, commit, or other evidence;
 - **summary** — a short description of what was learned, provided by the developer or extracted from the source;
-- **sink** — where the durable knowledge artifact should be written (e.g., a file path, issue, wiki page); the developer decides the appropriate location for their repository.
-
-If the developer does not specify a sink, ask before proceeding. Do not assume a default directory — sink location is a project-level decision.
+- **sink** — where the durable knowledge artifact should be written (e.g., a file path, issue, wiki page). When the repository declares shared workflow defaults (see `plugins/workflow-orchestration/docs/workflow-defaults-contract.md`) with a knowledge-capture sink preference, use that configured path as the default destination. When the developer provides an explicit sink, the developer's choice overrides any configured default. When neither an explicit choice nor a configured default is available, ask before proceeding. Do not assume a default directory — sink location is a project-level decision, and the defaults contract does not impose a mandatory taxonomy.
 
 ## Workflow
 
@@ -90,7 +88,7 @@ Present the draft to the developer for review. Allow edits before writing.
 
 ### Phase 3 — Write to sink
 
-Write the approved artifact to the confirmed sink location.
+Write the approved artifact to the confirmed sink location. Resolve the sink using the following precedence: (1) the developer's explicit choice, (2) the knowledge-capture sink from shared workflow defaults, (3) ask the developer. This precedence preserves the no-mandatory-taxonomy rule — the defaults contract provides a configurable preference, not a required directory layout.
 
 1. Write the artifact to the sink.
 2. Confirm the write succeeded (file exists, issue was created, etc.).

@@ -40,6 +40,7 @@ Before you start, identify:
 - **PR title and body** — explicit values or auto-derive from the commit log and branch description.
 - **Readiness evidence** — a `ready` or `ready-with-follow-ups` verdict from `/workflow-orchestration:final-pr-readiness-gate` for the exact tree that will be published.
 - **Existing PR number** — if updating an existing PR rather than creating a new one.
+- **Shared workflow defaults** — whether the repository declares shared workflow defaults (see `plugins/workflow-orchestration/docs/workflow-defaults-contract.md`). If present, consume relevant keys — publish preferences (commit strategy, PR template conventions) and artifact sink preferences for the durable publish summary. If defaults are absent or a specific key is missing, fall back to the per-invocation behavior described in each step below.
 
 Gather factual context: confirm branch state, uncommitted changes, remote tracking status, and whether a PR already exists for the branch before proceeding.
 
@@ -93,7 +94,7 @@ If there are staged or unstaged changes that the developer wants included:
 
 ### 5. Produce a durable publish summary
 
-Emit a publish summary artifact following the `Publish summary` template in `docs/workflow-artifact-templates.md`. For committed, durable artifacts in this repository, prefer `docs/publish-summary-<topic>.md`. If another durable sink is more appropriate — for example a PR description or issue comment — preserve the same field structure.
+Emit a publish summary artifact following the `Publish summary` template in `docs/workflow-artifact-templates.md`. When shared workflow defaults declare an artifact sink for publish summaries, use that configured path as the default destination. Otherwise, for committed, durable artifacts in this repository, prefer `docs/publish-summary-<topic>.md`. If another durable sink is more appropriate — for example a PR description or issue comment — preserve the same field structure.
 
 Record:
 

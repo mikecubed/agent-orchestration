@@ -32,7 +32,8 @@ Before you start, identify:
 - the repository's validation commands;
 - where durable planning artifacts should live;
 - whether `sdd-workflow` is available in the current runtime;
-- whether the repository permits `.sdd/` planning workspaces or expects another temporary planning sink.
+- whether the repository permits `.sdd/` planning workspaces or expects another temporary planning sink;
+- whether the repository declares shared workflow defaults (see `plugins/workflow-orchestration/docs/workflow-defaults-contract.md`) — particularly artifact sink preferences and automation policy. If defaults are present, use them as the baseline for planning decisions described below; if absent, continue with the existing per-invocation approach.
 
 ## Default Roles
 
@@ -133,6 +134,7 @@ The scout MUST produce a short factual brief covering:
 - task boundaries;
 - known dependencies;
 - whether `sdd-workflow` appears available;
+- shared workflow defaults status — record whether defaults were found, which planning-relevant keys were consumed (e.g., artifact sink, automation policy), and which keys were absent or fell back to per-invocation behavior;
 - Prior-learnings consulted (always record matches, `none-found`, or `skipped` — see lookup below).
 
 Use the discovery brief template from `docs/workflow-artifact-templates.md`.
@@ -238,7 +240,7 @@ Before stopping, publish one durable planning artifact or summary that records:
 6. recommended next action;
 7. workflow outcome measures.
 
-The artifact MUST use a repository-appropriate durable sink — for example, a committed document, PR description, issue comment, or task tracker entry.
+The artifact MUST use a repository-appropriate durable sink — for example, a committed document, PR description, issue comment, or task tracker entry. When shared workflow defaults declare an artifact sink preference for planning artifacts, use that configured sink as the default destination. When no default is configured, fall back to asking the developer or inferring from repository conventions. See `plugins/workflow-orchestration/docs/workflow-defaults-contract.md` for key definitions and fallback behavior.
 
 When appropriate, recommend the next workflow explicitly:
 
@@ -289,6 +291,7 @@ Relevant files: plugin.json, .github/plugin/marketplace.json, skills/planning-or
 Validation commands: npm test, npm run validate:runtime
 Task boundaries: In scope = plugin layout, planning skill, marketplace metadata; out of scope = persistent orchestration service
 Dependencies: marketplace naming decision complete
+Shared workflow defaults: found — artifact sink consumed (docs/), automation policy absent (per-invocation fallback)
 Recommended next action: invoke /workflow-orchestration:parallel-implementation-loop for implementation
 Prior-learnings consulted:
 - docs/knowledge/ci-auth-seed-ordering.md — async seed ordering breaks auth in parallel CI
