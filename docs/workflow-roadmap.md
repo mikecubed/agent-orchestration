@@ -3,34 +3,24 @@
 ## Discovery brief
 
 ```text
-Task summary: replace the pre-1.5 roadmap with a new phase-based roadmap focused on the remaining productization gaps after workflow-orchestration reached broad end-to-end phase coverage.
+Task summary: define the post-1.5 phase-based roadmap focused on the remaining productization gaps after workflow-orchestration reached broad end-to-end phase coverage.
 Planning mode: fallback planning
 Relevant files: docs/everyinc-compound-engineering-comparison.md, plugins/workflow-orchestration/docs/workflow-usage-guide.md, plugins/workflow-orchestration/README.md, plugins/workflow-orchestration/skills/*
 Validation commands: npm test, npm run validate:plugin, npm run validate:runtime
 Task boundaries: in scope = roadmap phases for lifecycle automation, workflow defaults, continuation, knowledge refresh, and direct-execution hardening; out of scope = packaging/distribution expansion, persona sprawl, mega-skill rewrites
 Dependencies: preserve current workflow contracts; build thin coordinators over existing skills; keep Codex as the quality gate rather than inventing a parallel quality system
 Recommended next action: implement the foundation phase before adding any full-loop conductor behavior
-Unresolved questions: none that block roadmap replacement
+Unresolved questions: none that block roadmap definition
 Workflow outcome measures: clearer sequencing, explicit rationale per phase, roadmap aligned to the current shipped workflow platform
 ```
 
-## Why the roadmap changed
-
-The old roadmap described how to add the workflows that were missing before `1.5.0`:
-
-- `delivery-orchestration`
-- `diff-review-orchestration`
-- `knowledge-compound`
-- `git-worktree-orchestration`
-- `pr-publish-orchestration`
-
-That roadmap is now obsolete because those workflows exist.
+## Roadmap focus
 
 The repo has crossed the important threshold from **specialist skills** to **workflow platform**. It now supports most major engineering phases:
 
 > ideate -> plan -> deliver -> review -> resolve -> gate -> publish -> capture knowledge
 
-The next roadmap should therefore optimize for a different goal:
+This roadmap therefore optimizes for a different goal:
 
 > turn phase coverage into lifecycle automation without collapsing into mega-skills
 
