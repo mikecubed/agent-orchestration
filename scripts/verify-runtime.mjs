@@ -8,6 +8,9 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
+const ROOT_PACKAGE_NAME = JSON.parse(
+  fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
+).name;
 const PLUGIN_TARGETS = new Map([
   [
     'workflow-orchestration',
@@ -179,17 +182,17 @@ function verifyCopilotRuntime(pluginRoot, relativeSkillDir) {
     );
 
     if (!uninstallResult.ok) {
-      const installedAlias = `${pluginName}@agent-orchestration`;
-      const uninstallMissingKnownAlias = uninstallResult.stderr.includes(
-        `Plugin "${installedAlias}" is not installed`,
-      );
+      const knownAliases = [pluginName, `${pluginName}@${ROOT_PACKAGE_NAME}`];
+      const uninstallMissingKnownAlias = knownAliases.some((alias) => (
+        uninstallResult.stderr.includes(`Plugin "${alias}" is not installed`)
+      ));
 
       if (!uninstallMissingKnownAlias) {
         throw uninstallResult.error;
       }
 
       console.warn(
-        `Copilot uninstall skipped for ${pluginName}: CLI reported missing ${installedAlias} in isolated config; removing config dir instead.`,
+        `Copilot uninstall skipped for ${pluginName}: CLI reported the plugin missing in isolated config; removing config dir instead.`,
       );
     }
   } finally {
