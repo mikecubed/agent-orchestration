@@ -66,11 +66,12 @@ review and implementation workflows do not interfere with each other.
 
 ## Knowledge Capture and Reuse
 
-After a workflow produces a reusable lesson — a debugging insight, an
-architectural decision, a non-obvious configuration fix — invoke
+After a workflow produces a reusable lesson — a debugging insight, a
+non-ADR implementation decision, a non-obvious configuration fix — invoke
 `/workflow-orchestration:knowledge-compound` to extract the lesson into a
 structured knowledge artifact and write it to a durable, repository-appropriate
-sink.
+sink. For formal architecture decision records, use
+`/workflow-orchestration:architecture-review` instead.
 
 Captured knowledge feeds back into future workflows:
 

@@ -152,7 +152,7 @@ Produce a single consolidated review report as a durable artifact following the 
 Include workflow outcome measures:
 
 - `discovery-reuse` — `yes`, `no`, or `skipped`;
-- `prior-learnings` — integer count of matching knowledge artifacts, or `none-found`;
+- `prior-learnings` — integer count of matching knowledge artifacts, or `none-found`, or `skipped`;
 - `rescue-attempts` — integer count, or `0`;
 - `codex-available` — `yes` or `no`;
 - `final-gate-result` — one of `ready`, `ready-with-follow-ups`, `not-ready`, or `stopped`.

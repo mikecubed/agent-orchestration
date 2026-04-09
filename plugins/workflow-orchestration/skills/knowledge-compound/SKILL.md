@@ -5,7 +5,7 @@ description: Capture reusable knowledge from a completed workflow — problem, s
 
 ## Purpose
 
-Use this skill when a completed workflow has produced a reusable lesson — a debugging insight, an architectural decision, a non-obvious configuration fix, or any resolution that future contributors or agents would benefit from knowing. The skill extracts the lesson into a structured knowledge artifact and writes it to a durable sink so it survives the current session.
+Use this skill when a completed workflow has produced a reusable lesson — a debugging insight, a non-ADR implementation decision, a non-obvious configuration fix, or any resolution that future contributors or agents would benefit from knowing. The skill extracts the lesson into a structured knowledge artifact and writes it to a durable sink so it survives the current session.
 
 This skill is a **capture** workflow: it turns an already-resolved problem into a reusable artifact. It does not perform the original investigation, debugging, or implementation — those belong to the originating workflow (e.g., `systematic-debugging`, `incident-rca`, `parallel-implementation-loop`).
 
