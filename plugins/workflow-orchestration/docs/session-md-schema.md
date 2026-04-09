@@ -1,8 +1,16 @@
 # SESSION.md Schema Reference
 
-This document defines the canonical format for `.agent/SESSION.md` — the session continuity
-artifact used by `workflow-orchestration` skills to resume interrupted work and enforce
-context hygiene in systematic debugging.
+This document defines the canonical format for `.agent/SESSION.md` — the **transient session
+continuity** artifact used by `workflow-orchestration` skills to resume interrupted work and
+enforce context hygiene in systematic debugging.
+
+> **Scope boundary**: SESSION.md and HANDOFF.json are *session-scoped* artifacts. They track
+> the context needed to resume a single interrupted agent session — current task, blockers,
+> failed hypotheses, and decisions made during that session. They are **not** the right place
+> for cross-session workflow lifecycle data such as completed phases, automation mode, or
+> durable artifact references. For that purpose, see the
+> [Workflow State Contract](workflow-state-contract.md), which defines `.workflow/state.yaml`
+> as the durable workflow-state artifact.
 
 ## File location
 
@@ -185,3 +193,54 @@ same session state in different formats:
 
 Both should be written together whenever SESSION.md is updated. HANDOFF.json enables
 automated tools and hooks to read session state without parsing markdown.
+
+## Relationship to durable workflow state
+
+`.agent/SESSION.md` and `.agent/HANDOFF.json` are transient session-continuity
+artifacts. They help a local session resume work, preserve blockers, and avoid
+repeating failed hypotheses, but they are **not** the durable workflow-state
+contract for lifecycle-aware automation.
+
+When a repository adopts durable workflow state, that contract belongs in a
+separate machine-readable artifact such as
+`.workflow-orchestration/state.json`, documented independently in
+`docs/workflow-state-contract.md`. Use these rules:
+
+- keep session continuity focused on the current local work session;
+- keep durable workflow state focused on cross-session workflow phase,
+  automation mode, durable artifact references, and next-action continuity;
+- do not merge the two contracts into one file;
+- if session continuity needs to reference durable workflow state, store only the
+  pointer or note, not a second copy of the state contract.
+
+---
+
+## Boundary: Transient Session State vs. Durable Workflow State
+
+The session continuity artifacts defined in this document (`.agent/SESSION.md` and
+`.agent/HANDOFF.json`) serve a different purpose from the durable workflow-state artifact
+(`.workflow/state.yaml`) defined in the
+[Workflow State Contract](workflow-state-contract.md).
+
+| Concern | Session continuity | Workflow state |
+|---------|-------------------|----------------|
+| **Artifacts** | `.agent/SESSION.md`, `.agent/HANDOFF.json` | `.workflow/state.yaml` |
+| **Scope** | Single agent session | Cross-session workflow lifecycle |
+| **Lifespan** | Ephemeral — replaced or abandoned when the session ends | Durable — survives across sessions and contributors |
+| **Purpose** | Resume interrupted work; avoid repeating failed hypotheses | Track multi-phase workflow progress, artifact references, automation mode |
+| **Content** | Task, phase, next action, blockers, failed hypotheses, decisions | Current workflow phase, automation mode, artifact references, completed phases, next action |
+| **Version control** | Never committed (`.gitignore`) | Project-level decision — may be committed for team visibility |
+
+**Key rules**:
+
+1. Session continuity files may *read from* the workflow-state artifact to understand
+   what phase the overall workflow is in, but they never *write to* it.
+2. The workflow-state artifact never references session-level details such as failed
+   hypotheses or session-scoped blockers. Information flows from durable to transient,
+   not the reverse.
+3. A session that updates workflow progress (e.g., completing a phase) should update
+   `.workflow/state.yaml` through the owning workflow skill, not by modifying session
+   continuity fields.
+4. The two artifact families have independent discovery rules. Session continuity uses
+   the `.agent/SESSION.md` → `.agent/HANDOFF.json` fallback chain. Workflow state uses
+   `.workflow/state.yaml` with no fallback chain.
