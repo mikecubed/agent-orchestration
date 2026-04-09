@@ -22,7 +22,7 @@ Unresolved follow-ups:
 
 Next action:
 
-- run the final readiness pass on `feat/workflow-defaults-state-foundation-1-6` against `main`, then publish the branch as a PR
+- publish `feat/workflow-defaults-state-foundation-1-6` as a PR against `main`
 
 Summary:
 
@@ -45,3 +45,4 @@ abandonment-events: 0
 re-review-loops:
   workflow-defaults-1-6-contracts: 1
   workflow-defaults-1-6-adoption: 1
+final-gate-result: ready
