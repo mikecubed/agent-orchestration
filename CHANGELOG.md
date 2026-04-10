@@ -31,7 +31,7 @@ The format is based on Keep a Changelog and the project follows Semantic Version
   refresh skill contract, refresh summary template, refresh-aware prior-learning
   lookup language, and optional conductor refresh recommendation.
 - **Version sync**: workflow-orchestration and umbrella marketplace metadata
-  bumped from `1.8.0` to `2.0.0` across the root package, lockfile, workflow
+  bumped from `1.9.0` to `2.0.0` across the root package, lockfile, workflow
   package/manifests, and marketplace metadata.
 
 ## [1.9.0] - 2026-04-10
