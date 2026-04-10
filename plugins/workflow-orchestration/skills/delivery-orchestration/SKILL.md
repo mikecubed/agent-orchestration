@@ -341,7 +341,7 @@ before or during review.
 The handoff recommendation must include:
 
 1. the **diff surface** — branch name, commit range, or PR reference covering the delivered work;
-2. the **validation outcome** — whether the downstream skill's own validation passed, failed, or was not run;
+2. the **validation outcome** — the downstream skill's own validation result, using the normalized tokens `pass`, `fail`, `partial`, or `not-run`;
 3. the **direct-execution report, track report, or delivery log** reference — so the reviewer has traceability back to the routing decision and delivered scope;
 4. a **mode suggestion** — use the configured default review mode when shared workflow defaults declare `review.mode`; otherwise suggest `interactive` for complex or high-risk changes and `report-only` for routine or well-tested deliveries.
 
