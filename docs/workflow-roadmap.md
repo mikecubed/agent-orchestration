@@ -3,13 +3,13 @@
 ## Discovery brief
 
 ```text
-Task summary: define the post-1.5 phase-based roadmap focused on the remaining productization gaps after workflow-orchestration reached broad end-to-end phase coverage.
+Task summary: define the post-1.6 phase-based roadmap focused on the remaining productization gaps after workflow-orchestration shipped the defaults/state foundation.
 Planning mode: fallback planning
-Relevant files: docs/everyinc-compound-engineering-comparison.md, plugins/workflow-orchestration/docs/workflow-usage-guide.md, plugins/workflow-orchestration/README.md, plugins/workflow-orchestration/skills/*
+Relevant files: docs/everyinc-compound-engineering-comparison.md, docs/workflow-roadmap.md, plugins/workflow-orchestration/docs/workflow-usage-guide.md, plugins/workflow-orchestration/README.md, plugins/workflow-orchestration/skills/*
 Validation commands: npm test, npm run validate:plugin, npm run validate:runtime
 Task boundaries: in scope = roadmap phases for lifecycle automation, workflow defaults, continuation, knowledge refresh, and direct-execution hardening; out of scope = packaging/distribution expansion, persona sprawl, mega-skill rewrites
 Dependencies: preserve current workflow contracts; build thin coordinators over existing skills; keep Codex as the quality gate rather than inventing a parallel quality system
-Recommended next action: implement the foundation phase before adding any full-loop conductor behavior
+Recommended next action: start Phase 2 and standardize the direct execution contract before adding a top-level conductor
 Unresolved questions: none that block roadmap definition
 Workflow outcome measures: clearer sequencing, explicit rationale per phase, roadmap aligned to the current shipped workflow platform
 ```
@@ -49,20 +49,18 @@ flowchart LR
 
 ## The gaps this roadmap addresses
 
-These are the remaining product gaps after `1.5.0`:
+These are the remaining product gaps after `1.6.0`:
 
 1. **No top-level full-loop conductor**
    - there is still no single workflow that owns:
      `brainstorm -> plan -> deliver -> review -> resolve -> gate -> publish -> capture`
 2. **Automatic progression is weak**
    - most handoffs are recommendations, not chained lifecycle steps
-3. **Workflow defaults are under-specified**
-   - durable sinks, review mode defaults, and auto-progression policy are not repo-configured
-4. **Knowledge capture exists, but maintenance does not**
+3. **Knowledge capture exists, but maintenance does not**
    - there is no `knowledge-refresh` equivalent for stale, duplicate, or obsolete learnings
-5. **Direct execution is useful but too thin**
+4. **Direct execution is useful but too thin**
    - `delivery-orchestration` can route to direct implementation, but that path is not yet a first-class portable contract
-6. **Post-PR completion is fragmented**
+5. **Post-PR completion is fragmented**
    - PR publication and release are correctly separated, but there is no bigger completion story for teams that want a "finish the job" loop
 
 ## Roadmap principles
@@ -90,7 +88,17 @@ These are the remaining product gaps after `1.5.0`:
 
 ## Phase roadmap
 
+## Current progress
+
+- **Completed in `1.6.0`**: Phase 1 — workflow defaults and durable state foundation
+- **Next phase**: Phase 2 — standardized direct execution contract
+- **Later phases**: conductor MVP, continuation/resume, knowledge refresh, and post-merge completion remain roadmap items
+
+Phase 1 is now the shipped foundation rather than the next milestone. The roadmap should therefore be read as "what comes after the defaults/state contract landed."
+
 ## Phase 1 — workflow defaults and durable state foundation
+
+**Status:** completed in `1.6.0`
 
 **Goal:** define the minimum shared contract that lets higher-level automation behave consistently across repositories and sessions.
 
@@ -144,7 +152,23 @@ This phase turns the current workflow system from "good prompts with docs" into 
 - durable artifact destinations are no longer ambiguous by default;
 - a later conductor can inspect workflow state without scraping chat history.
 
+### Progress update
+
+This phase is complete. The repo now ships:
+
+- `plugins/workflow-orchestration/docs/workflow-defaults-contract.md`
+- `plugins/workflow-orchestration/docs/workflow-state-contract.md`
+- the session-boundary clarification in `plugins/workflow-orchestration/docs/session-md-schema.md`
+- lightweight defaults adoption in `planning-orchestration`,
+  `diff-review-orchestration`, `pr-publish-orchestration`, and
+  `knowledge-compound`
+- product/docs/test/version alignment for the `1.6.0` release surface
+
+The next roadmap phase should build on this contract rather than redefining it.
+
 ## Phase 2 — standardized direct execution contract
+
+**Status:** next recommended phase
 
 **Goal:** make the "direct" path under `delivery-orchestration` a real product surface instead of a thin runtime convenience.
 
