@@ -57,12 +57,29 @@ The conductor:
 
 - stays coordinator-shaped and routes to existing specialist workflows;
 - supports `manual`, `guided`, and `auto` progression modes;
+- can resume from the last trusted `.workflow-orchestration/state.json` plus
+  durable artifacts without creating a second top-level lifecycle workflow;
 - updates `.workflow-orchestration/state.json` at major owned phase boundaries;
 - stops when requirements are unclear, a human decision is required, readiness
   has not been achieved, or the request becomes release-shaped.
 
 Manual specialist entry remains valid. The conductor is lifecycle glue, not a
 replacement for the underlying workflows.
+
+### Continuation examples
+
+- **Resume after review comments** — if trusted state says
+  `current-phase=review-needs-resolution` and the review artifact still exists,
+  the conductor routes to `/workflow-orchestration:pr-review-resolution-loop`
+  before returning to readiness.
+- **Resume after failed readiness** — if trusted state says
+  `current-phase=readiness-blocked`, the conductor uses the readiness artifact to
+  route back to the next implementation step instead of pretending the branch is
+  still publishable.
+- **Resume when publish still needs human action** — if trusted state says
+  `current-phase=publish-waiting-human`, all progression modes still respect the
+  hard human-stop boundary and surface the required publish action instead of
+  auto-publishing.
 
 ## Shared defaults and durable state foundation
 
@@ -93,8 +110,9 @@ The first adopting workflows are:
 
 If the defaults file is absent or partial, those workflows keep their documented
 fallback behavior. Durable workflow state remains separate from transient
-session continuity in `.agent/SESSION.md` and `.agent/HANDOFF.json`; see
-`docs/session-md-schema.md` for that boundary.
+session continuity in `.agent/SESSION.md` and `.agent/HANDOFF.json`; those
+session files stay advisory and never replace `.workflow-orchestration/state.json`.
+See `docs/session-md-schema.md` for that boundary.
 
 ## Recommended Specialist Delivery Loop
 

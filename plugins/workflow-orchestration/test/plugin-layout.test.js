@@ -172,6 +172,9 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /\bmanual\b/);
     assert.match(text, /\bguided\b/);
     assert.match(text, /\bauto\b/);
+    assert.match(text, /Continuation entry contract/);
+    assert.match(text, /next-ready decision matrix/i);
+    assert.match(text, /resume-assessment/);
     assert.match(text, /\.workflow-orchestration\/state\.json/);
     assert.match(text, /automation\.progression/);
     assert.match(text, /automation\.stop-for-human/);
@@ -184,12 +187,22 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /requirements are still unclear/i);
     assert.match(text, /readiness has not been achieved/i);
     assert.match(text, /release or merge policy/i);
+    assert.match(text, /workspace mismatch/i);
+    assert.match(text, /lifecycle-owner mismatch/i);
+    assert.match(text, /invalidated by later tree changes/i);
     assert.match(text, /docs\/conductor-summary-<topic>\.md/);
     assert.match(templates, /## Conductor lifecycle summary/);
     assert.match(templates, /docs\/conductor-summary-<topic>\.md/);
     assert.match(readme, /\/workflow-orchestration:idea-to-done-orchestration/);
+    assert.match(readme, /resume after review comments/i);
+    assert.match(readme, /resume after failed readiness/i);
+    assert.match(readme, /publish still needs human action/i);
     assert.match(guide, /idea-to-done-orchestration/);
+    assert.match(guide, /resume after review comments/i);
+    assert.match(guide, /resume after failed readiness/i);
+    assert.match(guide, /publish still needs human action/i);
     assert.doesNotMatch(guide, /does \*\*not\*\* yet provide one opt-in workflow/i);
+    assert.doesNotMatch(guide, /Phase 4 continuation behavior remains intentionally separate/i);
   });
 
   it('keeps pr-publish-orchestration bounded to publication with readiness deflection', () => {
@@ -251,9 +264,15 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(defaults, /artifact sink normalization/i);
     assert.match(state, /\.workflow-orchestration\/state\.json/);
     assert.match(state, /automation-mode/);
+    assert.match(state, /Continuation boundary matrix/);
+    assert.match(state, /workspace mismatch/i);
+    assert.match(state, /lifecycle-owner mismatch/i);
+    assert.match(state, /invalidated readiness or publish evidence/i);
     assert.match(state, /Separation from transient session continuity/);
     assert.match(sessionSchema, /workflow-state-contract\.md/);
     assert.match(sessionSchema, /\.workflow-orchestration\/state\.json/);
+    assert.match(sessionSchema, /advisory/i);
+    assert.match(sessionSchema, /never replace/i);
     assert.doesNotMatch(sessionSchema, /\.workflow\/state\.yaml/);
   });
 });

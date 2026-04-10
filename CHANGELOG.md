@@ -6,6 +6,30 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-04-10
+
+### Added (workflow-orchestration 1.9.0)
+
+- **Continuation contract for `idea-to-done-orchestration`**: the conductor
+  now documents trusted-state continuation intake, one next-ready decision
+  matrix, stale-state rejection rules, and explicit resume examples for review
+  resolution, failed readiness, and publish-waiting-human boundaries while
+  staying coordinator-shaped.
+- **Continuation state-boundary contract**: `plugins/workflow-orchestration/docs/workflow-state-contract.md`
+  now defines continuation trust checks, resume boundary expectations,
+  stale-state/change-tree detection, and the boundary-write rules needed for
+  safe lifecycle resumption.
+
+### Changed (workflow-orchestration 1.9.0)
+
+- **Product docs and structural coverage**: the workflow README, usage guide,
+  session-boundary schema docs, and plugin test suite now treat continuation as
+  a shipped conductor capability and reinforce `.workflow-orchestration/state.json`
+  as the durable authority over advisory session files.
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata
+  bumped from `1.8.0` to `1.9.0` across the root package, lockfile, workflow
+  package/manifests, and marketplace metadata.
+
 ## [1.8.0] - 2026-04-10
 
 ### Added (workflow-orchestration 1.8.0)

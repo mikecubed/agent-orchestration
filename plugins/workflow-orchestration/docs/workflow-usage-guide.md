@@ -68,9 +68,22 @@ Notes:
 - `idea-to-done-orchestration` supports `manual`, `guided`, and `auto` modes.
 - It updates `.workflow-orchestration/state.json` at major phase boundaries while
   it owns the lifecycle.
+- It can resume from trusted durable state and artifacts, then choose one
+  next-ready specialist phase instead of spawning a separate continuation-only
+  workflow.
 - It stops when requirements stay unclear, a human decision is required,
   readiness is not achieved, or release/merge policy requires a separate step.
 - Manual entry into the specialist workflows remains valid.
+
+Continuation examples:
+
+- **Resume after review comments** — trusted `review-needs-resolution` state
+  routes back to `pr-review-resolution-loop`.
+- **Resume after failed readiness** — trusted `readiness-blocked` state routes
+  back to implementation or clarification based on the readiness artifact.
+- **Resume when publish still needs human action** — trusted
+  `publish-waiting-human` state stops for the required human publish step even in
+  `guided` or `auto` mode.
 
 ### 2. Specialist manual path for clarified idea to PR-ready branch
 
@@ -151,7 +164,7 @@ Notes:
 
 | Workflow | Use it when | Do not use it when | Typical next step |
 | --- | --- | --- | --- |
-| `idea-to-done-orchestration` | You want one opt-in workflow to carry clarified work across planning entry, delivery, review, readiness, publication, and optional knowledge capture. | The request is still exploratory, purely release-shaped, or you only need one specialist phase. | the next owned specialist workflow or a documented stop-for-human boundary |
+| `idea-to-done-orchestration` | You want one opt-in workflow to carry clarified work across planning entry, delivery, review, readiness, publication, and optional knowledge capture, including resume from trusted workflow state. | The request is still exploratory, purely release-shaped, or you only need one specialist phase. | the next owned specialist workflow or a documented stop-for-human boundary |
 | `brainstorm-ideation` | The idea is still fuzzy and you need constraints, trade-offs, and risks surfaced before spec work. | Requirements are already clear or the task is a narrow bug fix. | `planning-orchestration` or `sdd-workflow` |
 | `planning-orchestration` | You need a durable plan, sequencing, validation, and execution handoff. | The change is already fully scoped and tiny. | `delivery-orchestration` |
 | `delivery-orchestration` | You have accepted scope and want the best execution path chosen for you. | The request is still exploratory, review-shaped, or release-shaped. | direct implementation (with a durable direct-execution report), `parallel-implementation-loop`, `swarm-orchestration`, or `systematic-debugging` |
@@ -199,6 +212,6 @@ That means:
 2. use the specialist workflows directly when you want precise phase-by-phase
    control;
 3. treat `knowledge-compound` as conditional, not mandatory;
-4. treat continuation/resume as a later concern — the conductor records durable
-   workflow state, but Phase 4 continuation behavior remains intentionally
-   separate.
+4. treat `.workflow-orchestration/state.json` as the durable authority for
+   continuation, while `.agent/SESSION.md` and `.agent/HANDOFF.json` remain
+   advisory session continuity only.

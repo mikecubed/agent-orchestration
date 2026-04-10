@@ -16,8 +16,7 @@ step can answer these questions without scraping chat history:
 
 ## Canonical file identity
 
-For milestone `1.6.0`, the durable workflow-state artifact lives at one
-canonical root-relative path:
+The durable workflow-state artifact lives at one canonical root-relative path:
 
 ```text
 .workflow-orchestration/state.json
@@ -81,6 +80,25 @@ Readers use one canonical path: `.workflow-orchestration/state.json`.
 - Readers may use the referenced durable artifacts as supporting evidence, but
   the state file alone is not a substitute for review, readiness, or validation.
 
+## Continuation intake and trust checks
+
+Continuation readers must treat `.workflow-orchestration/state.json` as the
+first durable checkpoint for deciding whether lifecycle progress can resume
+safely. The state file is necessary context, but it is trusted only when the
+supporting artifacts and workspace still line up.
+
+Before a workflow continues from state, confirm all of the following:
+
+- the schema version is supported;
+- the current workflow is allowed to resume the recorded owner;
+- the `workspace.branch` and `workspace.target` still match the active run;
+- every artifact reference needed for the current phase still exists;
+- readiness or publish artifacts still describe the exact tree being resumed or
+  published.
+
+Treat continuation as unsafe and stop auto-progression when any of those checks
+fails.
+
 ## Reader and writer ownership
 
 ### Writers
@@ -91,7 +109,8 @@ state file. In this phase that generally means:
 - a top-level conductor or orchestration workflow when one exists;
 - a multi-step coordinator such as `parallel-implementation-loop` when it is the
   active lifecycle owner;
-- a future continuation workflow that is explicitly resuming ownership.
+- a top-level conductor such as `idea-to-done-orchestration` when it is
+  explicitly resuming ownership.
 
 Specialist skills must not silently overwrite shared workflow state just because
 they were invoked locally. A workflow may update the state only when it is the
@@ -113,6 +132,28 @@ At minimum, later workflows must be able to identify:
 - the latest durable artifact for the current phase;
 - the latest integrated summary or batch artifact when one exists.
 
+Continuation-sensitive phases must keep enough artifact coverage to determine
+the next-ready specialist handoff. In practice that means later readers should
+be able to answer:
+
+- what the latest trusted completed phase was;
+- which artifact proves that phase completed;
+- whether the next phase is review, resolution, readiness, publication, or
+  lifecycle completion.
+
+## Continuation boundary matrix
+
+Use this matrix when deciding whether a lifecycle can resume and what the next
+state write must contain.
+
+| Boundary | Required `status` | Required `current-phase` | Minimum durable references | `next-action` expectation |
+| --- | --- | --- | --- | --- |
+| Resume assessment begins | `planned` \| `active` \| `blocked` | `resume-assessment` | state file plus latest artifact for the recorded phase being resumed | name the one next-ready specialist workflow or required clarification step |
+| Resumed specialist entry | `active` | phase-specific in-progress boundary such as `delivery-in-progress` | artifact proving the previous phase completed | point at the next owned specialist action, not a vague resume note |
+| Blocked or stale stop | `blocked` \| `stale` | `delivery-blocked`, `readiness-blocked`, `publish-waiting-human`, or `resume-stale` | blocking artifact or mismatch evidence | request the exact human action or regeneration needed before continuation |
+| Human-gated publish | `blocked` | `publish-waiting-human` | readiness artifact for the exact publishable tree | wait for explicit human publish action |
+| Lifecycle completion | `complete` | `knowledge-captured`, `knowledge-skipped`, or `published` when no knowledge capture is needed | final publish or knowledge artifact plus summary artifact when produced | close the lifecycle or point at optional knowledge capture only |
+
 ## Lifecycle
 
 Expected lifecycle in this phase:
@@ -123,18 +164,39 @@ Expected lifecycle in this phase:
 4. marked `stale` when its references no longer describe the current branch,
    artifact set, or lifecycle owner.
 
+## Boundary-write rules
+
+Writers must update the state only at meaningful owned boundaries. For
+continuation this means:
+
+1. write a resume-assessment boundary before routing into a resumed specialist
+   workflow when the conductor is re-establishing trust;
+2. write `stale` or `blocked` immediately when continuation fails a trust check;
+3. do not retain a previously-passing readiness or publish state if later tree
+   changes invalidate that evidence;
+4. keep `next-action` concrete enough that the reader can route to one next
+   ready step without scraping chat history.
+
 ## Stale-state handling expectations
 
 Treat the state as stale when any of the following is true:
 
 - referenced artifacts are missing;
-- the branch or target recorded in `workspace` no longer matches the active run;
+- the branch or target recorded in `workspace` no longer matches the active run
+  (**workspace mismatch**);
 - `updated-at` predates a newer durable artifact that should have superseded it;
-- `owner` no longer matches the workflow attempting to continue;
-- the schema version is unsupported.
+- `owner` no longer matches the workflow attempting to continue
+  (**lifecycle-owner mismatch**);
+- the schema version is unsupported;
+- readiness or publish evidence no longer describes the exact current tree
+  (**invalidated readiness or publish evidence**).
 
 When state is stale, the workflow must stop unsafe auto-progression, surface the
 reason, and ask for human confirmation or regeneration.
+
+Changed-tree detection may use any trustworthy local evidence, including branch
+name drift, comparison against the commit or PR reference named by the readiness
+or publish artifact, or newer durable artifacts that supersede the prior state.
 
 ## Separation from transient session continuity
 

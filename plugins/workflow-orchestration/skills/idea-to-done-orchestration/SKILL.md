@@ -26,6 +26,8 @@ Activate when the developer asks for things like:
 - "take this from idea to done"
 - "run the whole workflow with explicit stop points"
 - "sequence planning, delivery, review, and publish for me"
+- "resume this lifecycle from the last trusted workflow state"
+- "continue from review comments / failed readiness / publish waiting on me"
 
 Use this skill only when the work is already clarified enough to choose an entry
 path safely. If the request is still exploratory and no bounded direction exists,
@@ -44,6 +46,7 @@ Do **not** use this skill when:
 Before you start, identify:
 
 - the clarified work request, accepted task list, or plan reference;
+- whether this invocation is a fresh lifecycle start or a continuation request;
 - the active branch and intended review target;
 - the repository's validation commands and quality gates;
 - the latest factual brief, shared context facts, or discovery artifact;
@@ -53,8 +56,13 @@ Before you start, identify:
   `docs/workflow-defaults-contract.md`);
 - whether durable workflow state exists at `.workflow-orchestration/state.json`
   (see `docs/workflow-state-contract.md`);
+- the latest trusted durable artifacts referenced by the state file, if any;
+- whether the recorded workflow owner, workspace branch/target, and current tree
+  still match the lifecycle that is being resumed;
 - whether a downstream publish step should stop for human confirmation because
   `automation.stop-for-human` or local policy requires it;
+- whether readiness or publish evidence still describes the exact tree that would
+  continue or be published;
 - whether a durable knowledge sink is available if optional
   `knowledge-compound` capture is recommended.
 
@@ -88,6 +96,32 @@ foundation:
    - known dependencies;
    - the current branch or comparison baseline.
 
+#### Continuation entry contract
+
+Continuation stays inside this conductor. Do **not** create a separate
+mega-skill for resume behavior. The conductor remains coordinator-shaped and
+routes only to the existing specialist workflows after it re-establishes trust.
+
+Accepted continuation inputs are:
+
+1. an explicit developer request to continue or resume the lifecycle;
+2. `.workflow-orchestration/state.json` from the same repository; and
+3. at least one trusted durable artifact referenced by that state, such as a
+   planning artifact, direct-execution report, review report, readiness report,
+   publish summary, or prior conductor summary.
+
+Reject unsafe continuation when any of the following is true:
+
+- the durable state file is missing and no equivalent trusted artifact bundle is
+  available;
+- the state file is malformed or uses an unsupported schema version;
+- a referenced durable artifact is missing;
+- the recorded workspace does not match the current branch/target;
+- the recorded owner does not match the lifecycle being resumed;
+- the latest readiness or publish evidence does not describe the exact tree now
+  under continuation;
+- the next-ready outcome cannot be determined from trusted evidence.
+
 If the direct-execution handoff or durable-state contract is absent, stale,
 ambiguous, or contradicted by newer local work, rescue before continuation:
 
@@ -114,7 +148,39 @@ Resolve the active mode using this precedence order:
 
 Record the resolved mode in the durable state and in the conductor summary.
 
-### 3. Choose the entry path
+### 3. Resolve fresh entry vs. continuation
+
+Fresh entry and continuation use the same conductor, but they do not start from
+the same trust boundary:
+
+1. **Fresh entry** — no trusted conductor-owned lifecycle state exists yet, so
+   the conductor chooses the best specialist entry path from the clarified
+   request and available planning artifacts.
+2. **Continuation** — trusted lifecycle state already exists, so the conductor
+   must first identify the next-ready outcome from durable evidence before
+   routing anywhere else.
+
+#### Next-ready decision matrix
+
+Use the latest trusted lifecycle evidence to pick exactly one primary outcome:
+
+| Trusted evidence | Primary outcome | Route |
+| --- | --- | --- |
+| No trusted state, no accepted plan, or scope ambiguity remains | clarification | stop for clarification or route to `brainstorm-ideation` |
+| No trusted task breakdown or planning artifact exists yet | planning | `/workflow-orchestration:planning-orchestration` |
+| State is `planned`, `entry-confirmed`, `planning-skipped`, or `delivery-blocked` with actionable implementation work remaining | delivery | `/workflow-orchestration:delivery-orchestration` |
+| Delivery artifact exists for a non-empty diff and no trusted diff review has accepted it yet | diff review | `/workflow-orchestration:diff-review-orchestration` |
+| Review report shows unresolved findings or `current-phase=review-needs-resolution` | review resolution | `/workflow-orchestration:pr-review-resolution-loop` |
+| Review accepted the diff but no trusted readiness verdict exists yet | readiness | `/workflow-orchestration:final-pr-readiness-gate` |
+| Readiness is `ready` or `ready-with-follow-ups`, publish is allowed, and the exact tree still matches the readiness artifact | publication | `/workflow-orchestration:pr-publish-orchestration` |
+| Publication is complete and a reusable lesson is worth preserving | knowledge capture | `/workflow-orchestration:knowledge-compound` |
+| Publication is complete and no knowledge capture is needed, or knowledge capture already completed/skipped | lifecycle completion | stop with final conductor summary |
+
+When multiple rows appear plausible, choose the earliest incomplete specialist
+phase that still has trusted evidence. Do not skip forward past a missing or
+stale gate.
+
+### 4. Choose the entry path or resumed specialist
 
 The conductor owns lifecycle sequencing, but it must still route into the right
 specialist workflow:
@@ -130,7 +196,7 @@ specialist workflow:
 Manual entry into any specialist workflow remains valid. The conductor is an
 opt-in convenience layer, not a replacement for those entry points.
 
-### 4. Own lifecycle state and update it at major phase boundaries
+### 5. Own lifecycle state and update it at major phase boundaries
 
 While the conductor is the active lifecycle owner, it writes
 `.workflow-orchestration/state.json` at meaningful phase boundaries only. It
@@ -142,6 +208,8 @@ workflows must not silently overwrite conductor-owned state.
 | Boundary | Status | Current phase | Minimum artifact references | Next-action rule |
 | --- | --- | --- | --- | --- |
 | Conductor accepts ownership | `planned` or `active` | `entry-confirmed` | planning artifact if already known, else none | choose ideation, planning, or delivery entry |
+| Continuation trust assessment begins | `active` | `resume-assessment` | state file plus latest trusted artifact for the current phase | resolve one next-ready outcome from trusted evidence |
+| Continuation is stale or unsupported | `stale` | `resume-stale` | state file plus artifact or mismatch evidence that triggered the stop | stop unsafe progression and request human confirmation or regeneration |
 | Ideation or planning selected | `active` | `planning-entry` | ideation note or planning reference when produced | complete planning or stop for clarification |
 | Planning intentionally skipped | `active` | `planning-skipped` | trusted accepted task or prior plan reference | enter delivery |
 | Delivery delegated | `active` | `delivery-in-progress` | planning artifact or accepted task reference | wait for delivery result and handoff |
@@ -159,7 +227,7 @@ Every write must include the required workflow-state fields from
 `docs/workflow-state-contract.md`: schema-version, workflow, updated-at, status,
 current-phase, automation-mode, next-action, and durable artifact references.
 
-### 5. Sequence the specialist workflows without absorbing their jobs
+### 6. Sequence the specialist workflows without absorbing their jobs
 
 Use the following lifecycle path when the work remains healthy:
 
@@ -190,7 +258,7 @@ Coordinator rules:
 5. Treat `/workflow-orchestration:knowledge-compound` as conditional and
    advisory, never mandatory.
 
-### 6. Produce a durable conductor summary
+### 7. Produce a durable conductor summary
 
 At workflow completion — or at any hard stop that leaves a durable handoff —
 emit one durable conductor summary using the `Conductor lifecycle summary`
@@ -212,6 +280,8 @@ A conductor run is not complete until:
   explicit stop reason was recorded;
 - one factual brief or trusted context summary exists for the lifecycle;
 - the progression mode was resolved and recorded;
+- continuation requests resolved to exactly one next-ready outcome before any
+  downstream specialist workflow was invoked;
 - the conductor updated `.workflow-orchestration/state.json` at every meaningful
   phase boundary it owned;
 - every downstream step remained delegated to the existing specialist workflow
@@ -240,6 +310,9 @@ and do not declare the lifecycle complete.
 - Release or merge policy demands a separate step outside the conductor's scope.
 - Durable workflow state is stale, malformed, unsupported, or owned by another
   workflow in a way that makes auto-progression unsafe.
+- Referenced durable artifacts are missing, workspace mismatch is detected, or
+  lifecycle-owner mismatch is detected.
+- Readiness or publish evidence was invalidated by later tree changes.
 - Downstream rescue fails to re-establish a trusted handoff.
 - The developer asks to stop.
 
@@ -287,4 +360,54 @@ Coordinator:
     Developer may now invoke /workflow-orchestration:pr-publish-orchestration
     or re-run the conductor in a mode that still respects the same human-stop
     boundary.
+```
+
+### Guided continuation after review comments
+
+```text
+Developer: /workflow-orchestration:idea-to-done-orchestration resume this
+lifecycle in guided mode after review comments landed
+
+Coordinator:
+  Continuation request: yes
+  Trusted state: status=active, current-phase=review-needs-resolution
+  Trusted artifacts: review report + delivery artifact
+  Next-ready outcome: review resolution
+
+  -> Reusing the same conductor instead of creating a new resume-only workflow
+  -> Routing to /workflow-orchestration:pr-review-resolution-loop
+  -> After resolution, re-entering /workflow-orchestration:final-pr-readiness-gate
+```
+
+### Manual continuation after failed readiness
+
+```text
+Developer: /workflow-orchestration:idea-to-done-orchestration continue this
+branch in manual mode after readiness failed
+
+Coordinator:
+  Trusted state: status=blocked, current-phase=readiness-blocked
+  Trusted artifacts: readiness report with fix-now items
+  Next-ready outcome: delivery
+
+  -> Stopping at the delivery handoff because manual mode requires explicit
+     developer confirmation before each major next phase
+  -> Recommended next specialist: /workflow-orchestration:delivery-orchestration
+```
+
+### Auto continuation when publish still needs human action
+
+```text
+Developer: /workflow-orchestration:idea-to-done-orchestration resume in auto
+mode
+
+Coordinator:
+  Trusted state: status=blocked, current-phase=publish-waiting-human
+  Trusted artifacts: readiness report for the exact publishable tree
+  Next-ready outcome: publication
+
+  -> Auto mode may continue through safe boundaries, but publish remains a hard
+     human-stop boundary
+  -> Stopping and surfacing the required human action instead of silently
+     publishing
 ```

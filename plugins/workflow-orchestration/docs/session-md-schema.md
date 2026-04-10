@@ -4,13 +4,13 @@ This document defines the canonical format for `.agent/SESSION.md` — the **tra
 continuity** artifact used by `workflow-orchestration` skills to resume interrupted work and
 enforce context hygiene in systematic debugging.
 
-> **Scope boundary**: SESSION.md and HANDOFF.json are *session-scoped* artifacts. They track
+> **Scope boundary**: SESSION.md and HANDOFF.json are *session-scoped* advisory artifacts. They track
 > the context needed to resume a single interrupted agent session — current task, blockers,
 > failed hypotheses, and decisions made during that session. They are **not** the right place
 > for cross-session workflow lifecycle data such as completed phases, automation mode, or
 > durable artifact references. For that purpose, see the
 > [Workflow State Contract](workflow-state-contract.md), which defines `.workflow-orchestration/state.json`
-> as the durable workflow-state artifact.
+> as the durable workflow-state artifact that SESSION.md and HANDOFF.json must never replace.
 
 ## File location
 
@@ -210,6 +210,8 @@ separate machine-readable artifact such as
 - keep durable workflow state focused on cross-session workflow phase,
   automation mode, durable artifact references, and next-action continuity;
 - do not merge the two contracts into one file;
+- treat SESSION.md and HANDOFF.json as advisory notes about the current session,
+  not as an alternate workflow-state authority;
 - if session continuity needs to reference durable workflow state, store only the
   pointer or note, not a second copy of the state contract.
 
@@ -234,7 +236,7 @@ The session continuity artifacts defined in this document (`.agent/SESSION.md` a
 **Key rules**:
 
 1. Session continuity files may *read from* the workflow-state artifact to understand
-   what phase the overall workflow is in, but they never *write to* it.
+   what phase the overall workflow is in, but they never *write to* it or replace it.
 2. The workflow-state artifact never references session-level details such as failed
    hypotheses or session-scoped blockers. Information flows from durable to transient,
    not the reverse.
