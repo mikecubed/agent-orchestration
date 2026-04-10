@@ -42,7 +42,7 @@ The state file is machine-readable JSON:
     "target": "main"
   },
   "artifacts": {
-    "track-report": "docs/track-report-workflow-defaults-1-6-contracts.md",
+    "track-report": "pull/123#discussion_r456",
     "batch-summary": "docs/batch-summary-workflow-defaults-state-foundation-1-6.md"
   },
   "owner": {

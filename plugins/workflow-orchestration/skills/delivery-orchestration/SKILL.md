@@ -514,8 +514,8 @@ Coordinator post-delivery recommendation:
   1. Review handoff → /workflow-orchestration:diff-review-orchestration
      Diff surface: feat/feature-abc against main
      Validation outcome: pass
-     Direct-execution report / track report: docs/track-report-feature-abc.md
-     Mode suggestion: interactive (multiple files across two modules)
+     Direct-execution report / track report: pull/123#discussion_r456
+      Mode suggestion: interactive (multiple files across two modules)
 
   2. Knowledge capture handoff → /workflow-orchestration:knowledge-compound
      (Conditional — only if the delivery produced a reusable lesson.)

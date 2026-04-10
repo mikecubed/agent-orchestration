@@ -3,7 +3,7 @@ Integration branch: feat/idea-to-done-continuation-1-9-g7k3m2q8
 Target: main
 
 Merged tracks:
-- continuation-batch -> docs/track-report-idea-to-done-continuation-1-9.md
+- continuation-batch
 
 Retained or abandoned tracks:
 - none
