@@ -94,7 +94,7 @@ Defines repo-level review preferences shared by review-shaped workflows.
 
 Supported keys in this phase:
 
-- `mode`: `interactive` | `headless`
+- `mode`: `interactive` | `report-only` | `headless`
 
 If omitted, review workflows use their existing documented mode selection and
 developer prompts.
@@ -182,8 +182,9 @@ Malformed or unsupported config must not create silent success-shaped behavior.
   unavailable for that invocation and fall back to workflow-local behavior.
 - If `schema-version` is missing or unsupported, treat the whole file as
   unavailable and do not auto-progress from it.
-- If a known key has the wrong type, ignore that key only, record the mismatch
-  in the workflow's durable artifact when practical, and fall back for that key.
+- If a known key has the wrong type or an unsupported enum value, ignore that
+  key only, record the mismatch in the workflow's durable artifact when
+  practical, and fall back for that key.
 - Do not coerce complex values silently.
 - Unknown keys are ignored.
 
