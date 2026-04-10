@@ -258,8 +258,8 @@ gate semantics. When refresh metadata is absent or partial, both consumers
 fall back cleanly to the existing advisory prior-learning behavior.
 
 Knowledge artifacts use the shared template defined in
-`docs/workflow-artifact-templates.md`. Refresh summaries use the `Refresh
-summary` template in the same document.
+`docs/workflow-artifact-templates.md`. Refresh summaries use the `Refresh summary`
+template in the same document.
 
 ## Plugin layout
 
