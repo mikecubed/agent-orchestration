@@ -6,6 +6,34 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-04-10
+
+### Added (workflow-orchestration 2.0.0)
+
+- **`knowledge-refresh` skill**: adds a bounded maintenance workflow for
+  classifying reusable knowledge as trusted, stale, duplicate, obsolete,
+  superseded, or missing-capture, then preserving one canonical guidance path
+  without replacing `knowledge-compound`.
+- **Refresh summary template**: adds a shared durable artifact shape for refresh
+  runs in `plugins/workflow-orchestration/docs/workflow-artifact-templates.md`
+  so maintenance passes can record candidate classifications, decisions,
+  affected artifacts, reuse-quality findings, rescue history, and next action.
+
+### Changed (workflow-orchestration 2.0.0)
+
+- **Refresh-aware reuse quality**: `planning-orchestration` and
+  `diff-review-orchestration` now prefer canonical refreshed artifacts when
+  metadata exists and fall back cleanly to advisory lookup when it does not.
+- **Refresh lifecycle docs**: the workflow README, usage guide, and
+  `workflow-state-contract.md` now document optional refresh routing, refresh
+  state boundaries, and the distinction between capture and maintenance.
+- **Structural coverage**: the workflow plugin test suite now validates the new
+  refresh skill contract, refresh summary template, refresh-aware prior-learning
+  lookup language, and optional conductor refresh recommendation.
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata
+  bumped from `1.8.0` to `2.0.0` across the root package, lockfile, workflow
+  package/manifests, and marketplace metadata.
+
 ## [1.9.0] - 2026-04-10
 
 ### Added (workflow-orchestration 1.9.0)
