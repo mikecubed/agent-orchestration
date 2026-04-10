@@ -20,6 +20,7 @@ Suggested names:
 - `.workflow-orchestration/artifacts/readiness-report-<topic>.md`
 - `.workflow-orchestration/artifacts/publish-summary-<topic>.md`
 - `.workflow-orchestration/artifacts/conductor-summary-<topic>.md`
+- `.workflow-orchestration/artifacts/completion-summary-<topic>.md`
 - `.workflow-orchestration/artifacts/refresh-summary-<topic>.md`
 - `.workflow-orchestration/artifacts/batch-summary-<topic>.md`
 
@@ -175,10 +176,37 @@ Final artifacts:
 - review: <artifact or none>
 - readiness: <artifact or none>
 - publish: <artifact or none>
+- completion: <artifact or none>
 - knowledge: <artifact or none>
 Artifact sink: <.workflow-orchestration/artifacts/conductor-summary-<topic>.md or another durable sink>
 Next action: <what should happen next>
 Summary: <short summary of the lifecycle outcome>
+```
+
+## Completion summary
+
+Use for final post-merge closeout in `idea-to-done-orchestration`.
+
+```text
+Request: <clarified work request or accepted task bundle>
+Lifecycle owner: idea-to-done-orchestration
+State file: .workflow-orchestration/state.json
+Shipped outcome: <merged | merged with follow-ups | partial closeout | blocked closeout>
+Merge status: <published but not merged | merge-monitoring | merge-waiting-human | merged>
+Release disposition: <not-required | release-entry | completed | blocked | skipped>
+Knowledge steps:
+- capture: <artifact or none>
+- refresh: <artifact or recommendation or none>
+Final references:
+- publish: <artifact or none>
+- merge: <artifact or none>
+- release: <artifact or none>
+- knowledge: <artifact or none>
+Unresolved follow-ups:
+- <follow-up> | <owner or sink> | <reason>, or none
+Artifact sink: <.workflow-orchestration/artifacts/completion-summary-<topic>.md or another durable sink>
+Next action: <what should happen next>
+Summary: <short summary of the shipped outcome and any remaining obligations>
 ```
 
 ## Discovery brief

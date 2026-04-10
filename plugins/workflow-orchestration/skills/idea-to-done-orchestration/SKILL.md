@@ -1,18 +1,18 @@
 ---
 name: idea-to-done-orchestration
-description: Carry clarified work across planning entry, delivery, review, readiness, publication, and optional knowledge capture without replacing the specialist workflows.
+description: Carry clarified work across planning entry, delivery, review, readiness, publication, merge-aware closeout, optional release routing, and durable completion without replacing the specialist workflows.
 ---
 
 ## Purpose
 
 Use this skill as the opt-in top-level conductor when a developer wants one
 workflow to carry clarified work across the major existing phases of the
-engineering loop.
+engineering loop, including post-publish merge-aware closeout.
 
 This skill is a thin coordinator. It owns sequencing, progression mode, durable
-workflow-state updates, and clear stop boundaries. It does **not** replace
-ideation, planning, delivery, review, readiness, publication, release, or
-knowledge workflows.
+workflow-state updates, post-publish closeout decisions, and clear stop
+boundaries. It does **not** replace ideation, planning, delivery, review,
+readiness, publication, release, or knowledge workflows.
 
 Persistent team, squad, or fleet-style long-lived orchestration is out of scope
 for this skill. Use a separate orchestration layer if persistent coordination is
@@ -28,6 +28,7 @@ Activate when the developer asks for things like:
 - "sequence planning, delivery, review, and publish for me"
 - "resume this lifecycle from the last trusted workflow state"
 - "continue from review comments / failed readiness / publish waiting on me"
+- "continue closeout after the PR was published or merged"
 
 Use this skill only when the work is already clarified enough to choose an entry
 path safely. If the request is still exploratory and no bounded direction exists,
@@ -63,6 +64,12 @@ Before you start, identify:
   `automation.stop-for-human` or local policy requires it;
 - whether readiness or publish evidence still describes the exact tree that would
   continue or be published;
+- whether the repository should be treated as release-aware or
+  non-release-aware for this lifecycle;
+- whether trusted publish, merge, and release evidence still describes the exact
+  lifecycle being closed out;
+- whether merge monitoring, release approval, deployment, or other
+  policy-gated closeout steps must stop for human confirmation;
 - whether a durable knowledge sink is available if optional
   `knowledge-compound` capture is recommended.
 
@@ -108,7 +115,8 @@ Accepted continuation inputs are:
 2. `.workflow-orchestration/state.json` from the same repository; and
 3. at least one trusted durable artifact referenced by that state, such as a
    planning artifact, direct-execution report, review report, readiness report,
-   publish summary, or prior conductor summary.
+   publish summary, merged PR or merge-policy evidence, release summary, prior
+   completion summary, or prior conductor summary.
 
 Reject unsafe continuation when any of the following is true:
 
@@ -120,6 +128,10 @@ Reject unsafe continuation when any of the following is true:
 - the recorded owner does not match the lifecycle being resumed;
 - the latest readiness or publish evidence does not describe the exact tree now
   under continuation;
+- trusted merge evidence is stale, missing, or no longer matches the published
+  lifecycle being resumed;
+- trusted release evidence is stale, missing, or no longer matches the merged
+  lifecycle being closed out;
 - the next-ready outcome cannot be determined from trusted evidence.
 
 If the direct-execution handoff or durable-state contract is absent, stale,
@@ -173,8 +185,15 @@ Use the latest trusted lifecycle evidence to pick exactly one primary outcome:
 | Review report shows unresolved findings or `current-phase=review-needs-resolution` | review resolution | `/workflow-orchestration:pr-review-resolution-loop` |
 | Review accepted the diff but no trusted readiness verdict exists yet | readiness | `/workflow-orchestration:final-pr-readiness-gate` |
 | Readiness is `ready` or `ready-with-follow-ups`, publish is allowed, and the exact tree still matches the readiness artifact | publication | `/workflow-orchestration:pr-publish-orchestration` |
-| Publication is complete and a reusable lesson is worth preserving | knowledge capture | `/workflow-orchestration:knowledge-compound` |
-| Publication is complete and no knowledge capture is needed, or knowledge capture already completed/skipped | lifecycle completion | stop with final conductor summary |
+| Publication is complete, the PR is still open, and merge has not happened yet | merge monitoring | stop with the `merge-monitoring` boundary and exact monitoring action |
+| Publication is complete, but merge is blocked by policy or waiting on explicit human action | merge waiting on human action | stop with the `merge-waiting-human` boundary |
+| Merge is confirmed in a release-aware repository and trusted release handoff context says release-closeout is next | release-closeout | `/workflow-orchestration:release-orchestration` |
+| Merge is confirmed, release is still required, but approval, deployment, or policy gates block it | release blocked | stop with the `release-blocked` boundary |
+| Merge is confirmed, and the repository explicitly allows release-skipped closeout | release skipped | stop with the `release-skipped` boundary |
+| Merge is confirmed, release is not required or already complete, and a reusable lesson is worth preserving | knowledge capture | `/workflow-orchestration:knowledge-compound` |
+| Merge or release is complete, and stale, duplicate, or conflicting knowledge is the next-ready specialist concern | knowledge refresh recommendation | `/workflow-orchestration:knowledge-refresh` when the mode and trust boundary allow it; otherwise recommend it explicitly |
+| Trusted merge, release, and knowledge evidence shows no further specialist work remains | completion summary | write a durable completion summary |
+| A completion summary already exists for the current lifecycle | lifecycle completion | stop with the final lifecycle outcome recorded |
 
 When multiple rows appear plausible, choose the earliest incomplete specialist
 phase that still has trusted evidence. Do not skip forward past a missing or
@@ -219,19 +238,28 @@ workflows must not silently overwrite conductor-owned state.
 | Diff review requires fixes | `active` or `blocked` | `review-needs-resolution` | review report | route to `/workflow-orchestration:pr-review-resolution-loop` |
 | Readiness passes | `active` | `readiness-passed` | readiness report | publish if policy allows, else stop for human |
 | Readiness fails or remains partial | `blocked` | `readiness-blocked` | readiness report | stop with required remediation |
-| Publication completes | `active` or `complete` | `published` | publish summary or PR reference | optionally recommend knowledge capture |
+| Publication completes | `active` | `published` | publish summary or PR reference | enter `closeout-assessing` instead of inferring merge or release from publish alone |
 | Publication is deferred by policy | `blocked` | `publish-waiting-human` | readiness artifact | wait for explicit human action |
-| Knowledge capture completes or is skipped | `complete` | `knowledge-captured` or `knowledge-skipped` | knowledge artifact if created | optionally recommend refresh or close the lifecycle with a final conductor summary |
+| Closeout trust assessment begins | `active` | `closeout-assessing` | latest trusted publish summary, merge evidence, or prior conductor summary | verify merge, release, and knowledge obligations before routing |
+| Merge is still pending and safe to monitor | `active` | `merge-monitoring` | publish summary plus open PR reference | monitor merge and re-run closeout when new merge evidence exists |
+| Merge is pending but blocked by human or policy gate | `blocked` | `merge-waiting-human` | publish summary plus merge-policy note | wait for the exact human action required before closeout continues |
+| Merge is confirmed | `active` | `merge-complete` | merged PR reference or equivalent merge evidence | determine whether release-closeout is required next |
+| Release-closeout is next-ready | `active` | `release-entry` | merge evidence plus release handoff context, versioning note, or changelog pointer | invoke `/workflow-orchestration:release-orchestration` or stop if the mode or policy requires human confirmation first |
+| Release-closeout is blocked or intentionally skipped | `blocked` or `complete` | `release-blocked` or `release-skipped` | release handoff artifact or explicit policy note | surface the exact follow-up or continue to knowledge or summary only when the skip is trusted |
+| Knowledge capture is next-ready | `active` | `closeout-knowledge-capture` | merge or release evidence plus latest publish or release summary | invoke `/workflow-orchestration:knowledge-compound` or stop if the current mode requires confirmation |
+| Knowledge refresh is next-ready | `active` or `complete` | `closeout-knowledge-refresh` | knowledge artifact or closeout note plus refresh trigger | invoke or recommend `/workflow-orchestration:knowledge-refresh` without replacing the current lifecycle owner |
+| Completion summary is finalizing | `active` | `closeout-summarizing` | latest merge, release, and knowledge artifacts | write the durable completion summary |
+| Lifecycle closes | `complete` | `closeout-complete` or `closeout-partial` | completion summary plus latest specialist artifact | stop with the final lifecycle outcome recorded |
+| Closeout trust fails after publication or merge | `stale` or `blocked` | `closeout-stale` | stale-state reason plus last trusted references | stop unsafe progression and require human confirmation or state regeneration |
 
 #### Optional refresh routing
 
 After knowledge capture completes — or when the conductor observes stale,
-duplicate, or conflicting knowledge artifacts during the lifecycle — the
-conductor may recommend `/workflow-orchestration:knowledge-refresh` as an
-advisory next step. Refresh is never mandatory and never blocks lifecycle
-completion. The conductor records the recommendation in the durable conductor
-summary and in `.workflow-orchestration/state.json` but does not auto-enter
-refresh unless the developer explicitly requests it.
+duplicate, or conflicting knowledge artifacts during closeout — the conductor
+may recommend or route into `/workflow-orchestration:knowledge-refresh` as the
+next-ready specialist step. Refresh remains optional: it never replaces the
+current lifecycle owner and never prevents the conductor from recording
+`closeout-partial` when the developer intentionally defers it.
 
 When recommending refresh:
 
@@ -240,8 +268,11 @@ When recommending refresh:
   completion event);
 - suggest `manual` or `guided` mode unless the developer has already expressed
   a progression preference;
-- do not transfer lifecycle ownership to refresh — the conductor summary
-  closes the current lifecycle, and refresh starts a new one if invoked.
+- if the active mode is `guided` or `auto` and no human-stop boundary applies,
+  the conductor may route directly into `knowledge-refresh`; otherwise it should
+  recommend refresh explicitly;
+- do not transfer lifecycle ownership to refresh — the conductor closes the
+  current lifecycle, and refresh starts a new one if invoked.
 
 Every write must include the required workflow-state fields from
 `docs/workflow-state-contract.md`: schema-version, workflow, updated-at, status,
@@ -259,9 +290,11 @@ brainstorm-ideation (only if needed)
   -> pr-review-resolution-loop (only if needed)
   -> final-pr-readiness-gate
   -> pr-publish-orchestration
+  -> merge monitoring / merge waiting-human (conductor-owned closeout)
+  -> release-orchestration (only for a release-aware repository after merge)
   -> knowledge-compound (optional)
-  -> knowledge-refresh (optional, advisory — recommended when stale or
-     duplicate knowledge is observed)
+  -> knowledge-refresh (optional, advisory or routed when next-ready)
+  -> completion summary (conductor-owned)
 ```
 
 Coordinator rules:
@@ -275,27 +308,39 @@ Coordinator rules:
 3. Do not invoke `/workflow-orchestration:pr-publish-orchestration` until
    `/workflow-orchestration:final-pr-readiness-gate` returns `ready` or
    `ready-with-follow-ups` for the exact tree being published.
-4. Do not route release-shaped work into publication; hand off to
-   `/workflow-orchestration:release-orchestration` instead.
-5. Treat `/workflow-orchestration:knowledge-compound` as conditional and
+4. After `pr-publish-orchestration`, do not infer merge or release from publish
+   alone; re-enter closeout through `closeout-assessing` and pick exactly one
+   next-ready closeout outcome from trusted evidence.
+5. Route to `/workflow-orchestration:release-orchestration` only after merge is
+   confirmed and only when the repository is release-aware for the current
+   lifecycle. Release approval, deployment, or policy gates remain hard
+   stop-for-human boundaries.
+6. Treat `/workflow-orchestration:knowledge-compound` as conditional and
    advisory, never mandatory.
-6. Treat `/workflow-orchestration:knowledge-refresh` as advisory and optional.
-   Recommend it when stale, duplicate, or conflicting knowledge is observed
-   but never require it for lifecycle completion.
+7. Treat `/workflow-orchestration:knowledge-refresh` as optional. Recommend it
+   when stale, duplicate, or conflicting knowledge is observed, and route into
+   it only when the active mode and trust boundary allow it.
 
-### 7. Produce a durable conductor summary
+### 7. Produce durable completion and conductor summaries
 
 At workflow completion — or at any hard stop that leaves a durable handoff —
 emit one durable conductor summary using the `Conductor lifecycle summary`
 template in `docs/workflow-artifact-templates.md`.
 
-Because the shared defaults contract does not yet define a dedicated conductor
-sink, use a repository-appropriate durable sink. For local durable artifacts in
-this repository, prefer `.workflow-orchestration/artifacts/conductor-summary-<topic>.md`. If another durable sink
-is more appropriate, preserve the same field structure.
+When closeout reaches `closeout-summarizing`, also emit one durable completion
+summary using the `Completion summary` template in
+`docs/workflow-artifact-templates.md`.
 
-The summary should point at the final `.workflow-orchestration/state.json`
-snapshot rather than duplicating the full state contract inline.
+Because the shared defaults contract does not yet define dedicated conductor or
+completion-summary sinks, use repository-appropriate durable sinks. For local
+durable artifacts in this repository, prefer
+`.workflow-orchestration/artifacts/conductor-summary-<topic>.md` and
+`.workflow-orchestration/artifacts/completion-summary-<topic>.md`. If another
+durable sink is more appropriate, preserve the same field structure.
+
+The conductor summary should point at the final
+`.workflow-orchestration/state.json` snapshot and any completion summary rather
+than duplicating the full state contract inline.
 
 ## Required Gates
 
@@ -307,11 +352,18 @@ A conductor run is not complete until:
 - the progression mode was resolved and recorded;
 - continuation requests resolved to exactly one next-ready outcome before any
   downstream specialist workflow was invoked;
+- post-publish or post-merge closeout resolved to exactly one trusted primary
+  outcome before any downstream closeout workflow was invoked;
 - the conductor updated `.workflow-orchestration/state.json` at every meaningful
   phase boundary it owned;
-- every downstream step remained delegated to the existing specialist workflow
-  rather than being reimplemented inside the conductor;
-- a durable conductor summary or explicit blocked handoff summary was produced.
+- every downstream closeout step remained delegated to
+  `/workflow-orchestration:release-orchestration`,
+  `/workflow-orchestration:knowledge-compound`, or
+  `/workflow-orchestration:knowledge-refresh` rather than being reimplemented
+  inside the conductor;
+- merge, release approval, deployment, and other hard human-stop boundaries
+  were respected according to mode and policy;
+- a durable completion summary or explicit blocked handoff summary was produced.
 
 ### Verification checklist
 
@@ -319,9 +371,11 @@ Before declaring the conductor pass complete, confirm ALL of the following:
 
 - [ ] Upstream contracts verified — PASS / FAIL
 - [ ] Progression mode resolved and recorded — PASS / FAIL
+- [ ] Closeout decision resolved from trusted post-publish or merge evidence — PASS / FAIL
 - [ ] State writes occurred only at owned phase boundaries — PASS / FAIL
+- [ ] Merge and release human-stop boundaries respected — PASS / FAIL
 - [ ] Manual specialist entry points remain valid — PASS / FAIL
-- [ ] Durable conductor summary produced — PASS / FAIL
+- [ ] Durable completion summary or blocked handoff summary produced — PASS / FAIL
 
 If any item is FAIL: surface the failing item, state the required next action,
 and do not declare the lifecycle complete.
@@ -331,13 +385,17 @@ and do not declare the lifecycle complete.
 - Requirements are still unclear or no safe entry path exists.
 - A human decision is required by the current lifecycle boundary or
   `automation.stop-for-human`.
+- Merge is still pending and no trusted closeout outcome beyond monitoring is
+  safe.
 - Readiness has not been achieved for the exact tree that would be published.
-- Release or merge policy demands a separate step outside the conductor's scope.
+- Release or merge policy may demand a separate step outside the conductor's
+  safe scope, including release approval or deployment gates.
 - Durable workflow state is stale, malformed, unsupported, or owned by another
   workflow in a way that makes auto-progression unsafe.
 - Referenced durable artifacts are missing, workspace mismatch is detected, or
   lifecycle-owner mismatch is detected.
 - Readiness or publish evidence was invalidated by later tree changes.
+- Merge or release evidence was invalidated by later lifecycle changes.
 - Downstream rescue fails to re-establish a trusted handoff.
 - The developer asks to stop.
 
@@ -435,4 +493,61 @@ Coordinator:
      human-stop boundary
   -> Stopping and surfacing the required human action instead of silently
      publishing
+```
+
+### Guided closeout when published but not merged
+
+```text
+Developer: /workflow-orchestration:idea-to-done-orchestration continue closeout
+in guided mode after the PR was published but not merged
+
+Coordinator:
+  Trusted state: status=active, current-phase=published
+  Trusted artifacts: publish summary + open PR reference
+  Next-ready outcome: merge monitoring
+
+  -> Writing closeout-assessing after trust is re-established
+  -> Writing merge-monitoring because the branch is published but not merged
+  -> Stopping with the exact monitoring action instead of skipping straight to
+     release or knowledge work
+```
+
+### Auto closeout after merge in a release-aware repository
+
+```text
+Developer: /workflow-orchestration:idea-to-done-orchestration continue closeout
+in auto mode after merge in a release-aware repository
+
+Coordinator:
+  Trusted state: status=active, current-phase=published
+  Trusted artifacts: publish summary + merged PR reference + release handoff note
+  Repository mode: release-aware
+  Next-ready outcome: release-closeout
+
+  -> Writing merge-complete after merge evidence is confirmed
+  -> Writing release-entry because release-orchestration is the next-ready
+     specialist workflow
+  -> Routing to /workflow-orchestration:release-orchestration unless a release
+     approval or deployment gate forces release-blocked first
+```
+
+### Guided closeout after merge in a non-release-aware repository
+
+```text
+Developer: /workflow-orchestration:idea-to-done-orchestration continue closeout
+in guided mode after merge in a non-release-aware repository
+
+Coordinator:
+  Trusted state: status=active, current-phase=published
+  Trusted artifacts: publish summary + merged PR reference
+  Repository mode: non-release-aware
+  Next-ready outcome: knowledge capture
+
+  -> Writing merge-complete after merge evidence is confirmed
+  -> Skipping release-entry because this repository does not require
+     release-closeout for done
+  -> Routing to /workflow-orchestration:knowledge-compound when a reusable
+     lesson is worth preserving
+  -> Writing closeout-summarizing and closeout-complete once the completion
+     summary is emitted
 ```

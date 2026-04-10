@@ -7,8 +7,8 @@ enforce context hygiene in systematic debugging.
 > **Scope boundary**: SESSION.md and HANDOFF.json are *session-scoped* advisory artifacts. They track
 > the context needed to resume a single interrupted agent session — current task, blockers,
 > failed hypotheses, and decisions made during that session. They are **not** the right place
-> for cross-session workflow lifecycle data such as completed phases, automation mode, or
-> durable artifact references. For that purpose, see the
+> for cross-session workflow lifecycle data such as completed phases, automation mode, merge
+> status, release disposition, or durable artifact references. For that purpose, see the
 > [Workflow State Contract](workflow-state-contract.md), which defines `.workflow-orchestration/state.json`
 > as the durable workflow-state artifact that SESSION.md and HANDOFF.json must never replace.
 
@@ -208,12 +208,20 @@ separate machine-readable artifact such as
 
 - keep session continuity focused on the current local work session;
 - keep durable workflow state focused on cross-session workflow phase,
-  automation mode, durable artifact references, and next-action continuity;
+  automation mode, merge and release closeout status, durable artifact
+  references, and next-action continuity;
 - do not merge the two contracts into one file;
 - treat SESSION.md and HANDOFF.json as advisory notes about the current session,
   not as an alternate workflow-state authority;
 - if session continuity needs to reference durable workflow state, store only the
   pointer or note, not a second copy of the state contract.
+
+For idea-to-done closeout specifically, the post-publish and post-merge lifecycle
+must remain durable-state-led: `closeout-assessing`, merge monitoring or waiting,
+release entry or skip, completion-summary references, and final
+`closeout-complete` / `closeout-partial` outcomes belong in
+`.workflow-orchestration/state.json`, while SESSION.md and HANDOFF.json remain
+advisory only.
 
 ---
 

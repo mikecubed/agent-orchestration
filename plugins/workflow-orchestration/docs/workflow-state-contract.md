@@ -153,21 +153,30 @@ be able to answer:
 
 - what the latest trusted completed phase was;
 - which artifact proves that phase completed;
-- whether the next phase is review, resolution, readiness, publication, or
-  lifecycle completion.
+- whether the next phase is review, resolution, readiness, publication, merge
+  monitoring, release-closeout, knowledge, completion summary, or lifecycle
+  completion.
 
 ## Continuation boundary matrix
 
 Use this matrix when deciding whether a lifecycle can resume and what the next
-state write must contain.
+state write must contain, including post-publish closeout for
+`idea-to-done-orchestration`.
 
 | Boundary | Required `status` | Required `current-phase` | Minimum durable references | `next-action` expectation |
 | --- | --- | --- | --- | --- |
 | Resume assessment begins | `planned` \| `active` \| `blocked` | `resume-assessment` | state file plus latest artifact for the recorded phase being resumed | name the one next-ready specialist workflow or required clarification step |
 | Resumed specialist entry | `active` | phase-specific in-progress boundary such as `delivery-in-progress` | artifact proving the previous phase completed | point at the next owned specialist action, not a vague resume note |
-| Blocked or stale stop | `blocked` \| `stale` | `delivery-blocked`, `readiness-blocked`, `publish-waiting-human`, or `resume-stale` | blocking artifact or mismatch evidence | request the exact human action or regeneration needed before continuation |
+| Blocked or stale stop | `blocked` \| `stale` | `delivery-blocked`, `readiness-blocked`, `publish-waiting-human`, `merge-waiting-human`, `release-blocked`, `closeout-stale`, or `resume-stale` | blocking artifact or mismatch evidence | request the exact human action or regeneration needed before continuation |
 | Human-gated publish | `blocked` | `publish-waiting-human` | readiness artifact for the exact publishable tree | wait for explicit human publish action |
-| Lifecycle completion | `complete` | `knowledge-captured`, `knowledge-skipped`, or `published` when no knowledge capture is needed | final publish or knowledge artifact plus summary artifact when produced | close the lifecycle or point at optional knowledge capture only |
+| Closeout assessment begins | `active` | `closeout-assessing` | latest trusted publish summary, merged PR reference, or prior conductor summary | verify merge, release, and knowledge obligations before routing |
+| Merge still pending | `active` \| `blocked` | `merge-monitoring` or `merge-waiting-human` | publish summary plus PR reference or merge-policy note | monitor merge or wait for the exact human action required |
+| Merge confirmed | `active` | `merge-complete` | merged PR reference or equivalent merge evidence | determine whether release-closeout is required next |
+| Release-closeout is next-ready | `active` | `release-entry` | merge evidence plus release handoff context, versioning note, or changelog pointer | invoke `release-orchestration` or stop for the exact human gate |
+| Release-closeout is blocked or intentionally skipped | `blocked` \| `complete` | `release-blocked` or `release-skipped` | release handoff artifact or explicit policy note | surface the exact follow-up or continue to knowledge or summary only when skip is allowed |
+| Knowledge is next-ready after closeout | `active` \| `complete` | `closeout-knowledge-capture` or `closeout-knowledge-refresh` | merge or release evidence plus knowledge artifact or refresh trigger | invoke or recommend the one next-ready knowledge workflow |
+| Completion summary is finalizing | `active` | `closeout-summarizing` | latest merge, release, and knowledge artifacts | write the durable completion summary |
+| Lifecycle completion | `complete` | `closeout-complete`, `closeout-partial`, `knowledge-captured`, `knowledge-skipped`, or `published` when no closeout is needed | completion summary or final publish / knowledge artifact plus summary artifact when produced | close the lifecycle or point at optional follow-up work only |
 
 ## Lifecycle
 
@@ -189,7 +198,12 @@ continuation this means:
 2. write `stale` or `blocked` immediately when continuation fails a trust check;
 3. do not retain a previously-passing readiness or publish state if later tree
    changes invalidate that evidence;
-4. keep `next-action` concrete enough that the reader can route to one next
+4. when closeout begins after publication, write `closeout-assessing` before
+   deciding merge monitoring, release-closeout, knowledge, or summary;
+5. when closeout trust fails after publication or merge, write
+   `closeout-stale`, `merge-waiting-human`, or `release-blocked` immediately
+   instead of preserving a stale success-shaped state;
+6. keep `next-action` concrete enough that the reader can route to one next
    ready step without scraping chat history.
 
 ## Stale-state handling expectations
@@ -204,7 +218,11 @@ Treat the state as stale when any of the following is true:
   (**lifecycle-owner mismatch**);
 - the schema version is unsupported;
 - readiness or publish evidence no longer describes the exact current tree
-  (**invalidated readiness or publish evidence**).
+  (**invalidated readiness or publish evidence**);
+- merge evidence no longer matches the published lifecycle being resumed
+  (**stale merge evidence**);
+- release evidence no longer matches the merged lifecycle being closed out
+  (**invalidated release evidence**).
 
 When state is stale, the workflow must stop unsafe auto-progression, surface the
 reason, and ask for human confirmation or regeneration.
@@ -225,4 +243,7 @@ Durable workflow state is **not** the same thing as `.agent/SESSION.md` or
 | `.agent/HANDOFF.json` | Machine-readable companion to `SESSION.md` for the current local work session | Session/runtime | No |
 
 Session continuity may mention the active workflow state artifact, but it must
-not replace or redefine it.
+not replace or redefine it. This remains true for idea-to-done closeout:
+post-merge phase ownership, automation mode, merge status, release disposition,
+and completion-summary references belong in `.workflow-orchestration/state.json`,
+not in `.agent/SESSION.md` or `.agent/HANDOFF.json`.

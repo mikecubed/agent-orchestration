@@ -6,6 +6,37 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-04-10
+
+### Added (workflow-orchestration 2.1.0)
+
+- **Idea-to-done closeout contract**: `idea-to-done-orchestration` now carries
+  trusted published work through merge-aware closeout, release-aware vs
+  non-release-aware routing, optional knowledge capture or refresh, and a
+  durable completion summary without becoming a post-merge mega-skill.
+- **Completion summary template**:
+  `plugins/workflow-orchestration/docs/workflow-artifact-templates.md` now
+  defines a durable `Completion summary` artifact for shipped outcome, merge
+  status, release disposition, knowledge steps, unresolved follow-ups, and
+  final next action.
+
+### Changed (workflow-orchestration 2.1.0)
+
+- **Closeout state and session-boundary docs**:
+  `plugins/workflow-orchestration/docs/workflow-state-contract.md`,
+  `plugins/workflow-orchestration/docs/session-md-schema.md`, the workflow
+  README, and the workflow usage guide now document closeout-owned state
+  boundaries, stale-state handling for merge and release evidence, and the rule
+  that `.workflow-orchestration/state.json` remains authoritative while
+  `.agent/SESSION.md` and `.agent/HANDOFF.json` stay advisory only.
+- **Structural coverage**: the workflow plugin test suite now validates
+  merge-aware closeout language, release-entry and release-skip boundaries,
+  completion-summary expectations, and the conductor's coordinator-shaped
+  post-merge routing.
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata
+  bumped from `2.0.0` to `2.1.0` across the root package, lockfile, workflow
+  package/manifests, and marketplace metadata.
+
 ## [2.0.0] - 2026-04-10
 
 ### Added (workflow-orchestration 2.0.0)

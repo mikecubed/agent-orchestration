@@ -1,6 +1,6 @@
 # workflow-orchestration
 
-Shared plugin for planning, delivery, review, publication, release orchestration, knowledge capture, and knowledge refresh across **GitHub Copilot CLI** and **Claude Code**.
+Shared plugin for planning, delivery, review, publication, merge-aware closeout, release orchestration, knowledge capture, and knowledge refresh across **GitHub Copilot CLI** and **Claude Code**.
 
 ## Start here
 
@@ -61,8 +61,12 @@ The conductor:
 - can resume from the last trusted `.workflow-orchestration/state.json` plus
   durable artifacts without creating a second top-level lifecycle workflow;
 - updates `.workflow-orchestration/state.json` at major owned phase boundaries;
+- can continue after publication through merge-aware closeout, optional
+  `release-orchestration`, optional knowledge capture or refresh, and one
+  durable completion summary;
 - stops when requirements are unclear, a human decision is required, readiness
-  has not been achieved, or the request becomes release-shaped.
+  has not been achieved, merge is still pending without a safe next step, or a
+  release gate blocks safe automation.
 
 Manual specialist entry remains valid. The conductor is lifecycle glue, not a
 replacement for the underlying workflows.
@@ -81,6 +85,23 @@ replacement for the underlying workflows.
   `current-phase=publish-waiting-human`, all progression modes still respect the
   hard human-stop boundary and surface the required publish action instead of
   auto-publishing.
+
+### Post-publish closeout examples
+
+- **Published but not merged** — if trusted state says `current-phase=published`
+  and the PR is still open, the conductor writes `closeout-assessing`, then
+  `merge-monitoring` or `merge-waiting-human`, and stops with the exact merge
+  follow-up instead of skipping straight to release or knowledge work.
+- **Merged in a release-aware repository** — if merge evidence is trusted and the
+  repository treats release as part of done, the conductor writes
+  `merge-complete`, then `release-entry`, and routes to
+  `/workflow-orchestration:release-orchestration` unless a release approval or
+  deployment gate forces `release-blocked`.
+- **Merged in a non-release-aware repository** — if merge evidence is trusted and
+  release is not required, the conductor may continue to
+  `/workflow-orchestration:knowledge-compound`, optionally recommend or route to
+  `/workflow-orchestration:knowledge-refresh`, and then emit a durable
+  completion summary.
 
 ## Shared defaults and durable state foundation
 
@@ -212,6 +233,9 @@ PR publication and release management are separate concerns:
   mile after readiness: commit, push, and PR creation or update. It requires
   a passing readiness gate on the exact tree being published and does not
   perform tagging, changelog generation, or artifact publishing.
+- **`/workflow-orchestration:idea-to-done-orchestration`** may re-enter after
+  publication to handle merge-aware closeout. Publication does not imply merge,
+  release, or lifecycle completion on its own.
 
 - **`/workflow-orchestration:release-orchestration`** owns the release
   pipeline: conventional-commit semver calculation, CHANGELOG update, git tag
