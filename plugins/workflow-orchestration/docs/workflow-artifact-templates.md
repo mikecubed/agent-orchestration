@@ -143,6 +143,33 @@ Artifact sink: <docs/publish-summary-<topic>.md or another durable sink>
 Next action: <what should happen next>
 ```
 
+## Conductor lifecycle summary
+
+Use for `idea-to-done-orchestration`.
+
+```text
+Request: <clarified work request or accepted task bundle>
+Progression mode: manual | guided | auto
+Lifecycle owner: idea-to-done-orchestration
+State file: .workflow-orchestration/state.json
+Entry path: <brainstorm-ideation | planning-orchestration | delivery-orchestration>
+Current state: planned | active | blocked | complete | stale
+Phase history:
+- <phase> | <specialist workflow used> | <durable artifact reference> | <result>
+Stop decisions:
+- <phase> | <reason> | <required human input>, or none
+Final artifacts:
+- planning: <artifact or none>
+- delivery: <artifact or none>
+- review: <artifact or none>
+- readiness: <artifact or none>
+- publish: <artifact or none>
+- knowledge: <artifact or none>
+Artifact sink: <docs/conductor-summary-<topic>.md or another durable sink>
+Next action: <what should happen next>
+Summary: <short summary of the lifecycle outcome>
+```
+
 ## Discovery brief
 
 Use when a workflow skill needs to prepare factual context before delegating to expensive specialists. The coordinator or a fast scout-tier model produces one discovery brief per batch or session.

@@ -6,6 +6,33 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-04-10
+
+### Added (workflow-orchestration 1.8.0)
+
+- **`idea-to-done-orchestration` skill**: adds the first opt-in full-loop
+  conductor for clarified work. It stays coordinator-shaped, supports
+  `manual`/`guided`/`auto` progression, routes to the existing specialist
+  workflows, and records durable workflow-state updates at major owned phase
+  boundaries instead of reimplementing those downstream phases.
+- **Conductor lifecycle summary template**: adds a shared `Conductor lifecycle
+  summary` artifact contract to
+  `plugins/workflow-orchestration/docs/workflow-artifact-templates.md` so the
+  top-level workflow can leave behind one durable lifecycle handoff or final
+  summary in addition to `.workflow-orchestration/state.json`.
+
+### Changed (workflow-orchestration 1.8.0)
+
+- **Start-here product docs**: the workflow README, usage guide, root README,
+  and roadmap now expose the whole-loop conductor as the obvious top-level
+  entry path for clarified work while keeping manual specialist entry valid.
+- **Structural coverage**: the workflow plugin test suite now validates the new
+  conductor contract, state-update references, progression modes, stop
+  boundaries, and conductor summary template.
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata
+  bumped from `1.7.0` to `1.8.0` across the root package, lockfile, workflow
+  package/manifests, and marketplace metadata.
+
 ## [1.7.0] - 2026-04-10
 
 ### Added (workflow-orchestration 1.7.0)

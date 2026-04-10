@@ -90,9 +90,9 @@ These are the remaining product gaps after `1.6.0`:
 
 ## Current progress
 
-- **Completed in `1.6.0`**: Phase 1 — workflow defaults and durable state foundation
-- **Next phase**: Phase 2 — standardized direct execution contract
-- **Later phases**: conductor MVP, continuation/resume, knowledge refresh, and post-merge completion remain roadmap items
+- **Completed in `1.7.0`**: Phase 1 — workflow defaults and durable state foundation; Phase 2 — standardized direct execution contract
+- **Current phase**: Phase 3 — full-loop conductor MVP
+- **Later phases**: continuation/resume, knowledge refresh, and post-merge completion remain roadmap items
 
 Phase 1 is now the shipped foundation rather than the next milestone. The roadmap should therefore be read as "what comes after the defaults/state contract landed."
 

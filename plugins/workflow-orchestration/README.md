@@ -12,6 +12,7 @@ For the quickest path to the right workflow, see:
 
 This plugin provides:
 
+- `idea-to-done-orchestration`
 - `planning-orchestration`
 - `parallel-implementation-loop`
 - `pr-review-resolution-loop`
@@ -41,9 +42,27 @@ claude --plugin-dir ./plugins/workflow-orchestration
 Expected namespaced usage:
 
 ```text
+/workflow-orchestration:idea-to-done-orchestration
 /workflow-orchestration:planning-orchestration
 /workflow-orchestration:parallel-implementation-loop
 ```
+
+## Whole-loop conductor
+
+For the highest-level entry path, use
+`/workflow-orchestration:idea-to-done-orchestration` when the work is already
+clarified and you want one opt-in workflow to sequence the rest of the loop.
+
+The conductor:
+
+- stays coordinator-shaped and routes to existing specialist workflows;
+- supports `manual`, `guided`, and `auto` progression modes;
+- updates `.workflow-orchestration/state.json` at major owned phase boundaries;
+- stops when requirements are unclear, a human decision is required, readiness
+  has not been achieved, or the request becomes release-shaped.
+
+Manual specialist entry remains valid. The conductor is lifecycle glue, not a
+replacement for the underlying workflows.
 
 ## Shared defaults and durable state foundation
 
@@ -77,9 +96,10 @@ fallback behavior. Durable workflow state remains separate from transient
 session continuity in `.agent/SESSION.md` and `.agent/HANDOFF.json`; see
 `docs/session-md-schema.md` for that boundary.
 
-## Recommended Delivery Loop
+## Recommended Specialist Delivery Loop
 
-The default end-to-end loop for bounded delivery work follows six phases:
+The underlying end-to-end loop for bounded delivery work still follows six
+specialist phases:
 
 1. **`/workflow-orchestration:planning-orchestration`** — Produce an accepted
    plan with scoped tasks and acceptance criteria. Optionally compose with

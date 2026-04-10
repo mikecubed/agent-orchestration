@@ -86,6 +86,7 @@ describe('workflow-orchestration manifests', () => {
 
 describe('workflow-orchestration skills layout', () => {
   const skills = [
+    'idea-to-done-orchestration',
     'planning-orchestration',
     'parallel-implementation-loop',
     'pr-review-resolution-loop',
@@ -160,6 +161,35 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(readme, /Review any\s+non-empty delivered diff/i);
     assert.match(readme, /direct-execution report/i);
     assert.match(guide, /direct-execution report/i);
+  });
+
+  it('adds idea-to-done-orchestration as a bounded full-loop conductor over the specialist workflows', () => {
+    const text = readText(ROOT, path.join('skills', 'idea-to-done-orchestration', 'SKILL.md'));
+    const readme = readText(ROOT, 'README.md');
+    const guide = readText(ROOT, path.join('docs', 'workflow-usage-guide.md'));
+    const templates = readText(ROOT, path.join('docs', 'workflow-artifact-templates.md'));
+
+    assert.match(text, /\bmanual\b/);
+    assert.match(text, /\bguided\b/);
+    assert.match(text, /\bauto\b/);
+    assert.match(text, /\.workflow-orchestration\/state\.json/);
+    assert.match(text, /automation\.progression/);
+    assert.match(text, /automation\.stop-for-human/);
+    assert.match(text, /\/workflow-orchestration:planning-orchestration/);
+    assert.match(text, /\/workflow-orchestration:delivery-orchestration/);
+    assert.match(text, /\/workflow-orchestration:diff-review-orchestration/);
+    assert.match(text, /\/workflow-orchestration:final-pr-readiness-gate/);
+    assert.match(text, /\/workflow-orchestration:pr-publish-orchestration/);
+    assert.match(text, /\/workflow-orchestration:knowledge-compound/);
+    assert.match(text, /requirements are still unclear/i);
+    assert.match(text, /readiness has not been achieved/i);
+    assert.match(text, /release or merge policy/i);
+    assert.match(text, /docs\/conductor-summary-<topic>\.md/);
+    assert.match(templates, /## Conductor lifecycle summary/);
+    assert.match(templates, /docs\/conductor-summary-<topic>\.md/);
+    assert.match(readme, /\/workflow-orchestration:idea-to-done-orchestration/);
+    assert.match(guide, /idea-to-done-orchestration/);
+    assert.doesNotMatch(guide, /does \*\*not\*\* yet provide one opt-in workflow/i);
   });
 
   it('keeps pr-publish-orchestration bounded to publication with readiness deflection', () => {
@@ -242,6 +272,7 @@ describe('workflow-orchestration package contents', () => {
     assert.ok(files.includes('docs/workflow-usage-guide.md'));
 
     for (const skill of [
+      'idea-to-done-orchestration',
       'planning-orchestration',
       'parallel-implementation-loop',
       'pr-review-resolution-loop',

@@ -8,6 +8,7 @@ Prefer plugin-qualified names such as `/workflow-orchestration:delivery-orchestr
 
 | If you are trying to... | Start with | Then usually go to |
 | --- | --- | --- |
+| Carry clarified work through the whole loop | `idea-to-done-orchestration` | specialist phases are sequenced automatically or with explicit stop points |
 | Explore a rough feature idea | `brainstorm-ideation` | `planning-orchestration` or `sdd-workflow` |
 | Turn a clarified idea into a scoped plan | `planning-orchestration` | `delivery-orchestration` |
 | Execute a reviewed plan or next-ready task | `delivery-orchestration` | `diff-review-orchestration` |
@@ -45,7 +46,33 @@ separate from transient session continuity in `.agent/SESSION.md` and
 
 ## The main composed loops
 
-### 1. Clarified idea to PR-ready branch
+### 1. Clarified work to publish-ready result
+
+Use this when the work is already clarified and you want one opt-in conductor to
+own the lifecycle sequencing.
+
+```text
+idea-to-done-orchestration
+  -> brainstorm-ideation (only if needed)
+  -> planning-orchestration (only if needed)
+  -> delivery-orchestration
+  -> diff-review-orchestration
+  -> pr-review-resolution-loop (only if needed)
+  -> final-pr-readiness-gate
+  -> pr-publish-orchestration
+  -> knowledge-compound (optional)
+```
+
+Notes:
+
+- `idea-to-done-orchestration` supports `manual`, `guided`, and `auto` modes.
+- It updates `.workflow-orchestration/state.json` at major phase boundaries while
+  it owns the lifecycle.
+- It stops when requirements stay unclear, a human decision is required,
+  readiness is not achieved, or release/merge policy requires a separate step.
+- Manual entry into the specialist workflows remains valid.
+
+### 2. Specialist manual path for clarified idea to PR-ready branch
 
 Use this when the work is feature-shaped and you want the normal delivery path.
 
@@ -68,7 +95,7 @@ Notes:
   `diff-review-orchestration`.
 - `pr-publish-orchestration` stops at commit / push / PR publication. It does not do release work.
 
-### 2. Bug or regression to reusable lesson
+### 3. Bug or regression to reusable lesson
 
 Use this when the main problem is fault isolation rather than new feature delivery.
 
@@ -84,7 +111,7 @@ Notes:
 - If the fix attracts review feedback, insert `pr-review-resolution-loop` before the final gate.
 - `knowledge-compound` is the right place for non-obvious debugging lessons that should survive the session.
 
-### 3. Incident to follow-up change
+### 4. Incident to follow-up change
 
 Use this when the immediate need is understanding what happened, not just patching code.
 
@@ -101,7 +128,7 @@ Notes:
 - `incident-rca` explains the event.
 - Planning and delivery own the corrective or preventative changes.
 
-### 4. Large or uncertain execution
+### 5. Large or uncertain execution
 
 Use this when the work is too unclear or too coupled for fixed parallel tracks.
 
@@ -124,6 +151,7 @@ Notes:
 
 | Workflow | Use it when | Do not use it when | Typical next step |
 | --- | --- | --- | --- |
+| `idea-to-done-orchestration` | You want one opt-in workflow to carry clarified work across planning entry, delivery, review, readiness, publication, and optional knowledge capture. | The request is still exploratory, purely release-shaped, or you only need one specialist phase. | the next owned specialist workflow or a documented stop-for-human boundary |
 | `brainstorm-ideation` | The idea is still fuzzy and you need constraints, trade-offs, and risks surfaced before spec work. | Requirements are already clear or the task is a narrow bug fix. | `planning-orchestration` or `sdd-workflow` |
 | `planning-orchestration` | You need a durable plan, sequencing, validation, and execution handoff. | The change is already fully scoped and tiny. | `delivery-orchestration` |
 | `delivery-orchestration` | You have accepted scope and want the best execution path chosen for you. | The request is still exploratory, review-shaped, or release-shaped. | direct implementation (with a durable direct-execution report), `parallel-implementation-loop`, `swarm-orchestration`, or `systematic-debugging` |
@@ -157,18 +185,20 @@ Notes:
 | a large change with unclear boundaries | `delivery-orchestration` -> `swarm-orchestration` |
 | a failing behavior, regression, or reproducibility problem | `delivery-orchestration` -> `systematic-debugging` |
 
-## What this plugin supports today vs what still needs a higher-level conductor
+## What the higher-level conductor adds now
 
-The plugin now supports the major phases of the engineering loop. What it does **not** yet provide is one opt-in workflow that automatically carries a clarified idea through every later phase without manual switching.
+The plugin now has both:
 
-So today:
+- the **specialist workflows** for explicit phase-by-phase control; and
+- one **opt-in conductor** for clarified work that wants lifecycle glue.
 
-- the **phases** are present;
-- the **specialist workflows** are strong;
-- the **product gap** is mostly lifecycle glue.
+That means:
 
-That is why the safest default is still:
-
-1. choose the right workflow for the current phase;
-2. use the "Typical next step" column to move forward deliberately;
-3. treat `knowledge-compound` as conditional, not mandatory.
+1. use `idea-to-done-orchestration` when you want one bounded workflow to carry
+   clarified work across the major phases;
+2. use the specialist workflows directly when you want precise phase-by-phase
+   control;
+3. treat `knowledge-compound` as conditional, not mandatory;
+4. treat continuation/resume as a later concern — the conductor records durable
+   workflow state, but Phase 4 continuation behavior remains intentionally
+   separate.

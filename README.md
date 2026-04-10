@@ -8,6 +8,7 @@ Umbrella marketplace repo for separate **GitHub Copilot CLI** and **Claude Code*
 
 Shared orchestration plugin with:
 
+- `idea-to-done-orchestration`
 - `planning-orchestration`
 - `parallel-implementation-loop`
 - `pr-review-resolution-loop`
