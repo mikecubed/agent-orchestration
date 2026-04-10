@@ -1,6 +1,6 @@
 {
   "name": "workflow-orchestration",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Planning, delivery orchestration, codebase mapping, architecture review, brainstorm ideation, implementation, systematic debugging, incident RCA, e2e test generation, review-resolution, PR-readiness, diff review, git worktree lifecycle, swarm orchestration, contract generation, PR publication, release orchestration, and knowledge capture skills.",
   "type": "module",
   "license": "MIT",

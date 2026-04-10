@@ -133,24 +133,33 @@ describe('workflow-orchestration skills layout', () => {
     });
   }
 
-  it('keeps delivery-orchestration coordinator-shaped with explicit deflection and handoff contracts', () => {
+  it('keeps delivery-orchestration coordinator-shaped with explicit direct-path, deflection, and handoff contracts', () => {
     const text = readText(ROOT, path.join('skills', 'delivery-orchestration', 'SKILL.md'));
     const readme = readText(ROOT, 'README.md');
+    const guide = readText(ROOT, path.join('docs', 'workflow-usage-guide.md'));
+    const templates = readText(ROOT, path.join('docs', 'workflow-artifact-templates.md'));
 
     assert.match(text, /## Post-Delivery Handoffs/);
     assert.match(text, /non-empty diff|non-empty delivered diff|non-empty diff — code, tests, configuration, or documentation/i);
     assert.match(text, /Runtime-native scoped implementer agent/);
+    assert.match(text, /### Direct execution contract/);
+    assert.match(text, /artifact-sinks\.track-reports/);
+    assert.match(text, /Validation outcome:\s+pass \| fail \| partial \| not-run/);
     assert.match(text, /\/workflow-orchestration:diff-review-orchestration/);
     assert.match(text, /\/workflow-orchestration:knowledge-compound/);
     assert.match(text, /## Deflection Behavior/);
+    assert.match(text, /## Direct-Route Rescue and Reroute Contract/);
     assert.match(text, /\/workflow-orchestration:planning-orchestration/);
     assert.match(text, /\/workflow-orchestration:brainstorm-ideation/);
     assert.match(text, /\/workflow-orchestration:release-orchestration/);
     assert.match(text, /## Coordinator-Shape Contract/);
     assert.match(text, /\*\*No planning\*\*/);
     assert.match(text, /\*\*No release\*\*/);
+    assert.match(templates, /## Direct execution outcome report/);
+    assert.match(templates, /docs\/direct-execution-<topic>\.md/);
     assert.match(readme, /Review any\s+non-empty delivered diff/i);
-    assert.match(readme, /produced a non-empty diff/i);
+    assert.match(readme, /direct-execution report/i);
+    assert.match(guide, /direct-execution report/i);
   });
 
   it('keeps pr-publish-orchestration bounded to publication with readiness deflection', () => {
@@ -182,14 +191,18 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /final-gate-result:\s+stopped/);
   });
 
-  it('documents shared-defaults adoption in the planning, diff-review, publish, and knowledge workflows', () => {
+  it('documents shared-defaults adoption in the planning, delivery, diff-review, publish, and knowledge workflows', () => {
     const planning = readText(ROOT, path.join('skills', 'planning-orchestration', 'SKILL.md'));
+    const delivery = readText(ROOT, path.join('skills', 'delivery-orchestration', 'SKILL.md'));
     const diffReview = readText(ROOT, path.join('skills', 'diff-review-orchestration', 'SKILL.md'));
     const publish = readText(ROOT, path.join('skills', 'pr-publish-orchestration', 'SKILL.md'));
     const knowledge = readText(ROOT, path.join('skills', 'knowledge-compound', 'SKILL.md'));
 
     assert.match(planning, /docs\/workflow-defaults-contract\.md/);
     assert.match(planning, /artifact sink/i);
+    assert.match(delivery, /docs\/workflow-defaults-contract\.md/);
+    assert.match(delivery, /artifact-sinks\.track-reports/);
+    assert.match(delivery, /review\.mode/);
     assert.match(diffReview, /docs\/workflow-defaults-contract\.md/);
     assert.match(diffReview, /preferred review mode|review mode/i);
     assert.match(publish, /docs\/workflow-defaults-contract\.md/);

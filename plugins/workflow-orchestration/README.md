@@ -62,6 +62,9 @@ The first adopting workflows are:
 
 - `planning-orchestration` — consults shared defaults for planning sinks and
   discovery context when present;
+- `delivery-orchestration` — uses `artifact-sinks.track-reports` for the direct
+  execution report sink and `review.mode` for the default post-delivery review
+  mode suggestion when present;
 - `diff-review-orchestration` — consults shared defaults for review-mode
   baseline and related guardrails when present;
 - `pr-publish-orchestration` — consults shared defaults for publish preferences
@@ -86,7 +89,10 @@ The default end-to-end loop for bounded delivery work follows six phases:
    tasks to the best-fit execution skill. The coordinator classifies the
    request, selects between direct implementation, parallel tracks, swarm
    decomposition, or systematic debugging, and delegates. It does not perform
-   implementation itself.
+   implementation itself. When it chooses the direct lane, the implementation
+   path should leave behind a durable direct-execution report plus a normalized
+   review handoff containing diff surface, validation outcome, artifact
+   reference, and mode suggestion.
 
 3. **`/workflow-orchestration:diff-review-orchestration`** — Review any
    non-empty delivered diff. This is the default post-delivery handoff;
@@ -127,7 +133,9 @@ review to publication-ready. Use the skills in this order:
    implementation is complete. This skill performs a structured diff review
    across every changed file, surfacing bugs, security issues, style
    violations, and logic gaps. It produces a categorised findings report that
-   feeds directly into the next step.
+   feeds directly into the next step. Post-delivery review may start from a
+   direct-execution report or track report, but the diff review still validates
+   the actual changed surface itself.
 
 2. **`/workflow-orchestration:pr-review-resolution-loop`** — Address the
    findings from the diff review. This skill triages each comment, applies

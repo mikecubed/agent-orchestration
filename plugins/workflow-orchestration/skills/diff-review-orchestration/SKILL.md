@@ -37,10 +37,25 @@ Before you start, identify:
 - **Diff target** — the branch, PR number, or commit range to review (e.g., `HEAD~3..HEAD`, `PR #42`, `feat/widget`).
 - **Mode flag** — `interactive` (default), `report-only`, or `headless`. If unspecified, default to interactive. When shared workflow defaults declare a preferred review mode (see `docs/workflow-defaults-contract.md`), use that as the default instead. An explicit mode flag always overrides the configured default.
 - **`--base` override** — the comparison baseline branch or commit. Defaults to the repository's default branch (usually `main`) if not provided.
+- **Delivery-context artifact** — when the review follows `delivery-orchestration`, accept a direct-execution report, track report, or delivery log reference as advisory input. Use it to confirm the diff surface, validation outcome, and routing rationale; it never replaces the actual diff.
 - **Codex availability** — whether `clean-code-codex:conductor` is loaded and available in the current session. Check for the plugin at startup; if unavailable, the coordinator degrades gracefully (see § Codex unavailable fallback).
 - **Shared workflow defaults** — whether the repository declares shared workflow defaults. If present, consume relevant keys — preferred review mode, knowledge-sink location for prior-learning lookups, and artifact sink preferences for the durable review report. If defaults are absent or a specific key is missing, fall back to the per-invocation behavior described in each step below.
 
 If the diff target or comparison baseline cannot be determined, ask the developer before proceeding.
+
+### Normalized post-delivery handoff inputs
+
+When this skill is invoked from `delivery-orchestration`, it accepts one
+normalized handoff payload:
+
+1. **diff surface** — branch, commit range, or PR reference to review;
+2. **validation outcome** — `pass`, `fail`, `partial`, or `not-run`;
+3. **delivery-context artifact** — direct-execution report, track report, or delivery log reference;
+4. **mode suggestion** — recommended `interactive`, `report-only`, or `headless`.
+
+Treat these as advisory setup inputs. They speed review initialization, but they
+do not replace diff validation, changed-file classification, or this skill's own
+readiness and reporting gates.
 
 ## Workflow
 
@@ -61,7 +76,8 @@ Produce a discovery brief per `docs/workflow-artifact-templates.md` containing a
 - task summary describing the review scope;
 - relevant files from the diff;
 - comparison baseline;
-- validation commands for the repository.
+- validation commands for the repository;
+- delivery-context artifact summary, when a direct-execution report, track report, or delivery log was supplied from a prior delivery route.
 
 Reuse any factual brief or factual context already present in the current session rather than rediscovering. If prior context exists, note that discovery was reused.
 

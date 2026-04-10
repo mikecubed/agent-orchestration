@@ -67,6 +67,7 @@ The repo root is umbrella-only infrastructure:
 - `docs/marketplace-overview.md`
 - `docs/install-guide.md`
 - `docs/plugin-composition.md`
+- `plugins/workflow-orchestration/docs/workflow-usage-guide.md`
 
 ## Validation
 

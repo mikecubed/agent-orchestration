@@ -84,6 +84,11 @@ the owning workflow using that workflow's existing artifact template and file
 naming convention. The contract does **not** require one global directory
 taxonomy; it only gives the repository a shared default starting point.
 
+In this phase, `track-reports` covers both traditional implementation track
+reports and `delivery-orchestration` direct-execution outcome reports when the
+delivery route stays direct. The artifact shape may differ, but the shared sink
+category is the same unless a workflow documents a narrower local override.
+
 If a sink key is missing, the workflow falls back to its skill-local documented
 sink behavior. For example, `knowledge-compound` may still require an explicit
 sink when no repo default is configured.

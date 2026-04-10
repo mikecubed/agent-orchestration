@@ -31,6 +31,8 @@ The plugin now documents one shared foundation for higher-level automation:
 The first workflows that consume the shared defaults are:
 
 - `planning-orchestration` for planning sinks and discovery context;
+- `delivery-orchestration` for direct-execution report sinks and default
+  post-delivery review-mode suggestions;
 - `diff-review-orchestration` for review-mode baseline and related guardrails;
 - `pr-publish-orchestration` for publish preferences and durable publish-summary
   sinks;
@@ -61,6 +63,9 @@ Notes:
 
 - Start at `brainstorm-ideation` only if the idea is still fuzzy.
 - `delivery-orchestration` chooses direct implementation, parallel tracks, swarm, or debugging.
+- When direct implementation is chosen, the route is expected to produce a
+  durable direct-execution report plus a normalized review handoff for
+  `diff-review-orchestration`.
 - `pr-publish-orchestration` stops at commit / push / PR publication. It does not do release work.
 
 ### 2. Bug or regression to reusable lesson
@@ -121,7 +126,7 @@ Notes:
 | --- | --- | --- | --- |
 | `brainstorm-ideation` | The idea is still fuzzy and you need constraints, trade-offs, and risks surfaced before spec work. | Requirements are already clear or the task is a narrow bug fix. | `planning-orchestration` or `sdd-workflow` |
 | `planning-orchestration` | You need a durable plan, sequencing, validation, and execution handoff. | The change is already fully scoped and tiny. | `delivery-orchestration` |
-| `delivery-orchestration` | You have accepted scope and want the best execution path chosen for you. | The request is still exploratory, review-shaped, or release-shaped. | direct implementation, `parallel-implementation-loop`, `swarm-orchestration`, or `systematic-debugging` |
+| `delivery-orchestration` | You have accepted scope and want the best execution path chosen for you. | The request is still exploratory, review-shaped, or release-shaped. | direct implementation (with a durable direct-execution report), `parallel-implementation-loop`, `swarm-orchestration`, or `systematic-debugging` |
 | `parallel-implementation-loop` | There are multiple independent ready tasks and you want disciplined parallel tracks. | Boundaries are unclear or tasks interact heavily. | `diff-review-orchestration` |
 | `swarm-orchestration` | The work is large or uncertain enough that decomposition must happen at runtime. | The task list is already clean and fixed. | `diff-review-orchestration` |
 | `diff-review-orchestration` | You want a first-class diff review on a branch, PR, or commit range. | You are still implementing or you only need to resolve existing comments. | `pr-review-resolution-loop` or `final-pr-readiness-gate` |
@@ -147,7 +152,7 @@ Notes:
 
 | If the work looks like... | Use |
 | --- | --- |
-| one tight task, one file or one small module | `delivery-orchestration` -> direct implementation |
+| one tight task, one file or one small module | `delivery-orchestration` -> direct implementation + direct-execution report |
 | several independent ready tasks | `delivery-orchestration` -> `parallel-implementation-loop` |
 | a large change with unclear boundaries | `delivery-orchestration` -> `swarm-orchestration` |
 | a failing behavior, regression, or reproducibility problem | `delivery-orchestration` -> `systematic-debugging` |

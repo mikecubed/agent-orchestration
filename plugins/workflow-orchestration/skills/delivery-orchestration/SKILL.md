@@ -42,7 +42,8 @@ Before you route, identify:
 - the number of ready tasks and whether they are independent or coupled;
 - the current codebase factual brief or context facts (from a prior scout or `/workflow-orchestration:map-codebase` run), if available;
 - whether `clean-code-codex:conductor` is loaded in the current session;
-- the developer's concurrency and budget preferences, if stated.
+- the developer's concurrency and budget preferences, if stated;
+- whether the repository declares shared workflow defaults (see `docs/workflow-defaults-contract.md`) — if present, consume `artifact-sinks.track-reports` as the default direct-report sink and `review.mode` as the baseline post-delivery review-mode suggestion. If either key is absent, fall back to the local behavior documented below.
 
 If the request lacks a clear scope, task list, or acceptance criteria, **deflect** — do not guess. See § Deflection Rules below.
 
@@ -63,7 +64,7 @@ The coordinator must resolve every accepted request to exactly one of these outc
 
 | Outcome | Downstream skill | When to choose |
 |---------|-----------------|----------------|
-| **direct** | Runtime-native scoped implementer agent | Single task, single file or tight module, no parallelism needed, clear scope and tests |
+| **direct** | Runtime-native scoped implementer agent | One accepted task or bounded change slice, one file or tight module, clear acceptance criteria, and defined validation scope |
 | **parallel** | `/workflow-orchestration:parallel-implementation-loop` | ≥ 2 independent ready tasks touching different files or modules |
 | **swarm** | `/workflow-orchestration:swarm-orchestration` | Decomposition is non-trivial, emergent coupling expected, or multiple specializations needed concurrently |
 | **debug** | `/workflow-orchestration:systematic-debugging` | The request is a bug report, failing test, or regression investigation |
@@ -79,6 +80,45 @@ For every routing decision, the coordinator must state:
 4. any **inputs forwarded** to the downstream skill (task IDs, file lists, validation commands, factual brief).
 
 Record the rationale in the delivery log or track report before delegating.
+
+### Direct execution contract
+
+The direct lane is first-class only when **all** of the following are true:
+
+1. exactly one accepted task, change slice, or bounded bug-fix implementation is in scope;
+2. the changed surface is one file or one tight module boundary that does not need runtime decomposition;
+3. acceptance criteria or definition of done are explicit enough for a single implementer to finish without inventing missing requirements;
+4. validation commands or quality gates are known, even if they may later end in `partial` or `not-run`;
+5. the work is not primarily debugging-shaped and does not already require multiple parallel tracks.
+
+When the direct lane is selected, prepare one direct-execution packet for the
+runtime-native scoped implementer agent. The packet must include:
+
+- task or change summary;
+- bounded file or module surface;
+- acceptance criteria and known constraints;
+- validation commands and quality gates;
+- any reusable factual brief or context facts already known;
+- the shared defaults consumed for this route — `artifact-sinks.track-reports`
+  for the direct-execution report sink and `review.mode` for the default
+  review-mode suggestion — or an explicit note that the route fell back to
+  workflow-local behavior because those keys were absent.
+
+The direct implementer must return a durable direct-execution outcome artifact
+using the template in `docs/workflow-artifact-templates.md`. At minimum, that
+artifact records:
+
+- request summary and route rationale;
+- changed files or the explicit no-change reason;
+- validation commands;
+- `Validation outcome: pass | fail | partial | not-run`;
+- unresolved issues and rescue history;
+- review handoff payload or skipped-review reason;
+- next action.
+
+If the work expands beyond the direct lane after delegation, do not silently
+continue. Apply the rescue and reroute rules in
+§ Direct-Route Rescue and Reroute Contract.
 
 ### Deflection rules
 
@@ -105,7 +145,7 @@ Use this decision matrix to resolve the route outcome. Evaluate conditions top-t
 | 5 | Request asks about versioning or release | **deflect → release** | "Tag a release" → `/workflow-orchestration:release-orchestration` |
 | 6 | Decomposition is non-trivial: scope is large, boundaries unclear, or multiple specializations needed | **swarm** | "Audit and harden the auth subsystem across 3 domains" → `/workflow-orchestration:swarm-orchestration` |
 | 7 | ≥ 2 independent ready tasks touching different files/modules | **parallel** | "Implement T003 (API routes) and T004 (UI components) in parallel" → `/workflow-orchestration:parallel-implementation-loop` |
-| 8 | Single well-scoped task, one file or tight module | **direct** | "Add input validation to src/api/users.ts with tests" → runtime-native scoped implementer agent |
+| 8 | One well-scoped task or bounded slice, one file or tight module, explicit acceptance criteria, defined validation scope | **direct** | "Add input validation to src/api/users.ts with tests" → runtime-native scoped implementer agent |
 
 ### Decision examples
 
@@ -116,7 +156,7 @@ Input: "Deliver T012: add the retry helper to src/utils/retry.ts with unit tests
 Classification: task reference (single task, single file)
 Route: direct
 Rationale: One task, one file, clear scope — no orchestration overhead needed.
-Forwarded: task ID T012, file src/utils/retry.ts, validation: npm test -- test/utils/retry.test.ts
+Forwarded: task ID T012, file src/utils/retry.ts, validation: npm test -- test/utils/retry.test.ts, direct report sink: docs/direct-execution-retry-helper.md, default review mode: report-only (from shared defaults or local heuristic)
 ```
 
 **Example 2 — Parallel implementation**
@@ -191,13 +231,67 @@ Walk the invocation matrix top-to-bottom. The first matching row determines the 
 Invoke the chosen downstream execution target with the forwarded inputs:
 
 - for **parallel**, **swarm**, and **debug**, delegate to the named downstream skill;
-- for **direct**, delegate to the runtime-native scoped implementer agent for the active environment (for example, the current coding agent running on the single-task slice).
+- for **direct**, delegate to the runtime-native scoped implementer agent for the active environment (for example, the current coding agent running on the single-task slice) with the explicit direct-execution packet and the requirement to return the direct-execution outcome report defined above.
 
 The coordinator's job ends at delegation — it does not monitor or manage the downstream execution. The downstream skill or scoped implementer agent owns its own progress tracking, rescue policy, and completion gates.
 
 ### 6. Record the routing decision
 
-Before and after delegation, ensure the routing rationale is captured in a durable artifact — the track report, delivery log, or `.agent/SESSION.md`. Chat-only memory is not sufficient. Use the durable artifact conventions from `docs/workflow-artifact-templates.md`.
+Before and after delegation, ensure the routing rationale is captured in a durable artifact — the direct-execution report, track report, delivery log, or `.agent/SESSION.md`. Chat-only memory is not sufficient. Use the durable artifact conventions from `docs/workflow-artifact-templates.md`.
+
+## Direct-Route Rescue and Reroute Contract
+
+If a chosen **direct** route stops fitting the work shape, rescue before
+abandonment. Record every rescue action in the durable direct-execution report.
+
+### Reroute triggers
+
+Reroute or stop when any of the following becomes true:
+
+- **Scope expansion** — the change surface grows beyond one tight module or splits into multiple independently executable slices.
+- **Debugging signal** — the work turns into fault isolation, reproduction, or regression analysis rather than bounded implementation.
+- **Missing decision** — one required requirement, acceptance criterion, or product decision is still undefined.
+- **Validation ambiguity** — the route cannot identify the validation surface needed to judge completion safely.
+
+### Rescue order
+
+Apply this sequence in order:
+
+1. **Narrow once** — trim the request back to one safe direct slice if a smaller
+   route is obvious and accepted by the available scope.
+2. **Reroute by shape**:
+   - to `/workflow-orchestration:parallel-implementation-loop` when the work
+     splits into multiple independent ready slices;
+   - to `/workflow-orchestration:swarm-orchestration` when decomposition or
+     coupling is non-trivial;
+   - to `/workflow-orchestration:systematic-debugging` when the work is really a
+     bug, regression, or fault-isolation task.
+3. **Return to planning** — if the route is blocked by a missing decision or
+   unsafe ambiguity, send the work to `/workflow-orchestration:planning-orchestration`
+   or ask one clarifying question when the gap is truly singular.
+4. **Stop explicitly** — if no safe reroute exists, stop with a durable artifact
+   that records the blocking reason, current validation state, and recommended
+   next action.
+
+### Direct-route rescue example
+
+```text
+Input: "Add validation to src/api/users.ts."
+Initial route: direct
+
+During execution:
+  - the implementer discovers that the API contract, DB schema, and frontend form
+    must all change together.
+
+Rescue result:
+  - trigger: scope expansion
+  - action: reroute → /workflow-orchestration:parallel-implementation-loop
+  - rationale: the work is no longer one bounded direct slice
+  - direct-execution report state: rerouted
+  - Validation outcome: not-run
+  - Next action: split the new slices into explicit tracks and continue through
+    the parallel implementation loop
+```
 
 ## Required Gates
 
@@ -236,14 +330,20 @@ After the downstream skill completes its work, the coordinator recommends — bu
 
 ### Default review handoff
 
-When the downstream skill signals completion (all tasks delivered, validation passing), the coordinator recommends routing the completed work into `/workflow-orchestration:diff-review-orchestration` as the default follow-up. This is the standard next step for any delivery that produced code changes.
+When the downstream execution concludes with a non-empty diff, the coordinator
+recommends routing the completed work into
+`/workflow-orchestration:diff-review-orchestration` as the default follow-up.
+This is the standard next step for any delivery that produced code changes. A
+`fail`, `partial`, or `not-run` validation outcome does not erase the handoff;
+it must be passed through explicitly so the next actor can decide whether to fix
+before or during review.
 
 The handoff recommendation must include:
 
 1. the **diff surface** — branch name, commit range, or PR reference covering the delivered work;
-2. the **validation outcome** — whether the downstream skill's own validation passed, failed, or was not run;
-3. the **track report or delivery log** reference — so the reviewer has traceability back to the routing decision and delivered scope;
-4. a **mode suggestion** — `interactive` for complex or high-risk changes, `report-only` for routine or well-tested deliveries.
+2. the **validation outcome** — the downstream skill's own validation result, using the normalized tokens `pass`, `fail`, `partial`, or `not-run`;
+3. the **direct-execution report, track report, or delivery log** reference — so the reviewer has traceability back to the routing decision and delivered scope;
+4. a **mode suggestion** — use the configured default review mode when shared workflow defaults declare `review.mode`; otherwise suggest `interactive` for complex or high-risk changes and `report-only` for routine or well-tested deliveries.
 
 If the delivery produced a non-empty diff — code, tests, configuration, or documentation — keep the default review handoff. Skip the review handoff only when the downstream skill produced no changes and note the reason.
 
@@ -414,7 +514,7 @@ Coordinator post-delivery recommendation:
   1. Review handoff → /workflow-orchestration:diff-review-orchestration
      Diff surface: feat/feature-abc against main
      Validation outcome: pass
-     Track report: docs/track-report-feature-abc.md
+     Direct-execution report / track report: docs/track-report-feature-abc.md
      Mode suggestion: interactive (multiple files across two modules)
 
   2. Knowledge capture handoff → /workflow-orchestration:knowledge-compound

@@ -12,6 +12,7 @@ For committed, durable workflow artifacts in this repository:
 
 Suggested names:
 
+- `docs/direct-execution-<topic>.md`
 - `docs/track-report-<topic>.md`
 - `docs/review-resolution-<topic>.md`
 - `docs/readiness-report-<topic>.md`
@@ -43,6 +44,38 @@ Revision rounds: <count of implementer-reviewer revision cycles completed, or 0>
 Summary: <short summary of what changed>
 Follow-ups: <remaining risks or next steps>
 ```
+
+## Direct execution outcome report
+
+Use for `delivery-orchestration` when the selected route is **direct**.
+
+```text
+Request: <task ID or change description>
+Route rationale: <why direct was selected>
+Scope: <single task / one file / tight module>
+Files: <path>, <path>
+Forwarded context:
+- <acceptance criteria / factual brief / defaults consumed>, or none
+Validation:
+- <command>, or none
+Validation outcome: pass | fail | partial | not-run
+Current state: delegated | implementing | complete | rerouted | stopped | no-change
+Diff surface: <branch / commit range / PR ref, or none — reason>
+Artifact sink: <docs/direct-execution-<topic>.md or another durable sink>
+Review handoff:
+- <diff surface> | <validation outcome> | <artifact reference> | <mode suggestion>, or skipped — <reason>
+Unresolved issues:
+- <open issue, or none>
+Rescue history:
+- <trigger> | <action> | <rationale> | <outcome> | <attempt number>, or none
+Next action: <what should happen next>
+Summary: <short summary of what changed or why the route was rerouted/stopped>
+```
+
+When shared workflow defaults declare `artifact-sinks.track-reports`, use that
+sink as the default location for this report. When shared defaults declare
+`review.mode`, use it as the baseline review-mode suggestion unless the current
+invocation already provided an explicit override.
 
 ## Review-resolution summary
 

@@ -1,6 +1,6 @@
 node_modules/
 .DS_Store
 coverage/
-.sdd/
+# .sdd/
 .agent/SESSION.md
 .agent/HANDOFF.json

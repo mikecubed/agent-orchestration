@@ -6,6 +6,37 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-04-10
+
+### Added (workflow-orchestration 1.7.0)
+
+- **Direct execution contract**: `delivery-orchestration` now documents the
+  direct lane as a first-class contract with explicit accepted inputs,
+  forwarded context, validation expectations, durable-output requirements, and
+  stop conditions instead of a thin runtime placeholder.
+- **Direct execution outcome report**: `docs/workflow-artifact-templates.md`
+  now defines a dedicated direct-execution artifact template, including the
+  normalized `Validation outcome: pass | fail | partial | not-run` tokens and
+  the review-handoff payload expected by downstream review.
+
+### Changed (workflow-orchestration 1.7.0)
+
+- **Normalized post-delivery review handoff**: `delivery-orchestration` and
+  `diff-review-orchestration` now align on one direct-path handoff shape —
+  diff surface, validation outcome, delivery-context artifact reference, and
+  mode suggestion — so direct delivery is as inspectable as the parallel and
+  swarm routes.
+- **Direct-path rescue and reroute policy**: `delivery-orchestration` now
+  defines explicit rescue behavior for misclassified direct work, including
+  when to narrow scope, reroute to parallel/swarm/debugging, or return to
+  planning.
+- **Product docs and structural coverage**: the workflow README, usage guide,
+  and plugin test suite now treat the direct lane as a first-class documented
+  product surface rather than an implicit implementation detail.
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata
+  bumped from `1.6.0` to `1.7.0` across the root package, lockfile, workflow
+  package/manifests, and marketplace metadata.
+
 ## [1.6.0] - 2026-04-09
 
 ### Added (workflow-orchestration 1.6.0)
