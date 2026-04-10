@@ -117,12 +117,12 @@ If you change skill structure or manifest metadata, run both `npm test` and `npm
 
 ## Durable workflow artifacts
 
-If you need a committed artifact for implementation, review-resolution, or readiness work, use the canonical templates in:
+If you need a durable on-disk artifact for implementation, review-resolution, or readiness work, use the canonical templates in:
 
 - `plugins/workflow-orchestration/docs/workflow-artifact-templates.md`
 
-Keep committed workflow artifacts for `workflow-orchestration` under `plugins/workflow-orchestration/docs/` and use descriptive names such as:
+Keep generated workflow artifacts out of `docs/` and store them under the repo-root dot-directory `.workflow-orchestration/artifacts/` instead. Always create them when the workflow calls for a durable report or summary, but do not stage or commit them unless the developer explicitly asks. Use descriptive names such as:
 
-- `plugins/workflow-orchestration/docs/track-report-<topic>.md`
-- `plugins/workflow-orchestration/docs/review-resolution-<topic>.md`
-- `plugins/workflow-orchestration/docs/readiness-report-<topic>.md`
+- `.workflow-orchestration/artifacts/track-report-<topic>.md`
+- `.workflow-orchestration/artifacts/review-resolution-<topic>.md`
+- `.workflow-orchestration/artifacts/readiness-report-<topic>.md`

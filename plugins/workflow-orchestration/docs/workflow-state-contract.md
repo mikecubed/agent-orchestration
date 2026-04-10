@@ -42,8 +42,8 @@ The state file is machine-readable JSON:
     "target": "main"
   },
   "artifacts": {
-    "track-report": "pull/123#discussion_r456",
-    "batch-summary": "docs/batch-summary-workflow-defaults-state-foundation-1-6.md"
+    "track-report": ".workflow-orchestration/artifacts/track-report-workflow-defaults-1-6-contracts.md",
+    "batch-summary": ".workflow-orchestration/artifacts/batch-summary-workflow-defaults-state-foundation-1-6.md"
   },
   "owner": {
     "kind": "workflow",
@@ -79,6 +79,9 @@ Readers use one canonical path: `.workflow-orchestration/state.json`.
   durable artifacts.
 - Readers may use the referenced durable artifacts as supporting evidence, but
   the state file alone is not a substitute for review, readiness, or validation.
+- When a referenced artifact is a local generated report or summary, readers
+  should inspect `.workflow-orchestration/artifacts/` directly rather than rely
+  on broad repo search heuristics.
 
 ## Continuation intake and trust checks
 
@@ -136,8 +139,8 @@ state does not grant authority to skip the workflow's own gates.
 ## Artifact reference rules
 
 `artifacts` stores durable pointers, not chat summaries. References should point
-to committed files, PRs, issue comments, or other repository-appropriate durable
-sinks.
+to root dot-directory artifacts, PRs, issue comments, or other
+repository-appropriate durable sinks.
 
 At minimum, later workflows must be able to identify:
 

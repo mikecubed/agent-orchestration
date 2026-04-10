@@ -158,7 +158,7 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /\*\*No planning\*\*/);
     assert.match(text, /\*\*No release\*\*/);
     assert.match(templates, /## Direct execution outcome report/);
-    assert.match(templates, /docs\/direct-execution-<topic>\.md/);
+    assert.match(templates, /\.workflow-orchestration\/artifacts\/direct-execution-<topic>\.md/);
     assert.match(readme, /Review any\s+non-empty delivered diff/i);
     assert.match(readme, /direct-execution report/i);
     assert.match(guide, /direct-execution report/i);
@@ -191,9 +191,9 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /workspace mismatch/i);
     assert.match(text, /lifecycle-owner mismatch/i);
     assert.match(text, /invalidated by later tree changes/i);
-    assert.match(text, /docs\/conductor-summary-<topic>\.md/);
+    assert.match(text, /\.workflow-orchestration\/artifacts\/conductor-summary-<topic>\.md/);
     assert.match(templates, /## Conductor lifecycle summary/);
-    assert.match(templates, /docs\/conductor-summary-<topic>\.md/);
+    assert.match(templates, /\.workflow-orchestration\/artifacts\/conductor-summary-<topic>\.md/);
     assert.match(readme, /\/workflow-orchestration:idea-to-done-orchestration/);
     assert.match(readme, /resume after review comments/i);
     assert.match(readme, /resume after failed readiness/i);
@@ -215,11 +215,11 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /exact tree that will be published/i);
     assert.match(text, /\/workflow-orchestration:pr-review-resolution-loop/);
     assert.match(text, /\/workflow-orchestration:release-orchestration/);
-    assert.match(text, /docs\/publish-summary-<topic>\.md/);
+    assert.match(text, /\.workflow-orchestration\/artifacts\/publish-summary-<topic>\.md/);
     assert.match(text, /Publish summary/);
     assert.doesNotMatch(text, /developer override/i);
     assert.match(templates, /## Publish summary/);
-    assert.match(templates, /docs\/publish-summary-<topic>\.md/);
+    assert.match(templates, /\.workflow-orchestration\/artifacts\/publish-summary-<topic>\.md/);
   });
 
   it('keeps diff-review-orchestration headless and autofix explicitly bounded', () => {
@@ -282,12 +282,12 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /refresh-validating/);
     assert.match(text, /refresh-blocked/);
     assert.match(text, /refresh-complete/);
-    assert.match(text, /docs\/refresh-summary-<topic>\.md/);
+    assert.match(text, /\.workflow-orchestration\/artifacts\/refresh-summary-<topic>\.md/);
     assert.match(text, /docs\/workflow-artifact-templates\.md/);
     assert.match(text, /docs\/workflow-state-contract\.md/);
     assert.match(text, /docs\/workflow-defaults-contract\.md/);
     assert.match(templates, /## Refresh summary/);
-    assert.match(templates, /docs\/refresh-summary-<topic>\.md/);
+    assert.match(templates, /\.workflow-orchestration\/artifacts\/refresh-summary-<topic>\.md/);
     assert.match(state, /knowledge-refresh/);
     assert.match(readme, /\/workflow-orchestration:knowledge-refresh/);
     assert.match(readme, /knowledge-refresh/);

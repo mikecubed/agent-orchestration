@@ -290,8 +290,8 @@ emit one durable conductor summary using the `Conductor lifecycle summary`
 template in `docs/workflow-artifact-templates.md`.
 
 Because the shared defaults contract does not yet define a dedicated conductor
-sink, use a repository-appropriate durable sink. For committed artifacts in this
-repository, prefer `docs/conductor-summary-<topic>.md`. If another durable sink
+sink, use a repository-appropriate durable sink. For local durable artifacts in
+this repository, prefer `.workflow-orchestration/artifacts/conductor-summary-<topic>.md`. If another durable sink
 is more appropriate, preserve the same field structure.
 
 The summary should point at the final `.workflow-orchestration/state.json`
@@ -379,7 +379,7 @@ Coordinator:
     - publish-waiting-human
 
   Durable conductor summary:
-    docs/conductor-summary-pagination.md
+    .workflow-orchestration/artifacts/conductor-summary-pagination.md
 
   Next action:
     Developer may now invoke /workflow-orchestration:pr-publish-orchestration

@@ -39,9 +39,9 @@ The defaults file is machine-readable JSON:
   "schema-version": "1.0",
   "artifact-sinks": {
     "planning": "docs/",
-    "track-reports": "docs/",
-    "readiness-reports": "docs/",
-    "publish-summaries": "docs/",
+    "track-reports": ".workflow-orchestration/artifacts/",
+    "readiness-reports": ".workflow-orchestration/artifacts/",
+    "publish-summaries": ".workflow-orchestration/artifacts/",
     "knowledge": "docs/knowledge/"
   },
   "review": {
@@ -83,6 +83,11 @@ Each value is a root-relative path string. Directory values are normalized by
 the owning workflow using that workflow's existing artifact template and file
 naming convention. The contract does **not** require one global directory
 taxonomy; it only gives the repository a shared default starting point.
+
+When a repository wants local workflow artifacts to stay discoverable without
+being committed, prefer an explicit canonical path such as
+`.workflow-orchestration/artifacts/`. Workflows can inspect that directory
+directly even when the artifacts are not staged.
 
 In this phase, `track-reports` covers both traditional implementation track
 reports and `delivery-orchestration` direct-execution outcome reports when the
@@ -169,8 +174,8 @@ The defaults file records shared sink intent, not one fixed repository layout.
 
 Normalization rules:
 
-1. a directory path such as `docs/` means "write the workflow's normal artifact
-   file into this directory";
+1. a directory path such as `.workflow-orchestration/artifacts/` means "write the workflow's normal artifact
+    file into this directory";
 2. a file path means "use this exact durable sink" when the artifact shape is
    singular for that workflow;
 3. the owning workflow still chooses the final filename when the sink value is a

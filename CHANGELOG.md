@@ -160,7 +160,8 @@ The format is based on Keep a Changelog and the project follows Semantic Version
   `release-orchestration`.
 - **Publish summary template**: adds a shared `Publish summary` artifact
   contract to `docs/workflow-artifact-templates.md`, including the suggested
-  `docs/publish-summary-<topic>.md` sink for committed publication records.
+  `.workflow-orchestration/artifacts/publish-summary-<topic>.md` sink for local
+  publication records.
 - **Headless review mode**: `diff-review-orchestration` now documents a third
   `headless` mode for non-interactive review environments and records a
   self-contained review artifact with an explicit stopped state when downstream

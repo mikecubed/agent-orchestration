@@ -1,23 +1,33 @@
 # Workflow Artifact Templates
 
-Use this document when you want a durable artifact for one of the shared workflow loops in this repository. These templates are intentionally repo-level and generic: they define the field shape for workflow outputs that would otherwise live only in chat, even when the final durable sink is not a committed Markdown file.
+Use this document when you want a durable artifact for one of the shared workflow loops in this repository. These templates are intentionally repo-level and generic: they define the field shape for workflow outputs that would otherwise live only in chat, even when the final durable sink is a local on-disk artifact or another durable reference.
 
 ## Where to store artifacts
 
-For committed, durable workflow artifacts in this repository:
+For local durable workflow artifacts in this repository:
 
-- store them under `docs/`;
+- store them under `.workflow-orchestration/artifacts/`;
 - prefer descriptive names over ad hoc notes;
-- keep one file per coherent output.
+- keep one file per coherent output;
+- create them when a workflow calls for a durable local artifact;
+- do not stage or commit them unless explicitly requested.
 
 Suggested names:
 
-- `docs/direct-execution-<topic>.md`
-- `docs/track-report-<topic>.md`
-- `docs/review-resolution-<topic>.md`
-- `docs/readiness-report-<topic>.md`
-- `docs/publish-summary-<topic>.md`
-- `docs/refresh-summary-<topic>.md`
+- `.workflow-orchestration/artifacts/direct-execution-<topic>.md`
+- `.workflow-orchestration/artifacts/track-report-<topic>.md`
+- `.workflow-orchestration/artifacts/review-resolution-<topic>.md`
+- `.workflow-orchestration/artifacts/readiness-report-<topic>.md`
+- `.workflow-orchestration/artifacts/publish-summary-<topic>.md`
+- `.workflow-orchestration/artifacts/conductor-summary-<topic>.md`
+- `.workflow-orchestration/artifacts/refresh-summary-<topic>.md`
+- `.workflow-orchestration/artifacts/batch-summary-<topic>.md`
+
+This dot-directory is the canonical local discovery path for workflow-generated
+reports and summaries. When a workflow needs prior durable local artifacts, it
+should inspect `.workflow-orchestration/artifacts/` directly or follow an
+explicit reference from `.workflow-orchestration/state.json` rather than
+depending on a broad repo-wide search.
 
 If this repository uses another durable sink for a workflow output — for example, a PR description, issue comment, or task tracker entry — reuse the same field structure from the matching template below.
 
@@ -62,7 +72,7 @@ Validation:
 Validation outcome: pass | fail | partial | not-run
 Current state: delegated | implementing | complete | rerouted | stopped | no-change
 Diff surface: <branch / commit range / PR ref, or none — reason>
-Artifact sink: <docs/direct-execution-<topic>.md or another durable sink>
+Artifact sink: <.workflow-orchestration/artifacts/direct-execution-<topic>.md or another durable sink>
 Review handoff:
 - <diff surface> | <validation outcome> | <artifact reference> | <mode suggestion>, or skipped — <reason>
 Unresolved issues:
@@ -140,7 +150,7 @@ Skipped steps:
 - <step> — <reason>, or none
 Deflected concerns:
 - <request> -> <skill handoff>, or none
-Artifact sink: <docs/publish-summary-<topic>.md or another durable sink>
+Artifact sink: <.workflow-orchestration/artifacts/publish-summary-<topic>.md or another durable sink>
 Next action: <what should happen next>
 ```
 
@@ -166,7 +176,7 @@ Final artifacts:
 - readiness: <artifact or none>
 - publish: <artifact or none>
 - knowledge: <artifact or none>
-Artifact sink: <docs/conductor-summary-<topic>.md or another durable sink>
+Artifact sink: <.workflow-orchestration/artifacts/conductor-summary-<topic>.md or another durable sink>
 Next action: <what should happen next>
 Summary: <short summary of the lifecycle outcome>
 ```
@@ -267,7 +277,7 @@ Routed to architecture-review:
 - <candidate description> — <reason>, or none
 Unresolved questions:
 - <question or ambiguity>, or none
-Artifact sink: <docs/refresh-summary-<topic>.md or another durable sink>
+Artifact sink: <.workflow-orchestration/artifacts/refresh-summary-<topic>.md or another durable sink>
 Next action: <what should happen next>
 Summary: <short summary of the refresh outcome>
 ```

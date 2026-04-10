@@ -238,8 +238,8 @@ The summary must record:
 - a pointer to the final `.workflow-orchestration/state.json` snapshot.
 
 When shared workflow defaults declare an artifact sink, use that configured path
-as the default destination. For committed artifacts in this repository, prefer
-`docs/refresh-summary-<topic>.md`. If another durable sink is more appropriate,
+as the default destination. For local durable artifacts in this repository, prefer
+`.workflow-orchestration/artifacts/refresh-summary-<topic>.md`. If another durable sink is more appropriate,
 preserve the same field structure.
 
 **Update `.workflow-orchestration/state.json`** — write state at the
@@ -371,7 +371,7 @@ Developer: confirmed, retire #3
 
   → Retirement recorded. Continuing...
   → All maintenance actions applied.
-  → Refresh summary written to docs/refresh-summary-knowledge-cleanup.md
+  → Refresh summary written to .workflow-orchestration/artifacts/refresh-summary-knowledge-cleanup.md
 
   Durable state updated at:
     - refresh-assessing

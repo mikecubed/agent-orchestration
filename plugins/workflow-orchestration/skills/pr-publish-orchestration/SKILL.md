@@ -94,7 +94,7 @@ If there are staged or unstaged changes that the developer wants included:
 
 ### 5. Produce a durable publish summary
 
-Emit a publish summary artifact following the `Publish summary` template in `docs/workflow-artifact-templates.md`. When shared workflow defaults declare an artifact sink for publish summaries, use that configured path as the default destination. Otherwise, for committed, durable artifacts in this repository, prefer `docs/publish-summary-<topic>.md`. If another durable sink is more appropriate — for example a PR description or issue comment — preserve the same field structure.
+Emit a publish summary artifact following the `Publish summary` template in `docs/workflow-artifact-templates.md`. When shared workflow defaults declare an artifact sink for publish summaries, use that configured path as the default destination. Otherwise, for local durable artifacts in this repository, prefer `.workflow-orchestration/artifacts/publish-summary-<topic>.md`. If another durable sink is more appropriate — for example a PR description or issue comment — preserve the same field structure.
 
 Record:
 

@@ -29,6 +29,9 @@ The plugin now documents one shared foundation for higher-level automation:
   `docs/workflow-defaults-contract.md`.
 - `.workflow-orchestration/state.json` — durable workflow lifecycle state. See
   `docs/workflow-state-contract.md`.
+- `.workflow-orchestration/artifacts/` — canonical local sink for generated
+  workflow reports and summaries. Create local durable artifacts here by
+  default, and commit them only when explicitly requested.
 
 The first workflows that consume the shared defaults are:
 
@@ -45,7 +48,9 @@ The first workflows that consume the shared defaults are:
 When defaults are missing or only partially configured, those workflows keep
 their existing fallback behavior. Durable workflow state is intentionally
 separate from transient session continuity in `.agent/SESSION.md` and
-`.agent/HANDOFF.json`.
+`.agent/HANDOFF.json`. When a workflow needs a local durable artifact, it
+should check `.workflow-orchestration/artifacts/` directly or follow the
+artifact references recorded in `.workflow-orchestration/state.json`.
 
 ## The main composed loops
 

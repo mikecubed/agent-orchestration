@@ -94,6 +94,9 @@ artifacts:
 - `.workflow-orchestration/state.json` — durable workflow lifecycle state for
   later continuation or conductor-style workflows. The contract is documented in
   `docs/workflow-state-contract.md`.
+- `.workflow-orchestration/artifacts/` — canonical local sink for generated
+  workflow reports and summaries when a workflow writes an on-disk artifact.
+  Create them here by default, but do not commit them unless explicitly asked.
 
 The first adopting workflows are:
 
@@ -112,7 +115,9 @@ The first adopting workflows are:
   automation progression, and refresh-summary artifact sinks when present.
 
 If the defaults file is absent or partial, those workflows keep their documented
-fallback behavior. Durable workflow state remains separate from transient
+fallback behavior. Workflows that need local durable artifacts should inspect
+`.workflow-orchestration/artifacts/` directly or follow references from
+`.workflow-orchestration/state.json`. Durable workflow state remains separate from transient
 session continuity in `.agent/SESSION.md` and `.agent/HANDOFF.json`; those
 session files stay advisory and never replace `.workflow-orchestration/state.json`.
 See `docs/session-md-schema.md` for that boundary.
