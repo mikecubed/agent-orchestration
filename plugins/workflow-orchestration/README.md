@@ -174,8 +174,10 @@ specialist phases:
 
 5. **`/workflow-orchestration:final-pr-readiness-gate`** — Run the merge
    gate. Re-checks the branch holistically — CI status, test coverage,
-   documentation, and any remaining open threads — and produces a go / no-go
-   verdict.
+   documentation, any remaining open threads, and whether the current diff
+   still matches the PR's intended scope — and produces a go / no-go verdict
+   without re-prompting the developer unless the evidence is genuinely
+   ambiguous.
 
 6. **`/workflow-orchestration:pr-publish-orchestration`** — Publish the
    ready branch. Commits, pushes, and creates or updates the pull request.
@@ -214,8 +216,9 @@ review to publication-ready. Use the skills in this order:
 
 3. **`/workflow-orchestration:final-pr-readiness-gate`** — The merge gate.
    It re-checks the branch holistically — CI status, test
-   coverage, documentation, and any remaining open threads — and produces a
-   go / no-go verdict.
+   coverage, documentation, any remaining open threads, and whether the diff
+   still matches the PR intent from the evidence on the PR itself — and
+   produces a go / no-go verdict.
 
 **Handoff to publication:** Once the readiness gate passes, invoke
 `/workflow-orchestration:pr-publish-orchestration` to commit, push, and

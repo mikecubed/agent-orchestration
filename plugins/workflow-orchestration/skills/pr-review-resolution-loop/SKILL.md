@@ -160,9 +160,27 @@ Before making changes:
 
 1. collect open review threads, comment chains, or equivalent discussion items, plus relevant general comments;
 2. read the current code and nearby tests;
-3. confirm the latest branch diff and validation status.
+3. confirm the latest branch diff and validation status;
+4. determine whether the current PR or branch still represents the intended
+   scope by inspecting the title, description, comments, recent commits, and
+   actual diff.
 
 Do not act on comment text alone if the code has moved.
+
+Default to self-service scope verification. Do **not** ask the developer to
+confirm that the PR still represents intended scope unless the evidence remains
+genuinely ambiguous after inspecting the review surface. Ask only when:
+
+- the PR title, description, comments, and diff point to conflicting goals;
+- the branch appears to contain unrelated extra work and the in-scope subset is
+  not defensible;
+- reviewers are clearly talking about different intended outcomes;
+- recent commits or force-pushes removed the original review basis and the new
+  scope cannot be inferred reliably.
+
+If only part of the surface is ambiguous, continue with the unambiguous subset
+and surface the ambiguous remainder explicitly instead of blocking the whole
+review batch.
 
 #### Bounded discovery brief
 

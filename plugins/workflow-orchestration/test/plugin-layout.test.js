@@ -269,6 +269,8 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /automated PR reviewers|agent-produced analysis/i);
     assert.match(text, /implement only the verified issue/i);
     assert.match(text, /recorded evidence verdict/i);
+    assert.match(text, /Default to self-service scope verification/i);
+    assert.match(text, /Do \*\*not\*\* ask the developer to\s+confirm that the PR still represents intended scope unless/i);
     assert.match(templates, /<valid \/ partially valid \/ false positive \/ noise \/ stale>/);
     assert.match(text, /commit and push by default when the branch changed/i);
     assert.match(text, /replying.*resolving\s*\/\s*closing|reply and a matching resolve/i);
@@ -278,6 +280,21 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(readme, /skeptically triages and verifies each comment/i);
     assert.match(readme, /by default commits and pushes the branch\s+update/i);
     assert.match(guide, /skeptical triage, verified fixes, replies, thread resolution/i);
+  });
+
+  it('keeps final-pr-readiness-gate evidence-first about scope continuity and only escalates on genuine ambiguity', () => {
+    const text = readText(ROOT, path.join('skills', 'final-pr-readiness-gate', 'SKILL.md'));
+    const readme = readText(ROOT, 'README.md');
+    const guide = readText(ROOT, path.join('docs', 'workflow-usage-guide.md'));
+
+    assert.match(text, /Default to self-service scope verification/i);
+    assert.match(text, /Do \*\*not\*\* ask the developer to\s+confirm that the PR still matches its intended scope unless/i);
+    assert.match(text, /PR\s+title,\s+description,\s+recent\s+commits,\s+and\s+actual\s+diff/i);
+    assert.match(text, /only part of the diff is ambiguous, judge the unambiguous portion/i);
+    assert.match(text, /Ask the developer only if those sources still leave genuine\s+ambiguity or conflict/i);
+    assert.doesNotMatch(text, /This item requires human confirmation/i);
+    assert.match(readme, /without re-prompting the developer unless the evidence is genuinely\s+ambiguous/i);
+    assert.match(guide, /evidence-based check that the current diff still matches the PR intent/i);
   });
 
   it('keeps diff-review-orchestration headless and autofix explicitly bounded', () => {

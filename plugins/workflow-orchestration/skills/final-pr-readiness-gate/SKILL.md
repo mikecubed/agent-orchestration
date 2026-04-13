@@ -107,13 +107,33 @@ If the diff is still moving significantly, stabilize it first.
 
 Before running the final gate:
 
-1. confirm the active branch and review target;
-2. verify the intended changes are already integrated;
+1. confirm the active branch and review target from the current PR metadata or
+   branch baseline;
+2. verify the intended changes are already integrated by comparing the PR
+   title, description, recent commits, and actual diff;
 3. identify the final review surface:
    - preferably the pull request diff against the target branch;
    - otherwise the stable branch diff against the agreed baseline.
 
 Evaluate the integrated result, not a partial local slice.
+
+Default to self-service scope verification. Do **not** ask the developer to
+confirm that the PR still matches its intended scope unless the evidence
+remains genuinely ambiguous after inspecting the current review surface. Ask
+only when:
+
+- the PR title, description, and diff suggest materially different intended
+  outcomes;
+- the branch contains unrelated extra work and no defensible in-scope subset is
+  obvious;
+- recent history rewrote the branch enough that the prior review basis is no
+  longer inferable;
+- conflicting reviewer expectations cannot be reconciled from the current PR
+  evidence.
+
+When only part of the diff is ambiguous, judge the unambiguous portion and
+record the ambiguous slice as a blocker or unresolved question instead of
+blocking automatically.
 
 #### Pre-slicer discovery
 
@@ -285,10 +305,14 @@ Before issuing a readiness verdict, confirm ALL of the following.
 
 **Diff integrity gate**
 - [ ] The diff matches the stated intent of the PR description — PASS / FAIL
-  (This item requires human confirmation. Pause and ask the developer before marking PASS.)
+  (Determine this from the PR title, description, recent commits, and actual
+  diff first. Ask the developer only if those sources still leave genuine
+  ambiguity or conflict.)
 
-If any item is FAIL or requires human confirmation: surface the item, ask what is needed,
-and do not issue a "ready to merge" verdict until all items are PASS.
+If any item is FAIL: surface the item and do not issue a "ready to merge"
+verdict until all required items are PASS. If genuine ambiguity remains after
+inspection, surface the conflicting evidence, ask the developer only about that
+ambiguity, and pause the verdict until it is resolved.
 
 ## Stop Conditions
 
