@@ -8,6 +8,10 @@ Create the file for your runtime (or both). The directories (`.copilot/` and
 the keys you want to override — any absent key falls back to the baked-in default
 for that role without prompting.
 
+These files are optional. If no project model config exists, the workflows use
+their baked-in defaults silently rather than prompting on first use. Create a
+config file only when you want persistent overrides for the project.
+
 Update these files whenever you want to switch to a newer model release.
 
 ---

@@ -297,6 +297,36 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(guide, /evidence-based check that the current diff still matches the PR intent/i);
   });
 
+  it('uses baked-in model defaults silently when no project config or session cache exists', () => {
+    const docs = readText(ROOT, path.join('docs', 'models-config-template.md'));
+    const skillsWithModelSelection = [
+      'planning-orchestration',
+      'brainstorm-ideation',
+      'parallel-implementation-loop',
+      'pr-review-resolution-loop',
+      'final-pr-readiness-gate',
+      'map-codebase',
+      'systematic-debugging',
+      'swarm-orchestration',
+      'e2e-test-generation',
+      'incident-rca',
+      'architecture-review',
+    ];
+
+    assert.match(docs, /baked-in defaults silently/i);
+    assert.match(docs, /Create a\s+config file only when you want persistent overrides/i);
+
+    for (const skill of skillsWithModelSelection) {
+      const text = readText(ROOT, path.join('skills', skill, 'SKILL.md'));
+
+      assert.match(text, /Baked-in defaults[\s\S]{0,180}silently without prompting/i,
+        `${skill} should use baked-in defaults silently`);
+      assert.doesNotMatch(text,
+        /ask the (?:user|developer) to confirm or override once|show the defaults below, ask|confirm once, cache for the session/i,
+        `${skill} should not prompt just to confirm defaults`);
+    }
+  });
+
   it('keeps diff-review-orchestration headless and autofix explicitly bounded', () => {
     const text = readText(ROOT, path.join('skills', 'diff-review-orchestration', 'SKILL.md'));
 

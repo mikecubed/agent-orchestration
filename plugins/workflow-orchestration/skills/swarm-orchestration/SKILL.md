@@ -76,8 +76,11 @@ Resolve the active model for each role using this priority chain:
 
    Read the `coordinator`, `scout`, `domain`, `synthesizer`, and `reviewer` keys directly. Absent keys fall back to baked-in defaults.
 
-2. **Session cache** — if models were confirmed earlier in this session, reuse them without prompting.
-3. **Baked-in defaults** — show defaults, confirm once, cache for the session.
+2. **Session cache** — if models were confirmed earlier in this session, reuse
+   them without asking again.
+3. **Baked-in defaults** — if neither config file nor session cache exists, use
+   the defaults below silently without prompting. Create project model config
+   only when the developer wants persistent overrides.
 
 #### Config file format
 

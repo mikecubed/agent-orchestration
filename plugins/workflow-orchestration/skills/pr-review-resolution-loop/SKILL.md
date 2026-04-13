@@ -69,7 +69,7 @@ Resolve the active model for each role using this priority chain:
    These are plain YAML files (no markdown, no fenced blocks). Read the `implementer`, `reviewer`, and `scout` keys directly. If a key is absent, fall back to the baked-in default for that role — do not re-prompt for a key that is missing.
 
 2. **Session cache** — if models were already confirmed earlier in this session, reuse them without asking again.
-3. **Baked-in defaults** — if neither config file nor session cache exists, show the defaults below, ask the user to confirm or override them once, then cache the answer for the rest of the session.
+3. **Baked-in defaults** — if neither config file nor session cache exists, use the defaults below silently without prompting. Create project model config only when the developer wants persistent overrides.
 
 #### Config file format
 
