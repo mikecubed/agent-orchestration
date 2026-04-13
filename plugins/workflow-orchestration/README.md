@@ -163,8 +163,10 @@ specialist phases:
 
 3. **`/workflow-orchestration:parallel-implementation-loop`** — Execute
    independent ready tasks on isolated track branches and external worktrees,
-   keep the batch moving until integrated completion, and carry the resulting
-   feature branch through readiness and PR publication by default.
+   keep TDD and concise design-quality expectations explicit, keep the batch
+   moving until integrated completion, and carry the resulting feature branch
+   through readiness and PR publication by default. When available, an advisory
+   `clean-code-codex:conductor` pass can be used before publication.
 
 4. **`/workflow-orchestration:diff-review-orchestration`** — Review any
    non-empty delivered diff. This is the default post-delivery handoff;

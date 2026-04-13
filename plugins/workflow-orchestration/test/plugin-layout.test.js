@@ -265,6 +265,11 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /own git worktree outside the project\s+directory/i);
     assert.match(text, /Do not run parallel implementers in\s+the main project working tree/i);
     assert.match(text, /Continue until the batch is actually complete/i);
+    assert.match(text, /TDD stays mandatory on every code-bearing track/i);
+    assert.match(text, /DRY/i);
+    assert.match(text, /SOLID/i);
+    assert.match(text, /low[- ]complexity control flow|low cyclomatic complexity/i);
+    assert.match(text, /clean-code-codex:conductor/);
     assert.match(text, /committed and pushed/i);
     assert.match(text, /PR has been created or updated/i);
     assert.match(text, /\/workflow-orchestration:pr-publish-orchestration/);
@@ -274,7 +279,10 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(templates, /Worktree path: <external path outside project root>/);
     assert.match(templates, /Commit status:/);
     assert.match(readme, /isolated track branches and external worktrees/i);
+    assert.match(readme, /TDD and concise design-quality expectations/i);
+    assert.match(readme, /clean-code-codex:conductor/);
     assert.match(guide, /isolated external worktrees/i);
+    assert.match(guide, /TDD and concise design-quality expectations/i);
   });
 
   it('keeps pr-review-resolution-loop skeptical about review comments and records verdicts separately from actions', () => {

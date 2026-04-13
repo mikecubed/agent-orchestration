@@ -33,6 +33,7 @@ Before you start, identify:
 - the integration feature branch and final review target;
 - the validation commands for each track;
 - the repository's testing and quality gates;
+- whether `clean-code-codex:conductor` is loaded in the current session for advisory quality checks;
 - the worktree path for each parallel track (required when launching any parallel implementer track);
 - any local rules for opening draft pull requests or track branches;
 - the maximum revision rounds per track before escalation (default: 2).
@@ -48,7 +49,7 @@ Use separate roles for:
 
 Keep implementation and review separate whenever possible.
 
-In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer a scoped prompt with exact task, file, and TDD constraints. Pass the reviewer only the diff and the review criteria. Keep implementation and review judgment separate. The coordinator may share a factual brief that includes task boundaries, files, validation commands, and known dependencies. Do not share proposed conclusions, review verdicts, or implementation rationale across roles.
+In Claude Code, spawn each role as a separate agent using the Agent tool. Pass the implementer a scoped prompt with exact task, file, TDD constraints, and concise quality expectations such as reuse before copy, single-purpose abstractions, and low-complexity control flow. Pass the reviewer only the diff and the review criteria. Keep implementation and review judgment separate. The coordinator may share a factual brief that includes task boundaries, files, validation commands, and known dependencies. Do not share proposed conclusions, review verdicts, or implementation rationale across roles.
 
 ### Escalation: Fleet / Agent Team Mode
 
@@ -129,7 +130,19 @@ Each implementation track must:
 
 Do not allow implementation-first drift just because work is parallel.
 
-### 3. Keep concurrency within human review capacity
+### 3. Keep code quality explicit, not implied
+
+Each code-bearing track should bias toward:
+
+1. reuse before duplication (**DRY**);
+2. small, single-purpose units with clear responsibilities (**SOLID** where it fits);
+3. low-complexity control flow and explicit boundaries.
+
+If `clean-code-codex:conductor` is available in the current session, use it as
+an advisory quality pass on reviewable track diffs or on the integrated feature
+branch before publication.
+
+### 4. Keep concurrency within human review capacity
 
 Default to 2-3 concurrent tracks unless the repository already has strong task isolation,
 independent validation paths, and a proven sandbox strategy such as dedicated worktrees.
@@ -140,7 +153,7 @@ More concurrency is only worth it when:
 2. the validation surface for each track is small;
 3. the final integrator can still review and merge each track deliberately.
 
-### 4. Temporary work surfaces are disposable, not permanent state
+### 5. Temporary work surfaces are disposable, not permanent state
 
 If the workflow uses worktrees, branches, or other sandboxes (in Claude Code, use the Agent tool with `isolation: "worktree"` — it auto-cleans if no changes are made):
 
@@ -162,7 +175,7 @@ directory**, such as `../{repo}-wt-{track}`. Do not run parallel implementers in
 the main project working tree or inside nested directories beneath the project
 root; that increases the risk of index and branch-state corruption.
 
-### 5. Continue until the batch is actually complete
+### 6. Continue until the batch is actually complete
 
 Do not stop at "tracks launched", "tests passed", or "ready for review". The
 coordinator owns the batch until one of these outcomes is true:
@@ -273,6 +286,7 @@ For each track:
     - exact files or modules;
     - worktree path to operate in;
     - TDD expectations;
+    - concise quality expectations (DRY, SOLID where it fits, low cyclomatic complexity);
     - reuse constraints;
     - validation commands;
     - instruction to stay within scope;
@@ -323,6 +337,9 @@ After a track finishes:
    - duplication that materially matters.
 
 Do not spend review budget on style-only nits.
+
+If `clean-code-codex:conductor` is available, run it as an advisory code-quality
+pass on the track diff or the integrated feature branch before publication.
 
 Update the track report after review so it records the current state, validation outcome, unresolved issues, and next action before moving to revision or integration.
 
