@@ -145,7 +145,7 @@ See `docs/session-md-schema.md` for that boundary.
 
 ## Recommended Specialist Delivery Loop
 
-The underlying end-to-end loop for bounded delivery work still follows six
+The underlying end-to-end loop for bounded delivery work still follows seven
 specialist phases:
 
 1. **`/workflow-orchestration:planning-orchestration`** — Produce an accepted
@@ -161,25 +161,30 @@ specialist phases:
    review handoff containing diff surface, validation outcome, artifact
    reference, and mode suggestion.
 
-3. **`/workflow-orchestration:diff-review-orchestration`** — Review any
+3. **`/workflow-orchestration:parallel-implementation-loop`** — Execute
+   independent ready tasks on isolated track branches and external worktrees,
+   keep the batch moving until integrated completion, and carry the resulting
+   feature branch through readiness and PR publication by default.
+
+4. **`/workflow-orchestration:diff-review-orchestration`** — Review any
    non-empty delivered diff. This is the default post-delivery handoff;
    `delivery-orchestration` recommends it whenever the downstream skill
    completes work that produced a non-empty diff.
 
-4. **`/workflow-orchestration:pr-review-resolution-loop`** — Address the
+5. **`/workflow-orchestration:pr-review-resolution-loop`** — Address the
    findings from the diff review. Skeptically triages and verifies each comment,
    applies scoped fixes only for the verified concern, replies and resolves
    review threads one by one, and by default commits and pushes the branch
    update before handoff.
 
-5. **`/workflow-orchestration:final-pr-readiness-gate`** — Run the merge
+6. **`/workflow-orchestration:final-pr-readiness-gate`** — Run the merge
    gate. Re-checks the branch holistically — CI status, test coverage,
    documentation, any remaining open threads, and whether the current diff
    still matches the PR's intended scope — and produces a go / no-go verdict
    without re-prompting the developer unless the evidence is genuinely
    ambiguous.
 
-6. **`/workflow-orchestration:pr-publish-orchestration`** — Publish the
+7. **`/workflow-orchestration:pr-publish-orchestration`** — Publish the
    ready branch. Commits, pushes, and creates or updates the pull request.
    This skill bridges readiness to publication; it does not own release
    management. For tagging, changelogs, and release artifacts, hand off to

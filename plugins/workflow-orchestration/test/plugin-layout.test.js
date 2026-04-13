@@ -254,6 +254,29 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(templates, /\.workflow-orchestration\/artifacts\/publish-summary-<topic>\.md/);
   });
 
+  it('keeps parallel-implementation-loop worktree-isolated and completion-oriented through publication', () => {
+    const text = readText(ROOT, path.join('skills', 'parallel-implementation-loop', 'SKILL.md'));
+    const readme = readText(ROOT, 'README.md');
+    const guide = readText(ROOT, path.join('docs', 'workflow-usage-guide.md'));
+    const templates = readText(ROOT, path.join('docs', 'workflow-artifact-templates.md'));
+
+    assert.match(text, /integration \*\*feature branch\*\*/i);
+    assert.match(text, /\/workflow-orchestration:git-worktree-orchestration/);
+    assert.match(text, /own git worktree outside the project\s+directory/i);
+    assert.match(text, /Do not run parallel implementers in\s+the main project working tree/i);
+    assert.match(text, /Continue until the batch is actually complete/i);
+    assert.match(text, /committed and pushed/i);
+    assert.match(text, /PR has been created or updated/i);
+    assert.match(text, /\/workflow-orchestration:pr-publish-orchestration/);
+    assert.match(text, /local-only execution/i);
+    assert.match(text, /Track work ran in a dedicated external worktree path outside the project directory/i);
+    assert.match(templates, /Track branch:/);
+    assert.match(templates, /Worktree path: <external path outside project root>/);
+    assert.match(templates, /Commit status:/);
+    assert.match(readme, /isolated track branches and external worktrees/i);
+    assert.match(guide, /isolated external worktrees/i);
+  });
+
   it('keeps pr-review-resolution-loop skeptical about review comments and records verdicts separately from actions', () => {
     const text = readText(ROOT, path.join('skills', 'pr-review-resolution-loop', 'SKILL.md'));
     const readme = readText(ROOT, 'README.md');

@@ -44,9 +44,11 @@ Tasks: <task-id-1>, <task-id-2>
 Files: <path>, <path>
 Dependencies: <dependency status>
 Validation: <command>
-Work surface: <branch or worktree path>
+Track branch: <branch-name>
+Worktree path: <external path outside project root>
 State: pending | active | review | revision | merged | rescue | serialized | escalated | blocked | abandoned
 Validation outcome: pass | fail | partial | not-run
+Commit status: <committed <sha> | not yet committed | intentionally uncommitted — reason>
 Unresolved issues:
 - <open issue, or none>
 Rescue history:
