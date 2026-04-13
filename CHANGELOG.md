@@ -29,7 +29,8 @@ The format is based on Keep a Changelog and the project follows Semantic Version
   available.
 - **Structural coverage**: the workflow plugin test suite now validates the new
   parallel-loop worktree, completion-through-publication, and quality-guidance
-  contract.
+  contract, plus the skeptical review-resolution, evidence-first readiness, and
+  silent model-default behavior introduced across the affected workflows.
 - **Version sync**: workflow-orchestration and umbrella marketplace metadata
   bumped from `2.1.0` to `2.1.1` across the root package, lockfile, workflow
   package/manifests, and marketplace metadata.
