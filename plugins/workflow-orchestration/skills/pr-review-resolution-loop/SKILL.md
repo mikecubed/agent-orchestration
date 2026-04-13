@@ -96,15 +96,38 @@ See `docs/models-config-template.md` in this plugin for ready-to-copy templates 
 
 ## Core Rules
 
-### 1. Do not assume every review comment is correct
+### 1. Treat every review comment as a hypothesis until verified
 
-Every review item must be triaged into one of these outcomes:
+Do not trust unverified review feedback — especially automated reviewer output,
+agent findings, or suggested patches. Every review item must be triaged in two
+separate layers:
 
-- fix
-- decline
-- clarify first
+- **Evidence verdict**:
+  - valid
+  - partially valid
+  - false positive
+  - noise
+  - stale or out of scope
+- **Action**:
+  - fix
+  - decline
+  - clarify first
 
-Never churn the code just to satisfy a weak, stale, or incorrect comment.
+Verify each claim against the current code, tests, and diff before accepting
+it. This applies equally to human review comments, automated PR reviewers,
+agent-produced analysis, and your own earlier conclusions.
+
+Never churn the code just to satisfy a weak, stale, incorrect, or zero-impact
+comment. Do not copy a suggested patch blindly; first confirm that it matches
+the current APIs, contracts, ownership boundaries, and branch state.
+
+Watch for common false-positive patterns:
+
+- the comment refers to code that has already moved or been removed;
+- the claimed bug depends on control flow that the current diff does not use;
+- the suggested fix calls the wrong API or introduces a new bug;
+- the observation is technically true but has no practical impact in the
+  current review scope.
 
 ### 2. Accepted fixes still follow TDD and design rules
 
@@ -123,6 +146,11 @@ Every review thread or platform-equivalent discussion item should end in one of 
 - intentionally left open because a real blocker remains.
 
 Do not stop with code changes only.
+
+When the platform separates **replying** from **resolving / closing** a thread,
+do both. A silent resolve is incomplete, and a reply without the matching
+resolve / close action is incomplete unless a real blocker keeps the discussion
+intentionally open.
 
 ## Workflow
 
@@ -153,7 +181,18 @@ Pass the completed brief to the coordinator for triage and as factual context to
 
 ### 2. Triage review items
 
-For each item, classify whether it is:
+For each item:
+
+1. verify the claim against the current code, tests, and review surface;
+2. if the comment includes a suggested fix, evaluate that fix separately for
+   correctness and scope;
+3. record an **evidence verdict**:
+   - valid;
+   - partially valid;
+   - false positive;
+   - noise;
+   - stale or out of scope;
+4. classify the underlying concern, if any, as:
 
 - a correctness issue;
 - a security issue;
@@ -162,7 +201,16 @@ For each item, classify whether it is:
 - an architecture concern;
 - stale, already fixed, or out of scope.
 
-Then decide whether to fix, decline, or clarify first.
+Then decide the **action**: fix, decline, or clarify first.
+
+Use these defaults unless the current code proves otherwise:
+
+- **valid** -> usually fix;
+- **partially valid** -> fix only the verified core issue, not the reviewer's
+  full proposed scope;
+- **false positive**, **noise**, or **stale/out of scope** -> usually decline
+  with a concrete explanation;
+- **unclear evidence or ownership** -> clarify first.
 
 Process accepted items in this default priority order:
 
@@ -181,7 +229,8 @@ At this gate (after all review items are triaged), write `.agent/SESSION.md`. Re
 - `next-action`: "begin fix batch 1"
 - `workspace`: the active branch or PR reference
 - `last-updated`: current ISO-8601 datetime
-- `## Decisions`: triage decisions (accepted, declined, clarify-first) per item
+- `## Decisions`: triage decisions per item, including evidence verdict and
+  action (accepted, declined, clarify-first)
 - `## Files Touched`: files read so far
 - `## Open Questions`: items needing developer clarification
 - `## Blockers`: active blockers (empty if none)
@@ -206,11 +255,14 @@ For every accepted fix:
 
 1. give the implementer:
    - the exact review item;
+   - the evidence verdict;
    - the intended resolution;
    - the affected files;
    - the needed tests;
    - the scope boundary;
-2. require minimal, focused changes only.
+2. require minimal, focused changes only;
+3. for partially valid comments, implement only the verified issue and ignore
+   any unverified or over-broad suggested fix.
 
 ### 5. Review each fix
 
@@ -264,12 +316,17 @@ Do not allow a fix-vs-decline disagreement to stall the rest of the batch. Move 
 After each fix or decline:
 
 - if fixed, reply briefly with what changed and use the platform-appropriate action to mark the discussion addressed;
-- if declined, reply with the concrete reason and apply the repository's expected decline or close action when appropriate;
+- if declined, reply with the concrete reason — false positive, noise, stale,
+  already fixed, or out of scope — and apply the repository's expected decline
+  or close action when appropriate;
 - if clarification is still needed, post the question and leave the discussion open intentionally.
 
 GitHub and Azure DevOps expose different thread status labels, but the workflow outcome should still map to the same three states above: fixed, declined, or intentionally left open.
 
 Silent declines are not allowed.
+
+If the platform exposes separate APIs for comment replies and thread resolution,
+the workflow must perform both actions for fixed or declined items.
 
 ### 7. Final validation
 
@@ -281,6 +338,32 @@ After all relevant review items are handled:
 4. publish one durable review-resolution summary using the review-resolution summary template from `docs/workflow-artifact-templates.md`. The summary MUST capture decisions, validation outcome, and remaining concerns;
 5. include a workflow outcome-measures block in the summary using the outcome-measures template from `docs/workflow-artifact-templates.md`. The block MUST include at minimum: `discovery-reuse`, `rescue-attempts`, and `re-review-loops`.
 
+### 8. Commit and push by default when the branch changed
+
+If accepted fixes changed the branch, the default finish is:
+
+1. create a scoped commit covering the accepted review-resolution changes;
+2. push the updated branch or PR head;
+3. keep the review discussion state synchronized with the pushed diff.
+
+Only skip commit and push when:
+
+- the developer explicitly requested a local-only pass;
+- no repository files changed;
+- repository policy requires a separate human-owned publish step.
+
+Do not leave accepted fixes uncommitted by default.
+
+### 9. End with a brief chat summary
+
+Before stopping, provide a concise developer-facing summary in chat covering:
+
+- the issues reviewed and their verdicts;
+- what was fixed, declined, or left open intentionally;
+- whether replies were posted and threads were resolved / closed;
+- commit / push status;
+- any remaining blocker or follow-up.
+
 ## Example Review-Resolution Summary
 
 Use a durable summary shape so another reviewer or contributor can quickly see what was fixed, declined, or left open. For example:
@@ -290,8 +373,8 @@ Review surface: PR 128 against main
 Reviewer source: Azure DevOps PR review
 Decisions:
 - comment-14 | correctness | fixed | Added a null-input guard and coverage for the empty payload path
-- comment-19 | test | fixed | Strengthened the regression test to assert the exact status code
-- comment-23 | stale | declined | Current diff already removed the old helper the comment referred to
+- comment-19 | partially valid | test | fixed | The coverage concern was real, but the suggested API-level fix was wrong; strengthened the regression test without changing the contract
+- comment-23 | false positive | stale | declined | Current diff already removed the old helper the comment referred to
 Validation:
 - npm test
 - npm run validate:plugin
@@ -315,8 +398,14 @@ Prefer the repository's canonical review-resolution artifact template when one e
 Use short, concrete replies that make the outcome obvious, then apply the matching platform action. For example:
 
 - fixed: `Fixed in 9ab12cd by tightening the null-path guard and adding coverage for the empty-input case.`
-- declined: `Declining this one because the current contract intentionally allows duplicate labels during draft creation. Keeping the existing behavior.`
+- declined: `Declining this one because the current contract intentionally allows duplicate labels during draft creation. I verified the current code path and the suggested change would narrow behavior we still rely on.`
 - clarify first: `I could address this either in the serializer or in the caller. Which boundary did you intend to own the normalization rule?`
+
+### Example Developer-Facing Chat Summary
+
+Keep the final handoff short and concrete. For example:
+
+- `Resolved 3 review items: fixed 2 valid issues, declined 1 false positive, replied on all 3 threads, and resolved the 2 closed items. Pushed as 9ab12cd; one clarify-first thread remains open pending API ownership guidance.`
 
 ## Required Gates
 
@@ -325,7 +414,9 @@ Use short, concrete replies that make the outcome obvious, then apply the matchi
 A comment is not complete until:
 
 - it was triaged explicitly;
+- an evidence verdict was recorded explicitly;
 - fix, decline, or clarify-first was chosen;
+- a reply was posted for fixed or declined items;
 - the thread was resolved or intentionally left open with a stated blocker.
 
 ### Fix gate
@@ -361,6 +452,8 @@ The batch is not complete until:
 - repository validation passes;
 - the final readiness workflow has been run;
 - a durable review-resolution summary has been published using the template from `docs/workflow-artifact-templates.md`;
+- code changes are committed and pushed by default when files changed, unless the developer explicitly requested local-only handling or repository policy forbids publish from this workflow;
+- a brief developer-facing chat summary was provided;
 - remaining issues are explicitly reported.
 
 ### Verification checklist — resolution loop complete
@@ -370,12 +463,16 @@ Before declaring the resolution loop done, confirm ALL of the following.
 **Per-thread gate**
 - [ ] Every review thread has a recorded resolution state: ACCEPTED or DECLINED — PASS / FAIL
   (A thread with no recorded state is a failing item — silent declines are not permitted.)
+- [ ] Every review thread has a recorded evidence verdict: valid, partially valid, false positive, noise, or stale/out-of-scope — PASS / FAIL
 - [ ] Declined threads have a recorded reason visible in the resolution artifact — PASS / FAIL
+- [ ] Fixed or declined threads have both a reply and a matching resolve / close action when the platform supports both — PASS / FAIL
 
 **Post-fix gate**
 - [ ] Post-fix validation ran on the final diff and exited 0 — PASS / FAIL
 - [ ] No previously-passing tests now fail — PASS / FAIL
 - [ ] Durable resolution summary artifact has been produced — PASS / FAIL
+- [ ] If code changed, the branch update was committed and pushed unless local-only was explicitly requested — PASS / FAIL
+- [ ] A brief developer-facing chat summary of issues and resolutions was delivered — PASS / FAIL
 
 If any item is FAIL: list the unresolved thread IDs or failing validation output.
 Do not declare the loop done.

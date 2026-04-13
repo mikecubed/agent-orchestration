@@ -254,6 +254,32 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(templates, /\.workflow-orchestration\/artifacts\/publish-summary-<topic>\.md/);
   });
 
+  it('keeps pr-review-resolution-loop skeptical about review comments and records verdicts separately from actions', () => {
+    const text = readText(ROOT, path.join('skills', 'pr-review-resolution-loop', 'SKILL.md'));
+    const readme = readText(ROOT, 'README.md');
+    const guide = readText(ROOT, path.join('docs', 'workflow-usage-guide.md'));
+    const templates = readText(ROOT, path.join('docs', 'workflow-artifact-templates.md'));
+
+    assert.match(text, /hypothesis until verified/i);
+    assert.match(text, /\bevidence verdict\b/i);
+    assert.match(text, /\bpartially valid\b/i);
+    assert.match(text, /false positive/i);
+    assert.match(text, /\bnoise\b/i);
+    assert.match(text, /suggested patch blindly|suggested fix/i);
+    assert.match(text, /automated PR reviewers|agent-produced analysis/i);
+    assert.match(text, /implement only the verified issue/i);
+    assert.match(text, /recorded evidence verdict/i);
+    assert.match(templates, /<valid \/ partially valid \/ false positive \/ noise \/ stale>/);
+    assert.match(text, /commit and push by default when the branch changed/i);
+    assert.match(text, /replying.*resolving\s*\/\s*closing|reply and a matching resolve/i);
+    assert.match(text, /brief chat summary/i);
+    assert.match(templates, /Thread status:/);
+    assert.match(templates, /Publish status:/);
+    assert.match(readme, /skeptically triages and verifies each comment/i);
+    assert.match(readme, /by default commits and pushes the branch\s+update/i);
+    assert.match(guide, /skeptical triage, verified fixes, replies, thread resolution/i);
+  });
+
   it('keeps diff-review-orchestration headless and autofix explicitly bounded', () => {
     const text = readText(ROOT, path.join('skills', 'diff-review-orchestration', 'SKILL.md'));
 

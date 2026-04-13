@@ -98,7 +98,7 @@ Review surface: <branch or PR> against <target>
 Reviewer source: <GitHub review / Azure DevOps PR review / comments / local review>
 Current state: triage | fixing | validating | done
 Decisions:
-- <comment-id> | <correctness / security / test / contract / architecture / stale> | <fixed / declined / clarify first> | <short rationale>
+- <comment-id> | <valid / partially valid / false positive / noise / stale> | <correctness / security / test / contract / architecture / stale> | <fixed / declined / clarify first> | <short rationale>
 Validation:
 - <command>
 Result:
@@ -107,6 +107,8 @@ Remaining concerns:
 - <open blocker or intentional follow-up, or none>
 Unresolved questions:
 - <question requiring developer input, or none>
+Thread status: <all addressed and resolved / intentionally open blockers remain / mixed>
+Publish status: <committed and pushed / local-only by request / not applicable>
 Next action: <what should happen next for this review cycle>
 ```
 

@@ -198,7 +198,7 @@ Notes:
 | `parallel-implementation-loop` | There are multiple independent ready tasks and you want disciplined parallel tracks. | Boundaries are unclear or tasks interact heavily. | `diff-review-orchestration` |
 | `swarm-orchestration` | The work is large or uncertain enough that decomposition must happen at runtime. | The task list is already clean and fixed. | `diff-review-orchestration` |
 | `diff-review-orchestration` | You want a first-class diff review on a branch, PR, or commit range. | You are still implementing or you only need to resolve existing comments. | `pr-review-resolution-loop` or `final-pr-readiness-gate` |
-| `pr-review-resolution-loop` | There are review comments or findings that need triage, fixes, replies, and closure. | You need a first-pass review rather than comment resolution. | `final-pr-readiness-gate` |
+| `pr-review-resolution-loop` | There are review comments or findings that need skeptical triage, verified fixes, replies, thread resolution, and usually a pushed branch update. | You need a first-pass review rather than comment resolution. | `final-pr-readiness-gate` |
 | `final-pr-readiness-gate` | The branch is stable and you want an explicit ready / not-ready judgment. | The diff is still changing significantly. | `pr-publish-orchestration` |
 | `pr-publish-orchestration` | The exact tree is ready and you need commit / push / PR creation or update. | Readiness is missing, stale, or the request is really about releasing. | human review or `release-orchestration` after merge |
 | `release-orchestration` | Post-merge branch is ready for versioning, changelog, tagging, and optional release creation. | You only need to publish a PR. | release complete |

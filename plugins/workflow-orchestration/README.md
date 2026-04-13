@@ -167,8 +167,10 @@ specialist phases:
    completes work that produced a non-empty diff.
 
 4. **`/workflow-orchestration:pr-review-resolution-loop`** — Address the
-   findings from the diff review. Triages each comment, applies scoped fixes,
-   and closes review threads one by one until no unresolved items remain.
+   findings from the diff review. Skeptically triages and verifies each comment,
+   applies scoped fixes only for the verified concern, replies and resolves
+   review threads one by one, and by default commits and pushes the branch
+   update before handoff.
 
 5. **`/workflow-orchestration:final-pr-readiness-gate`** — Run the merge
    gate. Re-checks the branch holistically — CI status, test coverage,
@@ -205,9 +207,10 @@ review to publication-ready. Use the skills in this order:
    the actual changed surface itself.
 
 2. **`/workflow-orchestration:pr-review-resolution-loop`** — Address the
-   findings from the diff review. This skill triages each comment, applies
-   scoped fixes, and closes review threads one by one until no unresolved
-   items remain.
+   findings from the diff review. This skill skeptically triages and verifies
+   each comment, applies scoped fixes only for the verified concern, replies
+   and resolves review threads one by one, and by default commits and pushes
+   the branch update before handoff.
 
 3. **`/workflow-orchestration:final-pr-readiness-gate`** — The merge gate.
    It re-checks the branch holistically — CI status, test
