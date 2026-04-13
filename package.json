@@ -1,6 +1,6 @@
 {
   "name": "agent-orchestration",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Umbrella marketplace for workflow orchestration and spec-driven development plugins.",
   "type": "module",
   "license": "MIT",

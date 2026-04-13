@@ -1,7 +1,7 @@
 {
   "name": "workflow-orchestration",
   "description": "Idea-to-done conductor, planning, delivery orchestration, codebase mapping, architecture review, brainstorm ideation, implementation, systematic debugging, incident RCA, e2e test generation, review-resolution, PR-readiness, diff review, git worktree lifecycle, swarm orchestration, contract generation, PR publication, release orchestration, knowledge capture, and knowledge refresh skills.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "author": {
     "name": "Michael Henderson"
   },
