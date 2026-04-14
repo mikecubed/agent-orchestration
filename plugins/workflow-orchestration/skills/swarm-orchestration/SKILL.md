@@ -235,17 +235,18 @@ For each domain agent:
    - scope boundary — it must not touch files outside its domain;
    - instruction to report blockers immediately rather than expanding scope;
 2. track agent status in SWARM.md;
-3. monitor for progress using the same budget transition policy as parallel-implementation-loop (soft budget → rescue → hard budget → stopped).
+3. monitor for progress using the same stall policy as parallel-implementation-loop (soft budget → stall evidence → same-agent rescue/escalation → hard budget → stopped).
 
 ### 5. Coordinator rescue policy
 
 If a domain agent stalls before completing:
-1. request a brief status and blockers;
-2. narrow scope to the smallest deliverable that preserves partial progress;
-3. allow one bounded retry with the narrowed scope;
-4. if retry fails, mark the agent `stopped` in SWARM.md, record partial results and unresolved items, and flag the gap for the convergence check.
+1. request a brief status and blockers from the current domain agent;
+2. prefer same-agent continuation in the same domain and context first;
+3. narrow scope only when the current assignment can no longer finish safely as scoped;
+4. do **not** spawn a second rescue domain agent or duplicate the same scope by default;
+5. if continuation fails, mark the agent `stopped` in SWARM.md, record partial results and unresolved items, and flag the gap for the convergence check.
 
-Do not re-spawn a failed domain agent with the same scope. Narrow first, retry once, escalate if still blocked.
+Do not re-spawn a failed domain agent with the same or only slightly narrower scope by default. Continue in place first, and escalate if the current agent still cannot progress.
 
 ### 6. Run convergence checks
 
@@ -256,7 +257,7 @@ After all domain agents complete or stop:
    - interface conflicts (two agents made incompatible assumptions about a shared contract);
    - boundary violations (an agent touched files outside its domain);
    - TDD violations (code-bearing agents that did not write tests first);
-3. for each gap or conflict, spawn a targeted reconciliation agent with a narrowed scope;
+3. for each gap or conflict, try targeted reconciliation through the existing responsible agent or synthesizer context first; spawn a new reconciliation agent only when there is one sharply bounded unresolved interface gap and no current owner can safely continue;
 4. update SWARM.md convergence log;
 5. if full convergence is not reached within the maximum rounds, escalate to the developer.
 

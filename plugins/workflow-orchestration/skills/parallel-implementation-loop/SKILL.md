@@ -303,26 +303,32 @@ uncommitted inside a worktree by default.
 
 ### 5. Coordinator progress and rescue policy
 
-After launching tracks, the coordinator monitors each track through a bounded lifecycle of budget transitions. This policy prevents silent stalls and ensures partial work is never lost.
+After launching tracks, the coordinator monitors each track through a bounded lifecycle of progress checks. This policy prevents silent stalls, preserves partial work, and avoids wasteful duplicate rescue agents.
 
 **Budget transitions**
 
-1. **Soft budget** — the coordinator sets an expected completion window for each track based on task size. The window is advisory; the coordinator does not interrupt a track that is still making visible progress.
+1. **Soft budget** — the coordinator sets an expected completion window for each track based on task size. The window is advisory only; soft-budget expiry is **not** by itself a rescue trigger.
 2. **Progress visible** — a track is considered active when any of these indicators advance between checks:
    - files modified since last check;
    - tests added or updated;
    - validation running or recently completed;
    - partial results returned to the coordinator.
-   If at least one indicator has advanced, the track remains in soft-budget status.
-3. **Rescue** — if progress indicators stall before soft budget expires, or if soft budget expires with work still incomplete, the coordinator enters rescue:
-   - ask the track for a brief status and blockers;
-   - narrow scope to the smallest deliverable that preserves partial progress;
-   - allow one bounded retry with the narrowed scope;
-   - if the retry does not restore progress, escalate to the developer or stop the track.
-4. **Hard budget** — the coordinator defines a maximum total effort per track measured in delegation rounds, not wall time. When the hard budget is reached the track must stop regardless of remaining work.
-5. **Stopped** — a track enters the stopped state when it reaches hard budget, rescue fails, or the developer cancels it. Stopped tracks record partial results, files touched, tests written, and unresolved items in the batch summary before releasing their work surface.
+   If at least one indicator has advanced, keep the current track running in the same agent and worktree context.
+3. **Stall evidence** — treat a track as stalled only when one or more of these conditions hold:
+   - the track reports an explicit blocker or inability to proceed;
+   - no meaningful progress is visible across at least 2 coordinator checks;
+   - a tool failure, crash, or timeout leaves the current track unable to continue safely;
+   - scope expansion makes the original assignment no longer defensible.
+4. **Rescue** — when stall evidence exists, the coordinator enters rescue:
+   - ask the current track for a brief status, blockers, and the smallest next checkpoint;
+   - prefer same-agent continuation in the same worktree and scope first;
+   - narrow scope only when the current context proves the original scope cannot finish safely;
+   - do **not** spawn a second rescue agent or duplicate the track by default;
+   - if same-agent continuation does not restore progress, escalate to the developer or stop the track with partial results rather than launching an inferior duplicate attempt.
+5. **Hard budget** — the coordinator defines a maximum total effort per track measured in delegation rounds, not wall time. Reaching hard budget triggers escalation or stop; it does **not** automatically create a rescue agent.
+6. **Stopped** — a track enters the stopped state when it reaches hard budget, rescue fails, or the developer cancels it. Stopped tracks record partial results, files touched, tests written, and unresolved items in the batch summary before releasing their work surface.
 
-The coordinator re-evaluates budget status after every delegation round. Do not wait for a track to go fully silent before checking.
+The coordinator re-evaluates track status after every delegation round. Do not wait for a track to go fully silent before checking, and do **not** treat elapsed time alone as stall evidence.
 
 ### 6. Review each completed track
 

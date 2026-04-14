@@ -270,6 +270,10 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(text, /SOLID/i);
     assert.match(text, /low[- ]complexity control flow|low cyclomatic complexity/i);
     assert.match(text, /clean-code-codex:conductor/);
+    assert.match(text, /soft-budget expiry is \*\*not\*\* by itself a rescue trigger/i);
+    assert.match(text, /prefer same-agent continuation in the same worktree and scope first/i);
+    assert.match(text, /do \*\*not\*\* spawn a second rescue agent or duplicate the track by default/i);
+    assert.match(text, /do \*\*not\*\* treat elapsed time alone as stall evidence/i);
     assert.match(text, /committed and pushed/i);
     assert.match(text, /PR has been created or updated/i);
     assert.match(text, /\/workflow-orchestration:pr-publish-orchestration/);
@@ -281,8 +285,22 @@ describe('workflow-orchestration skills layout', () => {
     assert.match(readme, /isolated track branches and external worktrees/i);
     assert.match(readme, /TDD and concise design-quality expectations/i);
     assert.match(readme, /clean-code-codex:conductor/);
+    assert.match(readme, /same-agent continuation and\s+escalation over duplicate rescue tracks/i);
     assert.match(guide, /isolated external worktrees/i);
     assert.match(guide, /TDD and concise design-quality expectations/i);
+    assert.match(guide, /same-agent continuation preferred over duplicate rescue tracks/i);
+  });
+
+  it('keeps swarm-orchestration same-agent-first on stalls and bounded on reconciliation respawns', () => {
+    const text = readText(ROOT, path.join('skills', 'swarm-orchestration', 'SKILL.md'));
+    const guide = readText(ROOT, path.join('docs', 'workflow-usage-guide.md'));
+
+    assert.match(text, /soft budget → stall evidence → same-agent rescue\/escalation → hard budget → stopped/i);
+    assert.match(text, /prefer same-agent continuation in the same domain and context first/i);
+    assert.match(text, /do \*\*not\*\* spawn a second rescue domain agent or duplicate the same scope by default/i);
+    assert.match(text, /Do not re-spawn a failed domain agent with the same or only slightly narrower scope by default/i);
+    assert.match(text, /spawn a new reconciliation agent only when there is one sharply bounded unresolved interface gap/i);
+    assert.match(guide, /prefer(?:s)? in-place continuation or escalation over duplicate rescue agents/i);
   });
 
   it('keeps pr-review-resolution-loop skeptical about review comments and records verdicts separately from actions', () => {

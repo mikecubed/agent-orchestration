@@ -6,6 +6,23 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-04-14
+
+### Changed (workflow-orchestration 2.1.2)
+
+- **Rescue-policy reduction**: `parallel-implementation-loop` and
+  `swarm-orchestration` now treat soft budgets as advisory only, require real
+  stall evidence before entering rescue, prefer same-agent continuation in the
+  existing worktree or domain context, and avoid spawning duplicate narrowed-
+  scope rescue agents by default.
+- **Convergence and delivery guidance**: the workflow README, usage guide, and
+  plugin contract tests now document and enforce the same-agent-first stall
+  policy so large or slow tasks are escalated or stopped with preserved partial
+  progress instead of reflexively launching inferior duplicate rescue passes.
+- **Version sync**: workflow-orchestration and umbrella marketplace metadata
+  bumped from `2.1.1` to `2.1.2` across the root package, lockfile, workflow
+  package/manifests, and marketplace metadata.
+
 ## [2.1.1] - 2026-04-13
 
 ### Changed (workflow-orchestration 2.1.1)
