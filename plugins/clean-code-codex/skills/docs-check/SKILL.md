@@ -66,9 +66,11 @@ pub trait ExportedTrait { }         // no preceding /// doc comment
    public function or class — names starting with `_` are private) with no
    `"""` or `'''` docstring on the next line; also honour `__all__` when present
 3. Grep for `^func [A-Z]` in Go with no preceding `//` comment line
-4. Grep for `^pub fn `, `^pub struct `, `^pub trait `, `^pub enum `,
-   `^pub type ` in Rust `.rs` files with no preceding `///` doc comment
-   line; exclude items inside `#[cfg(test)]` modules
+4. Grep for `^\s*pub\s+(async\s+|unsafe\s+|const\s+)*fn\s+`,
+   `^\s*pub\s+struct\s+`, `^\s*pub\s+trait\s+`, `^\s*pub\s+enum\s+`,
+   `^\s*pub\s+type\s+` in Rust `.rs` files with no preceding `///` doc
+   comment line; exclude items inside `#[cfg(test)]` modules and
+   `pub(crate)` / `pub(super)` visibility
 5. For each match: verify the symbol is not in a test file and is not
    private/unexported
 

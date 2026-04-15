@@ -59,7 +59,8 @@ hyper::Client::new().get(uri);       // bare hyper, no retry wrapper
 **Detection**:
 1. Grep for `fetch(`, `axios.`, `requests.get`, `requests.post`, `httpx.`,
    `http.Get(`, `http.Post(`, `reqwest::get(`, `reqwest::Client`,
-   `.get(`, `.post(` (in `.rs` files), `hyper::Client` in non-test source files
+   `client.get(`, `client.post(` (in `.rs` files where `client` is a
+   `reqwest::Client`), `hyper::Client` in non-test source files
 2. For each match: check if a retry wrapper or decorator exists within 10 lines
    above or in the enclosing function scope
 3. Check if the call site is inside a known retry utility (e.g., `axios-retry`
@@ -199,7 +200,8 @@ client.get(url).send().await?;         // Client built without .timeout()
 **Detection**:
 1. Grep for `fetch(`, `axios.`, `requests.get`, `requests.post`, `httpx.`,
    `http.Get(`, `http.Post(`, `client.Do(`, `reqwest::get(`,
-   `reqwest::Client`, `.send().await` (in `.rs` files) in non-test source files
+   `reqwest::Client`, `client.get(`, `client.post(` (in `.rs` files
+   where `client` is a `reqwest::Client`) in non-test source files
 2. For each match: check if a timeout parameter, `AbortSignal.timeout`,
    `timeout=`, context deadline, `.timeout()` builder method, or
    `tokio::time::timeout` wrapper is present in the same statement or
@@ -232,6 +234,8 @@ client.get(url).send().await?;         // Client built without .timeout()
        .timeout(std::time::Duration::from_secs(5))
        .build()?;
    // Or wrap with tokio::time::timeout
+   // (The ?? works when the error type implements From<Elapsed>,
+   // e.g. anyhow::Result. Map the Elapsed error explicitly otherwise.)
    let resp = tokio::time::timeout(
        std::time::Duration::from_secs(5),
        client.get(url).send(),
