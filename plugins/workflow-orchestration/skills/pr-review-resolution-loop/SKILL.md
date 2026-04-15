@@ -167,7 +167,7 @@ not run alongside it.
 ### 4. Hard concurrency cap for fix batches
 
 When delegating to `/workflow-orchestration:parallel-implementation-loop` for
-independent fix batches (Step 3), the same `max-parallel-tracks` cap applies.
+independent fix batches (Workflow Step 3), the same `max-parallel-tracks` cap applies.
 Read the cap from `.workflow-orchestration/defaults.json` →
 `concurrency.max-parallel-tracks` (default: **2**). The developer may
 override the cap with an explicit instruction.

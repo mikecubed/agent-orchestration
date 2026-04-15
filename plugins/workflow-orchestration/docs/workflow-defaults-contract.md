@@ -142,8 +142,8 @@ still override it or require explicit confirmation when the workflow needs one.
 ### `concurrency`
 
 Defines hard caps on parallel agent execution and rescue behavior shared by
-all parallelism-capable workflows (`parallel-implementation-loop`,
-`pr-review-resolution-loop`, `swarm-orchestration`).
+parallelism-capable workflows that explicitly consume these defaults
+(`parallel-implementation-loop`, `pr-review-resolution-loop`).
 
 Supported keys in this phase:
 
