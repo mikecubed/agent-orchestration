@@ -3,6 +3,8 @@ name: diff-review-orchestration
 description: Coordinate a structured diff review by routing to codex checks, readiness assessment, and review-resolution skills.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill to run a structured, coordinator-shaped diff review that delegates to existing specialist skills rather than re-implementing their logic. It routes work to:

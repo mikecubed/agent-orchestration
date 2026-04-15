@@ -3,6 +3,8 @@ name: e2e-test-generation
 description: Scaffolded end-to-end test generation for integration seams — API endpoints, UI flows, and service boundaries — with framework detection and a durable coverage summary.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when a developer needs to generate end-to-end or integration tests for code that crosses service, API, or UI boundaries. It detects the project's E2E framework, identifies integration seams, and scaffolds test files covering happy paths, error paths, and auth boundaries.

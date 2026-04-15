@@ -3,6 +3,8 @@ name: knowledge-refresh
 description: Evaluate and maintain previously captured knowledge — classify candidates as trusted, stale, duplicate, obsolete, superseded, or needs-capture — and route maintenance actions through bounded progression modes with durable state updates at each owned phase boundary.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when existing knowledge artifacts need maintenance — deduplication,

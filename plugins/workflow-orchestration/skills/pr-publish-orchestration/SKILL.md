@@ -3,6 +3,8 @@ name: pr-publish-orchestration
 description: Bridge ready-to-merge work into commit, push, and PR publication, deflecting versioning and release concerns to release-orchestration.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill to publish ready work — commit, push, and create or update a pull request — after upstream readiness has been confirmed. This is a thin publication bridge, not a review or release skill.

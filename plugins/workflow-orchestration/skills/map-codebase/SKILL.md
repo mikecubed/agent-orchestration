@@ -3,6 +3,8 @@ name: map-codebase
 description: Guided codebase discovery that produces a structured, shareable factual context brief for use by downstream skills.
 ---
 
+> References to `docs/session-md-schema.md` in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file). Other `docs/` paths (such as artifact output destinations) refer to the target project.
+
 ## Purpose
 
 Use this skill when a developer or agent needs to understand an unfamiliar codebase before planning, implementing, debugging, or reviewing. It runs a structured discovery pass and produces a factual context brief that downstream skills can consume directly, avoiding redundant exploration.

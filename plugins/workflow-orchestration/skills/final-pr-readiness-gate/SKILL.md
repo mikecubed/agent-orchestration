@@ -3,6 +3,8 @@ name: final-pr-readiness-gate
 description: Run a final readiness pass on a stable branch or pull request diff using structured checks plus a final whole-diff review.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when a branch or pull request diff is finally stable and you want one last high-signal readiness pass before asking for human review.

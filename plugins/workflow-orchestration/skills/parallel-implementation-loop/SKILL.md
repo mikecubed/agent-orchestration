@@ -3,6 +3,8 @@ name: parallel-implementation-loop
 description: Run independent implementation tracks in parallel with disciplined review, merge, validation, and publication gates.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when a developer wants to implement a reviewed plan or task list with multiple parallel tracks without losing control of testing, integration, or review quality.

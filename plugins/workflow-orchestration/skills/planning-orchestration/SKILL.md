@@ -3,6 +3,8 @@ name: planning-orchestration
 description: Create a durable implementation plan with scout discovery, reviewer critique, and optional SDD orchestration.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when a developer wants a disciplined planning workflow before implementation, especially for feature-shaped work that may need specification, planning, task generation, or explicit execution handoff.

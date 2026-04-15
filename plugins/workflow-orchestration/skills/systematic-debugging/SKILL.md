@@ -3,6 +3,8 @@ name: systematic-debugging
 description: Structured four-phase debugging workflow (hypothesis → reproduce → isolate → fix) with mandatory context-hygiene pause-and-resume after N failed attempts.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when a developer is stuck on a non-obvious bug and needs a structured,
