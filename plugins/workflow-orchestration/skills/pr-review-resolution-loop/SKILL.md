@@ -137,7 +137,46 @@ For comments that become fixes:
 2. implement the smallest fix that resolves the issue;
 3. refactor only while tests stay green.
 
-### 3. Close the loop on every discussion item
+### 3. Never run a rescue agent while the original agent is still running
+
+**This is a hard prohibition, not guidance.**
+
+The coordinator cannot reliably kill or stop a running agent. Launching a
+rescue agent while the original is still active creates two agents consuming
+quota for one fix's worth of work, doubles rate-limit pressure, and risks
+conflicting writes.
+
+Before any rescue action, the coordinator **must** confirm one of these:
+
+1. the original agent has returned a final result (success or failure);
+2. the original agent has timed out or crashed and the runtime has reclaimed
+   the process;
+3. the original agent has explicitly reported that it cannot proceed.
+
+If the coordinator cannot confirm termination, **the agent is not stalled —
+it is still working.** In that case:
+
+- do not spawn a rescue agent;
+- do not duplicate the fix attempt;
+- send a **continuation nudge** (ask for status, blockers, and the smallest
+  next step) and wait for a response before re-evaluating.
+
+A rescue agent, when eventually justified, replaces the original — it does
+not run alongside it.
+
+### 4. Hard concurrency cap for fix batches
+
+When delegating to `/workflow-orchestration:parallel-implementation-loop` for
+independent fix batches (Workflow Step 3), the same `max-parallel-tracks` cap applies.
+Read the cap from `.workflow-orchestration/defaults.json` →
+`concurrency.max-parallel-tracks` (default: **2**). The developer may
+override the cap with an explicit instruction.
+
+Fix batches that are not delegated to the parallel-implementation-loop (e.g.,
+serial fixes handled directly by this skill) are not subject to the cap but
+should still avoid launching more concurrent agents than necessary.
+
+### 5. Close the loop on every discussion item
 
 Every review thread or platform-equivalent discussion item should end in one of these states:
 
@@ -311,13 +350,32 @@ Do not loop indefinitely. A fix that cannot converge in two rounds needs human j
 
 #### Rescue policy for stalled fixes
 
-If a fix attempt stalls — the implementer cannot make progress, the change grows beyond its original scope, or successive attempts do not move closer to resolving the review item:
+A fix is only stalled when the implementer agent has **explicitly reported a
+blocker**, **terminated without completing**, or failed to show any progress
+across at least **3** consecutive coordinator checks (or the configured
+`concurrency.rescue-min-stall-checks` value from
+`.workflow-orchestration/defaults.json`). A slow-but-progressing agent is
+**not** stalled.
+
+**Nudge before rescue.** When a fix appears stalled but the agent has not
+terminated, send a continuation nudge first: ask for current status, blockers,
+and the smallest next step. If the agent responds and resumes work, reset the
+stall counter and let it continue. Only proceed to rescue if the nudge gets
+no response (confirmed timeout) or the agent explicitly reports it cannot
+proceed.
+
+When rescue is justified:
 
 1. pause the fix and capture what was attempted and where it stalled;
-2. re-scope to the smallest change that still addresses the core concern;
-3. if re-scoping is not viable, escalate to the developer with a clear description of the blocker.
+2. prefer **same-agent continuation** with a narrowed scope first;
+3. only spawn a replacement agent if the original has terminated and its
+   context is irrecoverable (see Core Rule 3);
+4. if re-scoping is not viable, escalate to the developer with a clear
+   description of the blocker.
 
-Do not allow a single stalled fix to block the rest of the review batch. Move to the next independent fix and return to the stalled item after the developer provides guidance or approves the re-scoped change.
+Do not allow a single stalled fix to block the rest of the review batch. Move
+to the next independent fix and return to the stalled item after the developer
+provides guidance or approves the re-scoped change.
 
 #### Disagreement resolution: fix-vs-decline conflict
 
@@ -503,6 +561,11 @@ Do not declare the loop done.
 - required validation commands or thread-resolution expectations are still unknown;
 - the developer asks to stop.
 
-Before stopping for a disagreement or stall, always attempt rescue first: apply the bounded resend loop (Step 5), then the rescue policy, then disagreement resolution for fix-vs-decline conflicts. Only stop after those options are exhausted or the developer explicitly declines re-scoping.
+Before stopping for a disagreement or stall, follow the full progression:
+bounded resend loop (Step 5) → continuation nudge → rescue policy →
+disagreement resolution for fix-vs-decline conflicts. Do not skip the nudge
+step and do not spawn a rescue agent while the original agent is still
+running (Core Rule 3). Only stop after these options are exhausted or the
+developer explicitly declines re-scoping.
 
 When a stop condition is met, stop batching, restate the blocker, and continue only after the review surface is stable again.

@@ -36,7 +36,10 @@ Before you start, identify:
 - whether `clean-code-codex:conductor` is loaded in the current session for advisory quality checks;
 - the worktree path for each parallel track (required when launching any parallel implementer track);
 - any local rules for opening draft pull requests or track branches;
-- the maximum revision rounds per track before escalation (default: 2).
+- the maximum revision rounds per track before escalation (default: 2);
+- the maximum number of concurrent implementer agents (read from
+  `.workflow-orchestration/defaults.json` key `concurrency.max-parallel-tracks`,
+  overridable by explicit developer input; default: 2).
 
 If any of those inputs are missing, stop and get them first.
 
@@ -142,18 +145,56 @@ If `clean-code-codex:conductor` is available in the current session, use it as
 an advisory quality pass on reviewable track diffs or on the integrated feature
 branch before publication.
 
-### 4. Keep concurrency within human review capacity
+### 4. Hard concurrency cap
 
-Default to 2-3 concurrent tracks unless the repository already has strong task isolation,
-independent validation paths, and a proven sandbox strategy such as dedicated worktrees.
+**Never exceed the configured `max-parallel-tracks` limit.** The default is
+**2** concurrent implementer agents. Read the active cap from
+`.workflow-orchestration/defaults.json` → `concurrency.max-parallel-tracks`,
+then apply the override precedence (explicit developer input > defaults.json >
+baked-in default of 2).
 
-More concurrency is only worth it when:
+When more ready tracks exist than the cap allows, **queue** the excess tracks
+and launch them as running tracks complete and free a slot. Do not launch all
+tracks at once and hope the runtime can handle it.
+
+Raise the cap above the default only when the developer explicitly requests it
+(e.g., "use at most 4 parallel tracks") **and** all of these hold:
 
 1. the track boundaries are obvious;
 2. the validation surface for each track is small;
 3. the final integrator can still review and merge each track deliberately.
 
-### 5. Temporary work surfaces are disposable, not permanent state
+Count every running implementer agent, including any rescue agent, against the
+cap. A rescue agent occupies a concurrency slot like any other agent.
+
+### 5. Never run a rescue agent while the original agent is still running
+
+**This is a hard prohibition, not guidance.**
+
+The coordinator cannot reliably kill or stop a running agent. Launching a
+rescue agent while the original is still active creates two agents consuming
+quota for one track's worth of work, doubles rate-limit pressure, and risks
+conflicting writes to the same worktree or branch.
+
+Before any rescue action, the coordinator **must** confirm one of these:
+
+1. the original agent has returned a final result (success or failure);
+2. the original agent has timed out or crashed and the runtime has reclaimed
+   the process;
+3. the original agent has explicitly reported that it cannot proceed.
+
+If the coordinator cannot confirm termination, **the agent is not stalled —
+it is still working.** In that case:
+
+- do not spawn a rescue agent;
+- do not duplicate the track;
+- send a **continuation nudge** to the original agent (see Workflow Step 5)
+  and wait for a response before re-evaluating.
+
+A rescue agent, when eventually justified, replaces the original — it does
+not run alongside it.
+
+### 6. Temporary work surfaces are disposable, not permanent state
 
 If the workflow uses worktrees, branches, or other sandboxes (in Claude Code, use the Agent tool with `isolation: "worktree"` — it auto-cleans if no changes are made):
 
@@ -175,7 +216,7 @@ directory**, such as `../{repo}-wt-{track}`. Do not run parallel implementers in
 the main project working tree or inside nested directories beneath the project
 root; that increases the risk of index and branch-state corruption.
 
-### 6. Continue until the batch is actually complete
+### 7. Continue until the batch is actually complete
 
 Do not stop at "tracks launched", "tests passed", or "ready for review". The
 coordinator owns the batch until one of these outcomes is true:
@@ -185,9 +226,9 @@ coordinator owns the batch until one of these outcomes is true:
 3. a PR has been created or updated for that feature branch;
 4. a documented stop condition blocks further progress.
 
-When one track stalls, reduce concurrency, rescue or serialize as needed, and
-continue the remaining in-scope work rather than abandoning the whole batch by
-default.
+When one track appears stalled, follow the progression in Step 5 (nudge
+before rescue). Reduce concurrency if needed and continue the remaining
+in-scope work rather than abandoning the whole batch by default.
 
 ## Example Track Definition
 
@@ -303,30 +344,73 @@ uncommitted inside a worktree by default.
 
 ### 5. Coordinator progress and rescue policy
 
-After launching tracks, the coordinator monitors each track through a bounded lifecycle of progress checks. This policy prevents silent stalls, preserves partial work, and avoids wasteful duplicate rescue agents.
+After launching tracks, the coordinator monitors each track through a bounded
+lifecycle of progress checks. This policy prevents silent stalls, preserves
+partial work, and — critically — avoids wasteful duplicate or premature rescue
+agents that compound rate-limit pressure.
+
+Read the minimum stall-check threshold from
+`.workflow-orchestration/defaults.json` → `concurrency.rescue-min-stall-checks`
+(default: **3**).
 
 **Budget transitions**
 
-1. **Soft budget** — the coordinator sets an expected completion window for each track based on task size. The window is advisory only; soft-budget expiry is **not** by itself a rescue trigger.
-2. **Progress visible** — a track is considered active when any of these indicators advance between checks:
+1. **Soft budget** — the coordinator sets an expected completion window for each track based on task size. The window is advisory only; soft-budget expiry is **not** by itself a rescue trigger and **not** evidence of a stall.
+2. **Progress visible** — a track is considered active when any of these
+   indicators advance between checks:
    - files modified since last check;
    - tests added or updated;
    - validation running or recently completed;
    - partial results returned to the coordinator.
-   If at least one indicator has advanced, keep the current track running in the same agent and worktree context.
-3. **Stall evidence** — treat a track as stalled only when one or more of these conditions hold:
-   - the track reports an explicit blocker or inability to proceed;
-   - no meaningful progress is visible across at least 2 coordinator checks;
-   - a tool failure, crash, or timeout leaves the current track unable to continue safely;
-   - scope expansion makes the original assignment no longer defensible.
-4. **Rescue** — when stall evidence exists, the coordinator enters rescue:
-   - ask the current track for a brief status, blockers, and the smallest next checkpoint;
+   If at least one indicator has advanced, the track is **not stalled**. Keep
+   the current agent running in the same worktree and scope. Do not nudge,
+   rescue, or intervene.
+3. **Stall suspected** — treat a track as **potentially** stalled only when
+   **all** of the following hold:
+   - no meaningful progress is visible across at least **3** consecutive
+     coordinator checks (or the configured `rescue-min-stall-checks` value);
+   - the agent has not returned a final result, an explicit blocker, or a
+     partial checkpoint in that window.
+   A single missed check or a slow-but-progressing agent is **not** stall
+   evidence.
+4. **Continuation nudge** — when stall is suspected but the original agent
+   has **not** terminated or reported a blocker:
+   - send the agent a targeted status query: "report current progress,
+     blockers, and the smallest next step you can complete";
+   - wait for the agent to respond before taking any further action;
+   - if the agent responds and resumes work, **reset the stall counter** and
+     return to step 2;
+   - if the agent responds with an explicit blocker, proceed to step 5;
+   - if the agent does not respond (timeout or crash confirmed by the
+     runtime), proceed to step 6.
+   **Do not skip the nudge.** A nudge is cheaper than a rescue and resolves
+   most apparent stalls.
+5. **Blocker-based rescue** — the agent has explicitly reported that it
+   cannot proceed. The coordinator enters rescue:
    - prefer same-agent continuation in the same worktree and scope first;
-   - narrow scope only when the current context proves the original scope cannot finish safely;
+   - narrow scope only when the agent's report proves the original scope
+     cannot finish safely;
    - do **not** spawn a second rescue agent or duplicate the track by default;
-   - if same-agent continuation does not restore progress, escalate to the developer or stop the track with partial results rather than launching an inferior duplicate attempt.
-5. **Hard budget** — the coordinator defines a maximum total effort per track measured in delegation rounds, not wall time. Reaching hard budget triggers escalation or stop; it does **not** automatically create a rescue agent.
-6. **Stopped** — a track enters the stopped state when it reaches hard budget, rescue fails, or the developer cancels it. Stopped tracks record partial results, files touched, tests written, and unresolved items in the batch summary before releasing their work surface.
+   - if same-agent continuation does not restore progress, **escalate to the
+     developer** or stop the track with partial results;
+   - only spawn a separate replacement agent when the original agent has
+     terminated and its context is irrecoverable (see Core Rule 5).
+6. **Terminated-agent rescue** — the original agent has crashed, timed out,
+   or been confirmed terminated by the runtime. Only in this case may the
+   coordinator spawn a replacement agent:
+   - the replacement **counts against the concurrency cap** (Core Rule 4);
+   - scope the replacement to the remaining unfinished work only;
+   - pass partial results from the original agent to the replacement;
+   - allow at most **1** replacement attempt per track. If the replacement
+     also fails, escalate to the developer.
+7. **Hard budget** — the coordinator defines a maximum total effort per track
+   measured in delegation rounds, not wall time. Reaching hard budget
+   triggers escalation or stop; it does **not** automatically create a
+   rescue agent.
+8. **Stopped** — a track enters the stopped state when it reaches hard
+   budget, rescue fails, or the developer cancels it. Stopped tracks record
+   partial results, files touched, tests written, and unresolved items in
+   the batch summary before releasing their work surface.
 
 The coordinator re-evaluates track status after every delegation round. Do not wait for a track to go fully silent before checking, and do **not** treat elapsed time alone as stall evidence.
 
@@ -368,7 +452,7 @@ A resend is bounded follow-up work. It is not a restart of the full task and not
 
 Apply these rules during every revision round to prevent unbounded churn:
 
-1. **Repeated issue** — if a reviewer raises the same substantive issue a second time after a resend has already addressed it, stop the resend loop and apply rescue or re-scope immediately. Do not send the issue back to the implementer a third time. If rescue or re-scope still does not restore convergence, escalate to the developer.
+1. **Repeated issue** — if a reviewer raises the same substantive issue a second time after a resend has already addressed it, stop the resend loop and re-scope to the smallest defensible change. Do not send the issue back to the implementer a third time. If re-scoping does not restore convergence, escalate to the developer. Do not treat a repeated review issue as grounds for spawning a rescue agent.
 2. **Scope growth** — if a revision introduces changes beyond the original track boundary (new files, new features, or expanded contracts), stop the revision and re-scope the track before continuing. Scope growth during revision is a planning gap, not an implementation task.
 3. **Material disagreement** — if the implementer and reviewer disagree on whether a flagged issue is valid and one exchange has not resolved it, escalate to the developer for a decision. Do not let the loop continue without a tiebreaker.
 4. **Maximum revision rounds** — a track may complete at most the number of revision rounds specified in Project-Specific Inputs (default: 2). If the track still has unresolved issues after the maximum rounds, escalate to the developer with a summary of what remains and why convergence was not reached.
@@ -507,4 +591,11 @@ resolve each, and do not advance past the gate.
 - the developer asks to stop;
 - a track reaches hard budget after rescue has been attempted.
 
-Before abandoning a stalled track, the coordinator must attempt at least one rescue pass: narrow scope, request a status update, and offer one bounded retry. Only abandon the track if rescue fails or the developer explicitly cancels. When stopping, record partial results, unresolved items, and the reason for stopping. Then reduce concurrency and continue serially with the remaining work.
+Before abandoning a track, the coordinator must have followed the full
+progression in Step 5: progress checks → stall suspected → continuation
+nudge → blocker-based or terminated-agent rescue. Do not skip the nudge step.
+Do not spawn a rescue agent while the original agent is still running (Core
+Rule 5). Only abandon the track when the progression is exhausted or the
+developer explicitly cancels. When stopping, record partial results,
+unresolved items, and the reason for stopping. Then reduce concurrency and
+continue serially with the remaining work.

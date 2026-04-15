@@ -55,6 +55,10 @@ The defaults file is machine-readable JSON:
     "capture": "explicit",
     "lookup": "advisory"
   },
+  "concurrency": {
+    "max-parallel-tracks": 2,
+    "rescue-min-stall-checks": 3
+  },
   "publish": {
     "target-branch": "main",
     "draft-pr": false
@@ -134,6 +138,28 @@ Supported keys in this phase:
 This group must not impose a mandatory taxonomy. A repository may define a
 default sink through `artifact-sinks.knowledge`, but individual invocations may
 still override it or require explicit confirmation when the workflow needs one.
+
+### `concurrency`
+
+Defines hard caps on parallel agent execution and rescue behavior shared by
+parallelism-capable workflows that explicitly consume these defaults
+(`parallel-implementation-loop`, `pr-review-resolution-loop`).
+
+Supported keys in this phase:
+
+- `max-parallel-tracks`: integer, maximum number of concurrent implementer
+  agents the coordinator may have running at once. Tracks beyond this limit
+  are queued and launched as slots free up. Default: `2`.
+- `rescue-min-stall-checks`: integer, minimum number of consecutive
+  coordinator checks with no visible progress before a track may be
+  considered stalled. Default: `3`.
+
+If omitted, workflows use their baked-in defaults (`max-parallel-tracks: 2`,
+`rescue-min-stall-checks: 3`).
+
+The developer may override the cap for a single invocation by stating an
+explicit maximum (e.g., "use at most 4 parallel tracks"). Explicit developer
+input always takes precedence per the override rules below.
 
 ### `publish`
 

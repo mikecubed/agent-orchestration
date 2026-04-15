@@ -6,6 +6,39 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-04-15
+
+### Added (workflow-orchestration 2.2.0)
+
+- **Hard concurrency cap**: `parallel-implementation-loop` and
+  `pr-review-resolution-loop` now enforce a configurable
+  `max-parallel-tracks` limit (default: 2) read from
+  `.workflow-orchestration/defaults.json`. Excess tracks are queued and
+  launched as slots free up. Rescue agents count against the cap.
+- **Concurrency defaults contract**: the workflow defaults contract gains a
+  `concurrency` key group with `max-parallel-tracks` and
+  `rescue-min-stall-checks`, overridable by explicit developer input.
+
+### Changed (workflow-orchestration 2.2.0)
+
+- **No-parallel-rescue prohibition**: both `parallel-implementation-loop` and
+  `pr-review-resolution-loop` now have a hard Core Rule prohibiting rescue
+  agent spawns while the original agent is still running. The coordinator
+  must confirm termination before any rescue action.
+- **Nudge-before-rescue progression**: the coordinator progress/rescue policy
+  in `parallel-implementation-loop` now follows an 8-step progression
+  requiring a mandatory continuation nudge before entering rescue. The
+  minimum stall-check threshold is raised from 2 to 3 (configurable via
+  `concurrency.rescue-min-stall-checks`).
+- **Stricter rescue in review resolution**: `pr-review-resolution-loop`
+  rescue policy now requires 3 consecutive checks with no progress, a
+  mandatory nudge, and same-agent continuation before considering a
+  replacement agent.
+- **Convergence rules tightened**: repeated review issues in
+  `parallel-implementation-loop` now route to re-scope instead of rescue.
+- **Version sync**: umbrella and workflow-orchestration bumped from 2.1.2 to
+  2.2.0 across all manifests, packages, and marketplace metadata.
+
 ## [2.1.2] - 2026-04-14
 
 ### Changed (workflow-orchestration 2.1.2)
