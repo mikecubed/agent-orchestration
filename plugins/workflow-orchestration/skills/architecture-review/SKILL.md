@@ -3,6 +3,8 @@ name: architecture-review
 description: Structured architecture analysis evaluating layer boundaries, dependency direction, circular imports, and public API surface.
 ---
 
+> References to `docs/session-md-schema.md` in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file). Other `docs/` paths (such as artifact output destinations) refer to the target project.
+
 ## Purpose
 
 Use this skill when a developer or agent needs a systematic evaluation of a codebase's architectural health. It applies the ARCH-1 through ARCH-6 analytical framework to detect layer violations, circular imports, missing abstractions, and dependency direction problems. When the `map-codebase` skill has already run, this skill consumes its factual context brief to avoid redundant discovery.

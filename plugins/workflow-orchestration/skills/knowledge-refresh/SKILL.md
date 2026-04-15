@@ -3,6 +3,8 @@ name: knowledge-refresh
 description: Evaluate and maintain previously captured knowledge — classify candidates as trusted, stale, duplicate, obsolete, superseded, or needs-capture — and route maintenance actions through bounded progression modes with durable state updates at each owned phase boundary.
 ---
 
+> References to plugin documentation files (e.g. `docs/workflow-artifact-templates.md`) refer to the plugin-level `docs/` directory (`../../docs/` relative to this file). Other `docs/` paths (such as artifact output destinations) refer to the target project.
+
 ## Purpose
 
 Use this skill when existing knowledge artifacts need maintenance — deduplication,

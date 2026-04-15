@@ -3,6 +3,8 @@ name: knowledge-compound
 description: Capture reusable knowledge from a completed workflow — problem, signals, resolution, guardrails, and applicability — and write it to a durable, repository-appropriate sink.
 ---
 
+> References to plugin documentation files (e.g. `docs/workflow-artifact-templates.md`) refer to the plugin-level `docs/` directory (`../../docs/` relative to this file). Other `docs/` paths (such as artifact output destinations) refer to the target project.
+
 ## Purpose
 
 Use this skill when a completed workflow has produced a reusable lesson — a debugging insight, a non-ADR implementation decision, a non-obvious configuration fix, or any resolution that future contributors or agents would benefit from knowing. The skill extracts the lesson into a structured knowledge artifact and writes it to a durable sink so it survives the current session.

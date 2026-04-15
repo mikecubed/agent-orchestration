@@ -3,6 +3,8 @@ name: brainstorm-ideation
 description: Pre-spec Socratic ideation skill that surfaces constraints, risks, and trade-offs through structured dialogue before committing to a direction.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when a developer has a rough idea but is not yet ready for formal specification. This is **pre-spec ideation** — it sits before `sdd.specify` in the workflow and is distinct from `planning-orchestration`:
