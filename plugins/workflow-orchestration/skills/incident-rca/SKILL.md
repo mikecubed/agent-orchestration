@@ -3,6 +3,8 @@ name: incident-rca
 description: Structured production incident triage using a four-phase workflow (hypothesis → reproduce → isolate → fix + verify) with service-context gathering and a durable RCA summary artifact.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when a developer or on-call responder needs a structured process for triaging a **production incident** — a live alert, service degradation, SLA breach, or customer-impacting failure — and driving it from symptom through root cause to verified fix.

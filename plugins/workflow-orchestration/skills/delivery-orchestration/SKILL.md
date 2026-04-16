@@ -3,6 +3,8 @@ name: delivery-orchestration
 description: Route bounded delivery work to the best-fit specialist skill based on task shape, complexity, and available context.
 ---
 
+> References to plugin documentation files (e.g. `docs/workflow-artifact-templates.md`) refer to the plugin-level `docs/` directory (`../../docs/` relative to this file). Other `docs/` paths (such as artifact output destinations) refer to the target project.
+
 ## Purpose
 
 Use this skill as the entry point for executing bounded delivery work — implementation, debugging, or complex decomposition — when the developer has an accepted plan, task list, or well-scoped change request and needs the right execution strategy chosen automatically.

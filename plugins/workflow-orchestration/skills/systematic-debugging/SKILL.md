@@ -3,6 +3,8 @@ name: systematic-debugging
 description: Structured four-phase debugging workflow (hypothesis → reproduce → isolate → fix) with mandatory context-hygiene pause-and-resume after N failed attempts.
 ---
 
+> References to plugin documentation files (e.g. `docs/workflow-artifact-templates.md`) refer to the plugin-level `docs/` directory (`../../docs/` relative to this file). Other `docs/` paths (such as artifact output destinations) refer to the target project.
+
 ## Purpose
 
 Use this skill when a developer is stuck on a non-obvious bug and needs a structured,

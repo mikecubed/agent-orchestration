@@ -3,6 +3,8 @@ name: pr-review-resolution-loop
 description: Resolve pull request review comments with disciplined triage, scoped fixes, thread closure, and final validation.
 ---
 
+> All `docs/` paths in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file), not a `docs/` directory inside this skill folder.
+
 ## Purpose
 
 Use this skill when a developer wants to work through pull request or branch review feedback in a disciplined loop.
