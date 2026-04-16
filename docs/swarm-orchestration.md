@@ -66,9 +66,9 @@ flowchart TD
     SYSTEMS --> SP["Superpowers"]
     SYSTEMS --> GSD["GSD"]
 
-    US --> US1["planning-orchestration\nCoordinator / Worker\nscout → planner → reviewer"]
-    US --> US2["parallel-implementation-loop\nFixed-track Coordinator\n2-3 tracks, bounded revision"]
-    US --> US3["clean-code-codex conductor\nRule-routed Coordinator\nfixed decision tree per op type"]
+    US --> US1["plan\nCoordinator / Worker\nscout → planner → reviewer"]
+    US --> US2["parallel-impl\nFixed-track Coordinator\n2-3 tracks, bounded revision"]
+    US --> US3["ccc conductor\nRule-routed Coordinator\nfixed decision tree per op type"]
 
     SP --> SP1["dispatching-parallel-agents\nFan-out / Collect\nN independent agents, no shared state"]
     SP --> SP2["subagent-driven-development\nSequential Pipeline\nimplementer → spec-reviewer → quality-reviewer"]
@@ -251,22 +251,22 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    subgraph SDD["sdd-workflow"]
+    subgraph SDD["flow (SDD)"]
         SDD1["sdd.specify\nuser stories + requirements"]
         SDD2["sdd.plan\nimplementation plan"]
         SDD3["sdd.tasks\nordered task list"]
         SDD1 --> SDD2 --> SDD3
     end
 
-    subgraph WO["workflow-orchestration"]
-        WO1["planning-orchestration\nscout → planner → reviewer"]
-        WO2["swarm-orchestration\nNEW — dynamic topology\ncoordinator + SWARM.md"]
-        WO3["parallel-implementation-loop\nfixed 2-3 tracks\nbounded revision"]
-        WO4["pr-review-resolution-loop"]
-        WO5["final-pr-readiness-gate"]
+    subgraph WO["flow"]
+        WO1["plan\nscout → planner → reviewer"]
+        WO2["swarm\nNEW — dynamic topology\ncoordinator + SWARM.md"]
+        WO3["parallel-impl\nfixed 2-3 tracks\nbounded revision"]
+        WO4["pr-resolve"]
+        WO5["pr-ready"]
     end
 
-    subgraph CC["clean-code-codex"]
+    subgraph CC["ccc"]
         CC1["conductor\nauto-routes to sub-skills"]
         CC2["10 check sub-skills\nsec · tdd · arch · type · etc"]
         CC1 --> CC2

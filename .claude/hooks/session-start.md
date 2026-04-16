@@ -68,5 +68,5 @@ When SESSION.md is absent or malformed, check for `.agent/HANDOFF.json`:
 
 ## Schema reference
 
-See `plugins/workflow-orchestration/docs/session-md-schema.md` for the canonical SESSION.md
+See `plugins/flow/docs/session-md-schema.md` for the canonical SESSION.md
 and HANDOFF.json formats, field definitions, and writer/reader rules.

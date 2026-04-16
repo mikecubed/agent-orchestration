@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
-const WORKFLOW_ROOT = path.join(ROOT, 'plugins', 'workflow-orchestration');
+const FLOW_ROOT = path.join(ROOT, 'plugins', 'flow');
 
 function readJson(root, relativePath) {
   return JSON.parse(fs.readFileSync(path.join(root, relativePath), 'utf8'));
@@ -34,81 +34,84 @@ function readPackedFiles() {
 describe('agent-orchestration package', () => {
   it('defines the umbrella package metadata and aggregate validation scripts', () => {
     const packageManifest = readJson(ROOT, 'package.json');
-    const workflowManifest = readJson(WORKFLOW_ROOT, 'plugin.json');
+    const flowManifest = readJson(FLOW_ROOT, 'plugin.json');
     const copilotMarketplace = readJson(ROOT, '.github/plugin/marketplace.json');
     const claudeMarketplace = readJson(ROOT, '.claude-plugin/marketplace.json');
 
     assert.equal(packageManifest.name, 'agent-orchestration');
     assert.equal(copilotMarketplace.metadata.version, packageManifest.version);
     assert.equal(claudeMarketplace.metadata.version, packageManifest.version);
-    assert.equal(copilotMarketplace.plugins[0].version, workflowManifest.version);
-    assert.equal(claudeMarketplace.plugins[0].version, workflowManifest.version);
-    assert.equal(packageManifest.scripts.test, 'node --test test/**/*.test.js && npm --prefix plugins/workflow-orchestration test && npm --prefix plugins/clean-code-codex test');
+    assert.equal(copilotMarketplace.plugins[0].version, flowManifest.version);
+    assert.equal(claudeMarketplace.plugins[0].version, flowManifest.version);
+    assert.equal(packageManifest.scripts.test, 'node --test test/**/*.test.js && npm --prefix plugins/flow test && npm --prefix plugins/ccc test && npm --prefix plugins/patterns test');
     assert.equal(packageManifest.scripts['validate:runtime'], 'node scripts/verify-runtime.mjs');
   });
 });
 
 describe('agent-orchestration marketplace metadata', () => {
-  it('defines a Copilot marketplace with workflow-orchestration, sdd-workflow, and clean-code-codex entries', () => {
-    const workflowManifest = readJson(WORKFLOW_ROOT, 'plugin.json');
+  it('defines a Copilot marketplace with flow, ccc, and patterns entries', () => {
+    const flowManifest = readJson(FLOW_ROOT, 'plugin.json');
     const marketplace = readJson(ROOT, '.github/plugin/marketplace.json');
-    const workflowEntry = marketplace.plugins.find((entry) => entry.name === 'workflow-orchestration');
-    const sddEntry = marketplace.plugins.find((entry) => entry.name === 'sdd-workflow');
-    const codexEntry = marketplace.plugins.find((entry) => entry.name === 'clean-code-codex');
+    const flowEntry = marketplace.plugins.find((entry) => entry.name === 'flow');
+    const cccEntry = marketplace.plugins.find((entry) => entry.name === 'ccc');
+    const patternsEntry = marketplace.plugins.find((entry) => entry.name === 'patterns');
 
     assert.equal(marketplace.name, 'agent-orchestration');
-    assert.ok(workflowEntry, 'expected workflow-orchestration plugin entry');
-    assert.equal(workflowEntry.source, 'plugins/workflow-orchestration');
-    assert.deepEqual(workflowEntry.skills, ['skills/']);
-    assert.equal(workflowEntry.version, workflowManifest.version);
+    assert.ok(flowEntry, 'expected flow plugin entry');
+    assert.equal(flowEntry.source, 'plugins/flow');
+    assert.deepEqual(flowEntry.skills, ['skills/']);
+    assert.equal(flowEntry.agents, 'agents/');
+    assert.equal(flowEntry.version, flowManifest.version);
 
-    assert.ok(sddEntry, 'expected sdd-workflow plugin entry');
-    assert.equal(sddEntry.source, 'plugins/sdd-workflow');
-    assert.deepEqual(sddEntry.skills, ['copilot-skills/']);
-    assert.equal(sddEntry.version, '0.2.0');
+    assert.ok(cccEntry, 'expected ccc plugin entry');
+    assert.equal(cccEntry.source, 'plugins/ccc');
+    assert.deepEqual(cccEntry.skills, ['skills/']);
+    assert.equal(cccEntry.agents, 'agents/');
+    assert.equal(cccEntry.version, '3.0.0');
 
-    assert.ok(codexEntry, 'expected clean-code-codex plugin entry');
-    assert.equal(codexEntry.source, 'plugins/clean-code-codex');
-    assert.deepEqual(codexEntry.skills, ['skills/']);
-    assert.equal(codexEntry.version, '1.4.0');
+    assert.ok(patternsEntry, 'expected patterns plugin entry');
+    assert.equal(patternsEntry.source, 'plugins/patterns');
+    assert.deepEqual(patternsEntry.skills, ['skills/']);
+    assert.equal(patternsEntry.version, '3.0.0');
   });
 
-  it('defines a Claude marketplace with workflow-orchestration, sdd-workflow, and clean-code-codex entries', () => {
-    const workflowManifest = readJson(WORKFLOW_ROOT, 'plugin.json');
+  it('defines a Claude marketplace with flow, ccc, and patterns entries', () => {
+    const flowManifest = readJson(FLOW_ROOT, 'plugin.json');
     const marketplace = readJson(ROOT, '.claude-plugin/marketplace.json');
-    const workflowEntry = marketplace.plugins.find((entry) => entry.name === 'workflow-orchestration');
-    const sddEntry = marketplace.plugins.find((entry) => entry.name === 'sdd-workflow');
-    const codexEntry = marketplace.plugins.find((entry) => entry.name === 'clean-code-codex');
+    const flowEntry = marketplace.plugins.find((entry) => entry.name === 'flow');
+    const cccEntry = marketplace.plugins.find((entry) => entry.name === 'ccc');
+    const patternsEntry = marketplace.plugins.find((entry) => entry.name === 'patterns');
 
     assert.equal(marketplace.name, 'agent-orchestration');
-    assert.ok(workflowEntry, 'expected workflow-orchestration plugin entry');
-    assert.equal(workflowEntry.source, './plugins/workflow-orchestration');
-    assert.equal(workflowEntry.skills, './skills/');
-    assert.equal(workflowEntry.version, workflowManifest.version);
+    assert.ok(flowEntry, 'expected flow plugin entry');
+    assert.equal(flowEntry.source, './plugins/flow');
+    assert.equal(flowEntry.skills, './skills/');
+    assert.equal(flowEntry.version, flowManifest.version);
 
-    assert.ok(sddEntry, 'expected sdd-workflow plugin entry');
-    assert.equal(sddEntry.source, './plugins/sdd-workflow');
-    assert.equal(sddEntry.skills, './skills/');
-    assert.equal(sddEntry.version, '0.2.0');
+    assert.ok(cccEntry, 'expected ccc plugin entry');
+    assert.equal(cccEntry.source, './plugins/ccc');
+    assert.equal(cccEntry.skills, './skills/');
+    assert.equal(cccEntry.version, '3.0.0');
 
-    assert.ok(codexEntry, 'expected clean-code-codex plugin entry');
-    assert.equal(codexEntry.source, './plugins/clean-code-codex');
-    assert.equal(codexEntry.skills, './skills/');
-    assert.equal(codexEntry.version, '1.4.0');
+    assert.ok(patternsEntry, 'expected patterns plugin entry');
+    assert.equal(patternsEntry.source, './plugins/patterns');
+    assert.equal(patternsEntry.skills, './skills/');
+    assert.equal(patternsEntry.version, '3.0.0');
   });
 });
 
 describe('umbrella bundle layout', () => {
   it('ships all plugin bundle roots and umbrella docs', () => {
     for (const relativePath of [
-      'plugins/workflow-orchestration/package.json',
-      'plugins/workflow-orchestration/plugin.json',
-      'plugins/workflow-orchestration/.claude-plugin/plugin.json',
-      'plugins/sdd-workflow/plugin.json',
-      'plugins/sdd-workflow/.claude-plugin/plugin.json',
-      'plugins/clean-code-codex/package.json',
-      'plugins/clean-code-codex/plugin.json',
-      'plugins/clean-code-codex/.claude-plugin/plugin.json',
+      'plugins/flow/package.json',
+      'plugins/flow/plugin.json',
+      'plugins/flow/.claude-plugin/plugin.json',
+      'plugins/ccc/package.json',
+      'plugins/ccc/plugin.json',
+      'plugins/ccc/.claude-plugin/plugin.json',
+      'plugins/patterns/package.json',
+      'plugins/patterns/plugin.json',
+      'plugins/patterns/.claude-plugin/plugin.json',
       'docs/marketplace-overview.md',
       'docs/install-guide.md',
       'docs/plugin-composition.md',
@@ -129,15 +132,14 @@ describe('umbrella package contents', () => {
     assert.ok(files.includes('docs/marketplace-overview.md'));
     assert.ok(files.includes('docs/install-guide.md'));
     assert.ok(files.includes('docs/plugin-composition.md'));
-    assert.ok(files.includes('plugins/workflow-orchestration/plugin.json'));
-    assert.ok(files.includes('plugins/workflow-orchestration/.claude-plugin/plugin.json'));
-    assert.ok(files.includes('plugins/workflow-orchestration/skills/planning-orchestration/SKILL.md'));
-    assert.ok(files.includes('plugins/sdd-workflow/plugin.json'));
-    assert.ok(files.includes('plugins/sdd-workflow/.claude-plugin/plugin.json'));
-    assert.ok(files.includes('plugins/sdd-workflow/commands/sdd.specify.md'));
-    assert.ok(files.includes('plugins/clean-code-codex/plugin.json'));
-    assert.ok(files.includes('plugins/clean-code-codex/.claude-plugin/plugin.json'));
-    assert.ok(files.includes('plugins/clean-code-codex/commands/codex.md'));
-    assert.ok(files.includes('plugins/clean-code-codex/skills/conductor/SKILL.md'));
+    assert.ok(files.includes('plugins/flow/plugin.json'));
+    assert.ok(files.includes('plugins/flow/.claude-plugin/plugin.json'));
+    assert.ok(files.includes('plugins/flow/skills/plan/SKILL.md'));
+    assert.ok(files.includes('plugins/ccc/plugin.json'));
+    assert.ok(files.includes('plugins/ccc/.claude-plugin/plugin.json'));
+    assert.ok(files.includes('plugins/ccc/commands/codex.md'));
+    assert.ok(files.includes('plugins/ccc/skills/conductor/SKILL.md'));
+    assert.ok(files.includes('plugins/patterns/plugin.json'));
+    assert.ok(files.includes('plugins/patterns/.claude-plugin/plugin.json'));
   });
 });

@@ -1,0 +1,21 @@
+{
+  "name": "patterns",
+  "version": "3.0.0",
+  "description": "Design pattern plugin for GitHub Copilot CLI and Claude Code.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "validate:runtime": "node ../../scripts/verify-runtime.mjs patterns"
+  },
+  "files": [
+    "plugin.json",
+    ".claude-plugin/",
+    "skills/",
+    "references/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

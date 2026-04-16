@@ -1,6 +1,6 @@
 # Plugin Ecosystem Comparison
 
-Comparison of **agent-orchestration** (`workflow-orchestration` · `sdd-workflow` · `clean-code-codex`) against [Superpowers](https://github.com/obra/superpowers) and [GSD](https://github.com/gsd-build/get-shit-done).
+Comparison of **agent-orchestration** (`flow` · `ccc` · `patterns`) against [Superpowers](https://github.com/obra/superpowers) and [GSD](https://github.com/gsd-build/get-shit-done).
 
 ---
 
@@ -10,9 +10,9 @@ Comparison of **agent-orchestration** (`workflow-orchestration` · `sdd-workflow
 graph TD
     subgraph US["agent-orchestration (ours)"]
         direction LR
-        US1["clean-code-codex\nsec · tdd · arch · type · naming\nsize · dead · test · obs · dep"]
-        US2["sdd-workflow\nsdd.specify · sdd.plan · sdd.tasks"]
-        US3["workflow-orchestration\nplanning · parallel-impl · swarm-orchestration · pr-review · readiness-gate"]
+        US1["ccc\nsec · tdd · arch · type · naming\nsize · dead · test · obs · dep"]
+        US2["flow (SDD)\nsdd.specify · sdd.plan · sdd.tasks"]
+        US3["flow\nplanning · parallel-impl · swarm-orchestration · pr-review · readiness-gate"]
     end
 
     subgraph SP["Superpowers"]
@@ -50,7 +50,7 @@ flowchart LR
 
     IDEA -. "sdd-feature-workflow auto-activates" .-> US_SPEC["sdd.specify / sdd.plan / sdd.tasks"]
     US_SPEC -.-> US_IMPL["parallel-implementation-loop / planning-orchestration"]
-    US_IMPL -.-> US_QUALITY["clean-code-codex: 65 rules auto-enforced"]
+    US_IMPL -.-> US_QUALITY["ccc: 65 rules auto-enforced"]
     US_QUALITY -.-> US_REVIEW["pr-review-resolution-loop / final-pr-readiness-gate"]
 
     IDEA -. "brainstorming: Socratic design" .-> SP_SPEC["writing-plans"]
@@ -180,7 +180,7 @@ graph TD
     Q2 --> B4["pause/resume session state\npersist work across conversations"]
 
     NOW --> Q3["🟡 Strategic Differentiation"]
-    Q3 --> C1["Double down on clean-code-codex\nauto-trigger on git commit"]
+    Q3 --> C1["Double down on ccc\nauto-trigger on git commit"]
     Q3 --> C2["Versioned plugin packaging\nas a first-class feature"]
     Q3 --> C3["Expand platform reach\nCursor · Windsurf · Gemini CLI"]
 
@@ -198,9 +198,9 @@ graph TD
 ```mermaid
 sequenceDiagram
     actor Dev as Developer
-    participant SDD as sdd-workflow
-    participant WO as workflow-orchestration
-    participant CC as clean-code-codex
+    participant SDD as flow-sdd
+    participant WO as flow
+    participant CC as ccc
 
     Dev->>SDD: "implement X feature"
     SDD-->>Dev: offer formal spec?

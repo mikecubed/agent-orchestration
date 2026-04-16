@@ -12,25 +12,25 @@ flowchart TD
     DOCS[docs/]
     TESTS[test/umbrella-layout.test.js]
     RUNTIME[scripts/verify-runtime.mjs]
-    WO[plugins/workflow-orchestration/]
-    SDD[plugins/sdd-workflow/]
-    CODEX[plugins/clean-code-codex/]
+    FLOW[plugins/flow/]
+    CCC[plugins/ccc/]
+    PAT[plugins/patterns/]
 
     ROOT --> GH
     ROOT --> CC
     ROOT --> DOCS
     ROOT --> TESTS
     ROOT --> RUNTIME
-    ROOT --> WO
-    ROOT --> SDD
-    ROOT --> CODEX
+    ROOT --> FLOW
+    ROOT --> CCC
+    ROOT --> PAT
 ```
 
 ## Responsibilities
 
 - **Repo root**: umbrella docs, marketplace metadata, aggregate validation
-- **`plugins/workflow-orchestration/`**: planning and workflow-loop plugin
-- **`plugins/sdd-workflow/`**: companion SDD plugin bundle
-- **`plugins/clean-code-codex/`**: clean-code enforcement and audit plugin
+- **`plugins/flow/`**: unified planning, workflow-loop, and SDD plugin
+- **`plugins/ccc/`**: clean-code enforcement and audit plugin
+- **`plugins/patterns/`**: PEAA, GoF, and DDD design patterns plugin
 
 The plugin identities stay precise even though the marketplace is shared.
