@@ -197,7 +197,7 @@ Is the pattern a LANGUAGE FEATURE now?
 │   Python: __iter__/__next__, generators, itertools
 │   TypeScript/JS: Symbol.iterator, for...of, generators
 │   Rust: Iterator trait, .iter(), .map(), .filter()
-│   Go: range, range-over-func (1.22+)
+│   Go: range, range over integers (1.22+)
 │   → BUILT IN. Teach the concept, use the built-in.
 │
 ├── Observer

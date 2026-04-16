@@ -226,9 +226,13 @@ mutation {
 }'
 ```
 
-Use `--paginate` or cursor-based pagination when the PR has more than 100
-threads. The REST comments endpoint defaults to 30 results per page — always
-paginate with `--paginate` or `per_page=100` to avoid missing comments.
+**GitHub GraphQL review threads**: `reviewThreads(first: 100)` is cursor-based.
+If the PR has more than 100 threads, request `pageInfo { hasNextPage endCursor }`
+and continue with `after: endCursor` until all threads are fetched.
+
+**GitHub REST comments endpoints**: comment list endpoints default to 30 results
+per page. Always paginate with `--paginate` or set `per_page=100` to avoid
+missing comments.
 
 **Azure DevOps** — Review comments live inside *threads* with a `status`
 field. To resolve a thread, PATCH

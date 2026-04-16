@@ -238,7 +238,7 @@ DDD antipatterns. Evans-named antipatterns marked *(Evans term)*. Others `[inter
 
 | Fix | Pattern |
 |-----|---------|
-| Translate at the boundary | **Anticorruption Layer** (p. 257) |
+| Translate at the boundary | **Anti-Corruption Layer** (p. 257) |
 | Define explicit services | **Open Host Service** (p. 263) + **Published Language** (p. 264) |
 | Accept the dependency | **Conformist** (p. 255) — if you can't fight it, acknowledge it |
 
@@ -279,5 +279,5 @@ DDD antipatterns. Evans-named antipatterns marked *(Evans term)*. Others `[inter
 | Every operation is a service method | Service overuse | Push behavior onto domain objects |
 | Repository has 20+ findBy methods | Repository as query engine | Specification pattern |
 | Aggregates created in invalid states | Missing factory | Factories |
-| Types from other context used directly | Leaking BC | Anticorruption Layer, Open Host Service |
+| Types from other context used directly | Leaking BC | Anti-Corruption Layer, Open Host Service |
 | Multiple services share DB tables | Shared DB integration | Bounded Context, own your data |
