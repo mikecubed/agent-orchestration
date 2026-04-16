@@ -82,4 +82,4 @@ Provide factual context: confirm the spec path exists and FR count before genera
 /flow:contracts
 ```
 
-After preparing the spec with `/flow:sdd-specify` and `/flow:sdd-plan`, provide the spec path (`.sdd/order-service-abc123/spec.md`) and accept the default output directory. The skill parses 5 FRs, emits OpenAPI paths for the 3 endpoint FRs with `x-fr-id` annotations, generates `Order.json` from the Key Entities section, converts 3 acceptance scenarios into Gherkin, and writes a durable `contracts-summary.md` artifact summarizing all mappings and the 2 unresolved domain-rule FRs.
+After preparing the spec with `/flow:sdd-specify`, provide the spec path (`.sdd/order-service-abc123/spec.md`) and accept the default output directory. The skill parses 5 FRs, emits OpenAPI paths for the 3 endpoint FRs with `x-fr-id` annotations, generates `Order.json` from the Key Entities section, converts 3 acceptance scenarios into Gherkin, and writes a durable `contracts-summary.md` artifact summarizing all mappings and the 2 unresolved domain-rule FRs.
