@@ -193,6 +193,42 @@ do both. A silent resolve is incomplete, and a reply without the matching
 resolve / close action is incomplete unless a real blocker keeps the discussion
 intentionally open.
 
+#### Platform-specific thread resolution
+
+**GitHub** — Review comments live inside *review threads*. Replying to a
+comment (`POST /repos/{owner}/{repo}/pulls/{pull}/comments/{id}/replies`)
+does **not** resolve the thread. To resolve a thread, use the GraphQL
+mutation `resolveReviewThread(input: { threadId: $threadId })` where
+`$threadId` is the thread's `PRRT_*` node ID (not the comment's
+`PRRC_*` node ID). Obtain thread IDs via:
+
+```graphql
+query {
+  repository(owner: $owner, name: $repo) {
+    pullRequest(number: $pr) {
+      reviewThreads(first: 100) {
+        nodes { id isResolved comments(first: 1) { nodes { body path } } }
+      }
+    }
+  }
+}
+```
+
+Use `--paginate` or cursor-based pagination when the PR has more than 100
+threads. The REST comments endpoint defaults to 30 results per page — always
+paginate with `--paginate` or `per_page=100` to avoid missing comments.
+
+**Azure DevOps** — Review comments live inside *threads* with a `status`
+field. To resolve a thread, PATCH
+`/{org}/{project}/_apis/git/repositories/{repo}/pullRequests/{pr}/threads/{threadId}?api-version=7.1`
+with `{ "status": "fixed" }` (or `"closed"`, `"wontFix"`, `"byDesign"` as
+appropriate). Reply first via the `comments` sub-resource, then update the
+thread status.
+
+**Both platforms**: always reply first, then resolve/close. The reply
+provides the human-readable rationale; the resolution updates the
+machine-readable state.
+
 ## Workflow
 
 ### 1. Gather review context
@@ -389,22 +425,29 @@ When the reviewer and implementer disagree on whether a comment should be fixed 
 
 Do not allow a fix-vs-decline disagreement to stall the rest of the batch. Move to the next independent item and return to the disputed comment after escalation or re-scoping resolves it.
 
-### 6. Reply to and close review discussions
+### 6. Reply to and resolve review threads
 
-After each fix or decline:
+After each fix or decline, perform **two actions per thread** — reply then
+resolve. Never skip either step.
 
-- if fixed, reply briefly with what changed and use the platform-appropriate action to mark the discussion addressed;
-- if declined, reply with the concrete reason — false positive, noise, stale,
-  already fixed, or out of scope — and apply the repository's expected decline
-  or close action when appropriate;
-- if clarification is still needed, post the question and leave the discussion open intentionally.
+1. **Reply** — post a short, concrete comment on the thread:
+   - if fixed: what changed and the commit SHA;
+   - if declined: the concrete reason (false positive, noise, stale, out of scope);
+   - if clarification needed: the question, and leave the thread open intentionally.
 
-GitHub and Azure DevOps expose different thread status labels, but the workflow outcome should still map to the same three states above: fixed, declined, or intentionally left open.
+2. **Resolve the thread** — use the platform-specific mechanism described in
+   Core Rule 5 ("Platform-specific thread resolution"):
+   - GitHub: `resolveReviewThread` GraphQL mutation with the thread's `PRRT_*` ID;
+   - Azure DevOps: PATCH the thread status to `fixed`, `closed`, `wontFix`, or `byDesign`.
 
-Silent declines are not allowed.
+Silent declines are not allowed. A reply without thread resolution is
+incomplete. A thread resolution without a reply is incomplete.
 
-If the platform exposes separate APIs for comment replies and thread resolution,
-the workflow must perform both actions for fixed or declined items.
+When collecting threads, always paginate (GitHub REST defaults to 30 per
+page; use `--paginate` or `per_page=100`). Use the GraphQL
+`reviewThreads` query to obtain thread IDs for resolution — comment IDs
+(`PRRC_*`) are not thread IDs (`PRRT_*`) and cannot be used with
+`resolveReviewThread`.
 
 ### 7. Final validation
 
@@ -495,7 +538,10 @@ A comment is not complete until:
 - an evidence verdict was recorded explicitly;
 - fix, decline, or clarify-first was chosen;
 - a reply was posted for fixed or declined items;
-- the thread was resolved or intentionally left open with a stated blocker.
+- the **thread** (not the comment) was resolved using the platform's thread
+  resolution API, or intentionally left open with a stated blocker.
+  On GitHub this means `resolveReviewThread` with the `PRRT_*` thread ID.
+  On Azure DevOps this means PATCHing the thread status.
 
 ### Fix gate
 
