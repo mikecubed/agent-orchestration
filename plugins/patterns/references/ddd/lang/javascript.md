@@ -61,6 +61,10 @@ export class Order {
     this.#lineItems.push(LineItem.create(product, qty));
   }
 
+  multiply(factor) {
+    return Money.of(this.#amount * factor, this.#currency);
+  }
+
   equals(other) {
     return other instanceof Order && this.#id.equals(other.id);
   }
@@ -105,6 +109,10 @@ export class Money {
     return Money.of(this.#amount + other.amount, this.#currency);
   }
 
+  multiply(factor) {
+    return Money.of(this.#amount * factor, this.#currency);
+  }
+
   equals(other) {
     return other instanceof Money
       && this.#amount === other.amount
@@ -118,7 +126,7 @@ export class Money {
 - `Object.freeze(this)` in constructor enforces immutability
 - Sequelize: store as flat columns, reconstruct in repository layer
 - `equals()` compares all attributes — no identity field
-- Private fields + freeze = strong immutability guarantee in ES2024
+- Private fields prevent external access; `Object.freeze` prevents public property changes but does not prevent internal mutation via class methods
 
 ---
 
@@ -553,6 +561,10 @@ export class Money {
   add(other) {
     if (this.#currency !== other.currency) throw new Error('Currency mismatch');
     return Money.of(this.#amount + other.amount, this.#currency);
+  }
+
+  multiply(factor) {
+    return Money.of(this.#amount * factor, this.#currency);
   }
 
   equals(other) {

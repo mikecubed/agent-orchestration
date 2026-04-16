@@ -95,6 +95,10 @@ export class Money {
     return Money.of(this.amount + other.amount, this.currency);
   }
 
+  multiply(factor: number): Money {
+    return Money.of(this.amount * factor, this.currency);
+  }
+
   equals(other: Money): boolean {
     return this.amount === other.amount && this.currency === other.currency;
   }
@@ -538,6 +542,10 @@ export class Money {
   add(other: Money): Money {
     if (this.currency !== other.currency) throw new CurrencyMismatchError();
     return Money.of(this.amount + other.amount, this.currency);
+  }
+
+  multiply(factor: number): Money {
+    return Money.of(this.amount * factor, this.currency);
   }
 
   equals(other: Money): boolean {

@@ -202,16 +202,28 @@ mutation `resolveReviewThread(input: { threadId: $threadId })` where
 `$threadId` is the thread's `PRRT_*` node ID (not the comment's
 `PRRC_*` node ID). Obtain thread IDs via:
 
-```graphql
+```
+gh api graphql -f query='
 query {
-  repository(owner: $owner, name: $repo) {
-    pullRequest(number: $pr) {
+  repository(owner: "OWNER", name: "REPO") {
+    pullRequest(number: PR_NUMBER) {
       reviewThreads(first: 100) {
         nodes { id isResolved comments(first: 1) { nodes { body path } } }
       }
     }
   }
-}
+}'
+```
+
+Replace `OWNER`, `REPO`, and `PR_NUMBER` with actual values. To resolve:
+
+```
+gh api graphql -f query='
+mutation {
+  resolveReviewThread(input: { threadId: "PRRT_..." }) {
+    thread { isResolved }
+  }
+}'
 ```
 
 Use `--paginate` or cursor-based pagination when the PR has more than 100

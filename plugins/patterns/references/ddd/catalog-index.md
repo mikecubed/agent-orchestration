@@ -58,7 +58,7 @@ These are practices/principles, not code patterns. Covered by `ddd-teach` only.
 | Shared Kernel | 251 | Two teams share a subset of the model, agreeing not to change it without consultation. | Bounded Context | Separate Ways |
 | Customer/Supplier | 252 | Upstream team serves downstream team's needs with negotiated interfaces. | Context Map | Conformist |
 | Conformist | 255 | Downstream team conforms to upstream team's model with no negotiation power. | Context Map | Customer/Supplier, ACL |
-| Anticorruption Layer | 257 | Translation layer that protects your model from a foreign model's influence. | Bounded Context, Facade/Adapter (GoF) | Conformist |
+| Anti-Corruption Layer | 257 | Translation layer that protects your model from a foreign model's influence. | Bounded Context, Facade/Adapter (GoF) | Conformist |
 | Separate Ways | 261 | Two contexts have no integration — they are completely independent. | Context Map | Shared Kernel |
 | Open Host Service | 263 | Define a protocol that gives access to your subsystem as a set of services. | Published Language | — |
 | Published Language | 264 | A well-documented shared language for inter-context communication. | Open Host Service | Ad-hoc translation |
