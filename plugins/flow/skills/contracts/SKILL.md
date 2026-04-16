@@ -14,7 +14,7 @@ Accept a `.sdd/*/spec.md` path **or** a natural-language endpoint description as
 | `features/{feature-name}.feature` | Gherkin |
 | `contracts-summary.md` | Durable summary artifact listing all generated files, FR-ID mappings, and unresolved items |
 
-**SDLC placement:** between `sdd-specify` and `sdd-plan` — contracts are derived *after* the spec is written and *before* the implementation plan is created.
+**SDLC placement:** between `/flow:sdd-specify` and `/flow:sdd-plan` — contracts are derived *after* the spec is written and *before* the implementation plan is created.
 
 The output directory defaults to `.sdd/{feature-dir}/contracts/`.
 
@@ -22,7 +22,7 @@ Persistent team, squad, or fleet-style long-lived orchestration is out of scope 
 
 ## When to Use It
 
-- After `sdd-specify` produces a `spec.md` and you need machine-readable contracts before planning.
+- After `/flow:sdd-specify` produces a `spec.md` and you need machine-readable contracts before planning.
 - When REST contracts, JSON Schema definitions, or Gherkin acceptance tests need to be derived from a spec.
 - On spec changes — regeneration overwrites contracts in place and records the delta in `contracts-summary.md`.
 - When a natural-language endpoint description is the only input available (no `spec.md` yet).
@@ -82,4 +82,4 @@ Provide factual context: confirm the spec path exists and FR count before genera
 /flow:contracts
 ```
 
-Provide the spec path (`.sdd/order-service-abc123/spec.md`) and accept the default output directory. The skill parses 5 FRs, emits OpenAPI paths for the 3 endpoint FRs with `x-fr-id` annotations, generates `Order.json` from the Key Entities section, converts 3 acceptance scenarios into Gherkin, and writes a durable `contracts-summary.md` artifact summarizing all mappings and the 2 unresolved domain-rule FRs.
+After preparing the spec with `/flow:sdd-specify` and `/flow:sdd-plan`, provide the spec path (`.sdd/order-service-abc123/spec.md`) and accept the default output directory. The skill parses 5 FRs, emits OpenAPI paths for the 3 endpoint FRs with `x-fr-id` annotations, generates `Order.json` from the Key Entities section, converts 3 acceptance scenarios into Gherkin, and writes a durable `contracts-summary.md` artifact summarizing all mappings and the 2 unresolved domain-rule FRs.
