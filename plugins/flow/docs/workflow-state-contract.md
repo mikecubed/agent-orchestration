@@ -1,0 +1,249 @@
+# Workflow State Contract
+
+This document defines the durable workflow-state artifact used to record the
+latest lifecycle position of a workflow run without overloading transient
+session continuity files.
+
+## Purpose
+
+Durable workflow state exists so a later workflow, conductor, or continuation
+step can answer these questions without scraping chat history:
+
+- what phase is the workflow in;
+- whether the workflow is manual, guided, or auto-progressing;
+- which durable artifacts represent the latest trusted outputs;
+- what should happen next.
+
+## Canonical file identity
+
+The durable workflow-state artifact lives at one canonical root-relative path:
+
+```text
+.flow/state.json
+```
+
+This is a lifecycle artifact, not a session artifact.
+
+## File format and version marker
+
+The state file is machine-readable JSON:
+
+```json
+{
+  "schema-version": "1.0",
+  "workflow": "parallel-impl",
+  "updated-at": "2026-04-09T23:30:00Z",
+  "status": "active",
+  "current-phase": "track-contracts-merged",
+  "automation-mode": "guided",
+  "next-action": "run integration validation",
+  "workspace": {
+    "branch": "feat/workflow-defaults-state-foundation-1-6",
+    "target": "main"
+  },
+  "artifacts": {
+    "track-report": ".flow/artifacts/track-report-workflow-defaults-1-6-contracts.md",
+    "batch-summary": ".flow/artifacts/batch-summary-workflow-defaults-state-foundation-1-6.md"
+  },
+  "owner": {
+    "kind": "workflow",
+    "name": "parallel-impl"
+  }
+}
+```
+
+## Required fields
+
+Every write must include:
+
+- `schema-version`: string, currently `"1.0"`
+- `workflow`: workflow name responsible for the current lifecycle
+- `updated-at`: ISO-8601 timestamp
+- `status`: `planned` | `active` | `blocked` | `complete` | `stale`
+- `current-phase`: current lifecycle phase label
+- `automation-mode`: `manual` | `guided` | `auto`
+- `next-action`: the next recommended concrete step
+- `artifacts`: object mapping artifact roles to durable references
+
+`workspace` and `owner` are strongly recommended for coordination workflows in
+this phase because they help later readers verify that the state matches the
+expected branch and writer.
+
+## Discovery rules
+
+Readers use one canonical path: `.flow/state.json`.
+
+- If the file is absent, the workflow must not infer completion from chat memory.
+- If the file is malformed, unsupported, or stale, the workflow must stop unsafe
+  progression and request human confirmation or regenerate trusted state from
+  durable artifacts.
+- Readers may use the referenced durable artifacts as supporting evidence, but
+  the state file alone is not a substitute for review, readiness, or validation.
+- When a referenced artifact is a local generated report or summary, readers
+  should inspect `.flow/artifacts/` directly rather than rely
+  on broad repo search heuristics.
+
+## Continuation intake and trust checks
+
+Continuation readers must treat `.flow/state.json` as the
+first durable checkpoint for deciding whether lifecycle progress can resume
+safely. The state file is necessary context, but it is trusted only when the
+supporting artifacts and workspace still line up.
+
+Before a workflow continues from state, confirm all of the following:
+
+- the schema version is supported;
+- the current workflow is allowed to resume the recorded owner;
+- the `workspace.branch` and `workspace.target` still match the active run;
+- every artifact reference needed for the current phase still exists;
+- readiness or publish artifacts still describe the exact tree being resumed or
+  published.
+
+Treat continuation as unsafe and stop auto-progression when any of those checks
+fails.
+
+## Reader and writer ownership
+
+### Writers
+
+Only the workflow that currently owns lifecycle coordination should write the
+state file. In this phase that generally means:
+
+- a top-level conductor or orchestration workflow when one exists;
+- a multi-step coordinator such as `parallel-impl` when it is the
+  active lifecycle owner;
+- a top-level conductor such as `idea-to-done` when it is
+  explicitly resuming ownership;
+- `knowledge-refresh` when it is the active refresh lifecycle owner — refresh
+  writes state at its own phase boundaries (see
+  `skills/knowledge-refresh/SKILL.md` for the refresh state-boundary matrix).
+
+Specialist skills must not silently overwrite shared workflow state just because
+they were invoked locally. A workflow may update the state only when it is the
+recognized owner of the current run.
+
+### Refresh-specific state boundaries
+
+When `knowledge-refresh` owns the lifecycle, it writes state at these
+boundaries: `refresh-assessing`, `refresh-candidates-confirmed`,
+`refresh-planned`, `refresh-updating`, `refresh-validating`,
+`refresh-blocked`, `refresh-state-stale`, `refresh-complete`, and
+`refresh-partial`. Each write follows the same required-field contract as
+any other workflow owner. See the refresh skill for the full boundary matrix.
+
+### Readers
+
+Any workflow may read the state file as advisory lifecycle context. Reading
+state does not grant authority to skip the workflow's own gates.
+
+## Artifact reference rules
+
+`artifacts` stores durable pointers, not chat summaries. References should point
+to root dot-directory artifacts, PRs, issue comments, or other
+repository-appropriate durable sinks.
+
+At minimum, later workflows must be able to identify:
+
+- the latest durable artifact for the current phase;
+- the latest integrated summary or batch artifact when one exists.
+
+Continuation-sensitive phases must keep enough artifact coverage to determine
+the next-ready specialist handoff. In practice that means later readers should
+be able to answer:
+
+- what the latest trusted completed phase was;
+- which artifact proves that phase completed;
+- whether the next phase is review, resolution, readiness, publication, merge
+  monitoring, release-closeout, knowledge, completion summary, or lifecycle
+  completion.
+
+## Continuation boundary matrix
+
+Use this matrix when deciding whether a lifecycle can resume and what the next
+state write must contain, including post-publish closeout for
+`idea-to-done`.
+
+| Boundary | Required `status` | Required `current-phase` | Minimum durable references | `next-action` expectation |
+| --- | --- | --- | --- | --- |
+| Resume assessment begins | `planned` \| `active` \| `blocked` | `resume-assessment` | state file plus latest artifact for the recorded phase being resumed | name the one next-ready specialist workflow or required clarification step |
+| Resumed specialist entry | `active` | phase-specific in-progress boundary such as `delivery-in-progress` | artifact proving the previous phase completed | point at the next owned specialist action, not a vague resume note |
+| Blocked or stale stop | `blocked` \| `stale` | `delivery-blocked`, `readiness-blocked`, `publish-waiting-human`, `merge-waiting-human`, `release-blocked`, `closeout-stale`, or `resume-stale` | blocking artifact or mismatch evidence | request the exact human action or regeneration needed before continuation |
+| Human-gated publish | `blocked` | `publish-waiting-human` | readiness artifact for the exact publishable tree | wait for explicit human publish action |
+| Closeout assessment begins | `active` | `closeout-assessing` | latest trusted publish summary, merged PR reference, or prior conductor summary | verify merge, release, and knowledge obligations before routing |
+| Merge still pending | `active` \| `blocked` | `merge-monitoring` or `merge-waiting-human` | publish summary plus PR reference or merge-policy note | monitor merge or wait for the exact human action required |
+| Merge confirmed | `active` | `merge-complete` | merged PR reference or equivalent merge evidence | determine whether release-closeout is required next |
+| Release-closeout is next-ready | `active` | `release-entry` | merge evidence plus release handoff context, versioning note, or changelog pointer | invoke `release` or stop for the exact human gate |
+| Release-closeout is blocked or intentionally skipped | `blocked` \| `complete` | `release-blocked` or `release-skipped` | release handoff artifact or explicit policy note | surface the exact follow-up or continue to knowledge or summary only when skip is allowed |
+| Knowledge is next-ready after closeout | `active` \| `complete` | `closeout-knowledge-capture` or `closeout-knowledge-refresh` | merge or release evidence plus knowledge artifact or refresh trigger | invoke or recommend the one next-ready knowledge workflow |
+| Completion summary is finalizing | `active` | `closeout-summarizing` | latest merge, release, and knowledge artifacts | write the durable completion summary |
+| Lifecycle completion | `complete` | `closeout-complete`, `closeout-partial`, `knowledge-captured`, `knowledge-skipped`, or `published` when no closeout is needed | completion summary or final publish / knowledge artifact plus summary artifact when produced | close the lifecycle or point at optional follow-up work only |
+
+## Lifecycle
+
+Expected lifecycle in this phase:
+
+1. created when a workflow first produces a durable artifact worth resuming;
+2. updated at meaningful phase boundaries, not every keystroke;
+3. retained until the workflow is complete or explicitly superseded;
+4. marked `stale` when its references no longer describe the current branch,
+   artifact set, or lifecycle owner.
+
+## Boundary-write rules
+
+Writers must update the state only at meaningful owned boundaries. For
+continuation this means:
+
+1. write a resume-assessment boundary before routing into a resumed specialist
+   workflow when the conductor is re-establishing trust;
+2. write `stale` or `blocked` immediately when continuation fails a trust check;
+3. do not retain a previously-passing readiness or publish state if later tree
+   changes invalidate that evidence;
+4. when closeout begins after publication, write `closeout-assessing` before
+   deciding merge monitoring, release-closeout, knowledge, or summary;
+5. when closeout trust fails after publication or merge, write
+   `closeout-stale`, `merge-waiting-human`, or `release-blocked` immediately
+   instead of preserving a stale success-shaped state;
+6. keep `next-action` concrete enough that the reader can route to one next
+   ready step without scraping chat history.
+
+## Stale-state handling expectations
+
+Treat the state as stale when any of the following is true:
+
+- referenced artifacts are missing;
+- the branch or target recorded in `workspace` no longer matches the active run
+  (**workspace mismatch**);
+- `updated-at` predates a newer durable artifact that should have superseded it;
+- `owner` no longer matches the workflow attempting to continue
+  (**lifecycle-owner mismatch**);
+- the schema version is unsupported;
+- readiness or publish evidence no longer describes the exact current tree
+  (**invalidated readiness or publish evidence**);
+- merge evidence no longer matches the published lifecycle being resumed
+  (**stale merge evidence**);
+- release evidence no longer matches the merged lifecycle being closed out
+  (**invalidated release evidence**).
+
+When state is stale, the workflow must stop unsafe auto-progression, surface the
+reason, and ask for human confirmation or regeneration.
+
+Changed-tree detection may use any trustworthy local evidence, including branch
+name drift, comparison against the commit or PR reference named by the readiness
+or publish artifact, or newer durable artifacts that supersede the prior state.
+
+## Separation from transient session continuity
+
+Durable workflow state is **not** the same thing as `.agent/SESSION.md` or
+`.agent/HANDOFF.json`.
+
+| Artifact | Purpose | Lifetime | Version-controlled |
+|---|---|---|---|
+| `.flow/state.json` | Durable lifecycle state for workflow continuation and artifact discovery | Cross-session, until superseded | Repository decision |
+| `.agent/SESSION.md` | Human-readable session continuity for the current local work session | Session/runtime | No |
+| `.agent/HANDOFF.json` | Machine-readable companion to `SESSION.md` for the current local work session | Session/runtime | No |
+
+Session continuity may mention the active workflow state artifact, but it must
+not replace or redefine it. This remains true for idea-to-done closeout:
+post-merge phase ownership, automation mode, merge status, release disposition,
+and completion-summary references belong in `.flow/state.json`,
+not in `.agent/SESSION.md` or `.agent/HANDOFF.json`.

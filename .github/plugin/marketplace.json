@@ -4,15 +4,15 @@
     "name": "Michael Henderson"
   },
   "metadata": {
-    "description": "Marketplace metadata for companion planning, workflow, SDD, and clean-code enforcement plugins.",
-    "version": "2.2.1"
+    "description": "Marketplace metadata for workflow, clean-code enforcement, and design pattern plugins.",
+    "version": "3.0.0"
   },
   "plugins": [
     {
-      "name": "workflow-orchestration",
-      "source": "plugins/workflow-orchestration",
-      "description": "Idea-to-done conductor, planning, delivery orchestration, codebase mapping, architecture review, brainstorm ideation, implementation, systematic debugging, incident RCA, e2e test generation, review-resolution, PR-readiness, diff review, git worktree lifecycle, swarm orchestration, contract generation, PR publication, release orchestration, knowledge capture, and knowledge refresh skills.",
-      "version": "2.2.1",
+      "name": "flow",
+      "source": "plugins/flow",
+      "description": "Idea-to-done conductor, planning, delivery, codebase mapping, architecture review, brainstorm ideation, parallel implementation, systematic debugging, incident RCA, e2e test generation, review resolution, PR readiness, diff review, worktree lifecycle, swarm orchestration, contract generation, PR publication, release, knowledge capture, knowledge refresh, and SDD specification skills.",
+      "version": "3.0.0",
       "author": {
         "name": "Michael Henderson"
       },
@@ -23,7 +23,8 @@
         "workflow",
         "orchestration",
         "planning",
-        "review"
+        "review",
+        "sdd"
       ],
       "category": "developer-tools",
       "tags": [
@@ -35,40 +36,14 @@
       ],
       "skills": [
         "skills/"
-      ]
+      ],
+      "agents": "agents/"
     },
     {
-      "name": "sdd-workflow",
-      "source": "plugins/sdd-workflow",
-      "description": "Spec-driven development workflow plugin for GitHub Copilot CLI.",
-      "version": "0.2.0",
-      "author": {
-        "name": "Michael Henderson"
-      },
-      "license": "MIT",
-      "keywords": [
-        "copilot",
-        "sdd",
-        "planning",
-        "specification",
-        "tasks"
-      ],
-      "category": "developer-tools",
-      "tags": [
-        "planning",
-        "specification",
-        "tasks",
-        "claude-compatible"
-      ],
-      "skills": [
-        "copilot-skills/"
-      ]
-    },
-    {
-      "name": "clean-code-codex",
-      "source": "plugins/clean-code-codex",
+      "name": "ccc",
+      "source": "plugins/ccc",
       "description": "Composable, multi-language, TDD-first clean code enforcement system. Orchestrates 17 check sub-skills across TypeScript, JavaScript, Python, Go, and Rust.",
-      "version": "1.4.0",
+      "version": "3.0.0",
       "author": {
         "name": "mikecubed"
       },
@@ -89,6 +64,34 @@
         "claude-compatible"
       ],
       "agents": "agents/",
+      "skills": [
+        "skills/"
+      ]
+    },
+    {
+      "name": "patterns",
+      "source": "plugins/patterns",
+      "description": "Design pattern advisor, evaluator, refactoring planner, and interactive teacher grounded in canonical software architecture books. Currently includes Fowler's PEAA with a 51-pattern catalog.",
+      "version": "3.0.0",
+      "author": {
+        "name": "mikecubed"
+      },
+      "license": "MIT",
+      "keywords": [
+        "copilot",
+        "patterns",
+        "architecture",
+        "peaa",
+        "design-patterns",
+        "refactoring"
+      ],
+      "category": "developer-tools",
+      "tags": [
+        "architecture",
+        "design-patterns",
+        "code-review",
+        "claude-compatible"
+      ],
       "skills": [
         "skills/"
       ]

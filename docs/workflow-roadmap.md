@@ -3,9 +3,9 @@
 ## Discovery brief
 
 ```text
-Task summary: define the post-1.6 phase-based roadmap focused on the remaining productization gaps after workflow-orchestration shipped the defaults/state foundation.
+Task summary: define the post-1.6 phase-based roadmap focused on the remaining productization gaps after flow shipped the defaults/state foundation.
 Planning mode: fallback planning
-Relevant files: docs/everyinc-compound-engineering-comparison.md, docs/workflow-roadmap.md, plugins/workflow-orchestration/docs/workflow-usage-guide.md, plugins/workflow-orchestration/README.md, plugins/workflow-orchestration/skills/*
+Relevant files: docs/everyinc-compound-engineering-comparison.md, docs/workflow-roadmap.md, plugins/flow/docs/workflow-usage-guide.md, plugins/flow/README.md, plugins/flow/skills/*
 Validation commands: npm test, npm run validate:plugin, npm run validate:runtime
 Task boundaries: in scope = roadmap phases for lifecycle automation, workflow defaults, continuation, knowledge refresh, and direct-execution hardening; out of scope = packaging/distribution expansion, persona sprawl, mega-skill rewrites
 Dependencies: preserve current workflow contracts; build thin coordinators over existing skills; keep Codex as the quality gate rather than inventing a parallel quality system
@@ -29,7 +29,7 @@ This roadmap therefore optimizes for a different goal:
 ```mermaid
 flowchart LR
     subgraph Current["Current shipped platform"]
-        C1["brainstorm-ideation"] --> C2["planning-orchestration / sdd-workflow"]
+        C1["brainstorm"] --> C2["plan / sdd-specify"]
         C2 --> C3["delivery-orchestration"]
         C3 --> C4["direct / parallel / swarm / debug"]
         C4 --> C5["diff-review-orchestration"]
@@ -156,12 +156,12 @@ This phase turns the current workflow system from "good prompts with docs" into 
 
 This phase is complete. The repo now ships:
 
-- `plugins/workflow-orchestration/docs/workflow-defaults-contract.md`
-- `plugins/workflow-orchestration/docs/workflow-state-contract.md`
-- the session-boundary clarification in `plugins/workflow-orchestration/docs/session-md-schema.md`
-- lightweight defaults adoption in `planning-orchestration`,
-  `diff-review-orchestration`, `pr-publish-orchestration`, and
-  `knowledge-compound`
+- `plugins/flow/docs/workflow-defaults-contract.md`
+- `plugins/flow/docs/workflow-state-contract.md`
+- the session-boundary clarification in `plugins/flow/docs/session-md-schema.md`
+- lightweight defaults adoption in `plan`,
+  `diff-review`, `pr-publish`, and
+  `knowledge-save`
 - product/docs/test/version alignment for the `1.6.0` release surface
 
 The next roadmap phase should build on this contract rather than redefining it.

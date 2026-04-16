@@ -1,0 +1,14 @@
+{
+  "name": "flow",
+  "description": "Idea-to-done conductor, planning, delivery, codebase mapping, architecture review, brainstorm ideation, parallel implementation, systematic debugging, incident RCA, e2e test generation, review resolution, PR readiness, diff review, worktree lifecycle, swarm orchestration, contract generation, PR publication, release, knowledge capture, knowledge refresh, and SDD specification skills.",
+  "version": "3.0.0",
+  "author": {
+    "name": "Michael Henderson"
+  },
+  "license": "MIT",
+  "category": "developer-tools",
+  "keywords": ["copilot", "skills", "workflow", "orchestration", "planning", "review", "sdd"],
+  "tags": ["pull-requests", "implementation", "code-review", "planning", "claude-compatible"],
+  "skills": ["skills/"],
+  "agents": "agents/"
+}

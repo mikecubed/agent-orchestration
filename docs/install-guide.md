@@ -1,34 +1,36 @@
 # Install Guide
 
-Install only the plugin you need, or install multiple plugins together when you want planning, spec-driven workflows, and clean-code enforcement in the same repo.
+Install only the plugin you need, or install multiple plugins together when you want planning, spec-driven workflows, clean-code enforcement, and PEAA patterns in the same repo.
 
-## Install `workflow-orchestration`
+## Install `flow`
+
+The flow plugin includes both workflow orchestration and SDD (previously separate SDD).
 
 ```bash
-copilot plugin install ./plugins/workflow-orchestration
-claude --plugin-dir ./plugins/workflow-orchestration
+copilot plugin install ./plugins/flow
+claude --plugin-dir ./plugins/flow
 ```
 
-## Install `sdd-workflow`
+## Install `ccc`
 
 ```bash
-copilot plugin install ./plugins/sdd-workflow
-claude --plugin-dir ./plugins/sdd-workflow
+copilot plugin install ./plugins/ccc
+claude --plugin-dir ./plugins/ccc
 ```
 
-## Install `clean-code-codex`
+## Install `patterns`
 
 ```bash
-copilot plugin install ./plugins/clean-code-codex
-claude --plugin-dir ./plugins/clean-code-codex
+copilot plugin install ./plugins/patterns
+claude --plugin-dir ./plugins/patterns
 ```
 
-## Install all three
+## Install all plugins
 
 ```bash
-copilot plugin install ./plugins/workflow-orchestration
-copilot plugin install ./plugins/sdd-workflow
-copilot plugin install ./plugins/clean-code-codex
+copilot plugin install ./plugins/flow
+copilot plugin install ./plugins/ccc
+copilot plugin install ./plugins/patterns
 ```
 
 For Claude Code, start a session with one plugin directory at a time or load them through your normal plugin management flow.

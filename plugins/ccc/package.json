@@ -1,0 +1,28 @@
+{
+  "name": "ccc",
+  "version": "3.0.0",
+  "description": "Composable, multi-language, TDD-first clean code enforcement system. Orchestrates 17 check sub-skills across TypeScript, JavaScript, Python, Go, and Rust.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "validate:plugin": "node --test test/**/*.test.js",
+    "validate:runtime": "node ../../scripts/verify-runtime.mjs ccc"
+  },
+  "files": [
+    "plugin.json",
+    ".claude-plugin/",
+    "README.md",
+    "agents/",
+    "commands/",
+    "skills/",
+    "scripts/",
+    "hooks/",
+    "gh-hooks/",
+    "docs/"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -13,25 +13,25 @@ const ROOT_PACKAGE_NAME = JSON.parse(
 ).name;
 const PLUGIN_TARGETS = new Map([
   [
-    'workflow-orchestration',
+    'flow',
     {
-      root: path.join(ROOT, 'plugins', 'workflow-orchestration'),
+      root: path.join(ROOT, 'plugins', 'flow'),
       copilotSkillDir: 'skills',
       claudeSkillDir: 'skills',
     },
   ],
   [
-    'sdd-workflow',
+    'ccc',
     {
-      root: path.join(ROOT, 'plugins', 'sdd-workflow'),
-      copilotSkillDir: 'copilot-skills',
+      root: path.join(ROOT, 'plugins', 'ccc'),
+      copilotSkillDir: 'skills',
       claudeSkillDir: 'skills',
     },
   ],
   [
-    'clean-code-codex',
+    'patterns',
     {
-      root: path.join(ROOT, 'plugins', 'clean-code-codex'),
+      root: path.join(ROOT, 'plugins', 'patterns'),
       copilotSkillDir: 'skills',
       claudeSkillDir: 'skills',
     },

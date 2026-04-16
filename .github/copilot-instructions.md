@@ -4,32 +4,34 @@
 
 - Use Node 22 or newer. The repo is ESM-only and the root and plugin package manifests declare `node >=22.0.0`.
 - Install dependencies with `npm install`.
-- Run the full validation suite with `npm run validate:plugin` or `npm test`. The root suite runs the umbrella tests and the nested workflow and Codex plugin tests.
-- Run local runtime verification with `npm run validate:runtime`. It performs isolated Copilot install/list/uninstall checks and real plugin-load checks for `workflow-orchestration`, `sdd-workflow`, and `clean-code-codex` in both Copilot CLI and Claude Code, so it requires authenticated CLIs and may consume model requests.
+- Run the full validation suite with `npm run validate:plugin` or `npm test`. The root suite runs the umbrella tests and the nested flow, ccc, and patterns plugin tests.
+- Run local runtime verification with `npm run validate:runtime`. It performs isolated Copilot install/list/uninstall checks and real plugin-load checks for `flow`, `ccc`, and `patterns` in both Copilot CLI and Claude Code, so it requires authenticated CLIs and may consume model requests.
 - Run the umbrella-only test file with `node --test test/umbrella-layout.test.js`.
-- Run the workflow plugin test file with `node --test plugins/workflow-orchestration/test/plugin-layout.test.js`.
-- Run the Codex plugin test file with `node --test plugins/clean-code-codex/test/plugin-layout.test.js`.
+- Run the flow plugin test file with `node --test plugins/flow/test/plugin-layout.test.js`.
+- Run the ccc plugin test file with `node --test plugins/ccc/test/plugin-layout.test.js`.
+- Run the patterns plugin test file with `node --test plugins/patterns/test/plugin-layout.test.js`.
 
 ## High-level architecture
 
 - This repository is an umbrella marketplace repo for both GitHub Copilot CLI and Claude Code.
-- `plugins/workflow-orchestration/skills/*/SKILL.md` is the single source of truth for the workflow-orchestration skills.
-- `plugins/workflow-orchestration/plugin.json` and `plugins/workflow-orchestration/.claude-plugin/plugin.json` are the workflow plugin manifests.
-- `plugins/clean-code-codex/` contains the vendored Codex bundle and its plugin-local tests.
+- `plugins/flow/skills/*/SKILL.md` is the single source of truth for the flow skills. Flow also includes SDD agents in `plugins/flow/agents/`.
+- `plugins/flow/plugin.json` and `plugins/flow/.claude-plugin/plugin.json` are the flow plugin manifests.
+- `plugins/ccc/` contains the Clean Code Codex bundle and its plugin-local tests.
+- `plugins/patterns/` contains the design patterns plugin (currently PEAA) with its skills and reference catalogs.
 - `.github/plugin/marketplace.json` and `.claude-plugin/marketplace.json` are umbrella marketplace metadata for distributing multiple plugins from one repo.
 - `test/umbrella-layout.test.js` verifies the umbrella package and marketplace layout.
-- `plugins/workflow-orchestration/test/plugin-layout.test.js` verifies the workflow plugin manifests, package contents, and required structure inside each workflow `SKILL.md`.
+- `plugins/flow/test/plugin-layout.test.js` verifies the flow plugin manifests, package contents, and required structure inside each flow `SKILL.md`.
 - `.github/workflows/validate-plugin.yml` runs the same Node test suite in CI on `main`, `feat/**`, and `fix/**`.
 
 ## Repository-specific conventions
 
-- Keep the repository plugin-first. Changes to workflow skill behavior usually belong in `plugins/workflow-orchestration/skills/*/SKILL.md`; marketplace metadata should only change when bundle identity or packaging changes.
-- Keep `plugins/workflow-orchestration/plugin.json` and `plugins/workflow-orchestration/.claude-plugin/plugin.json` synchronized for shared identity fields such as `name`, `version`, and `description`. The workflow plugin test suite expects them to match.
+- Keep the repository plugin-first. Changes to workflow skill behavior usually belong in `plugins/flow/skills/*/SKILL.md`; marketplace metadata should only change when bundle identity or packaging changes.
+- Keep `plugins/flow/plugin.json` and `plugins/flow/.claude-plugin/plugin.json` synchronized for shared identity fields such as `name`, `version`, and `description`. The flow plugin test suite expects them to match.
 - Preserve the shared workflow skill path convention: Copilot uses `"skills": ["skills/"]`, while Claude uses `"skills": "./skills/"`.
 - Every skill file must keep the tested SKILL.md shape: YAML frontmatter with `name` and `description`, plus the required sections including `## Purpose` and `## Project-Specific Inputs`.
 - Write skill content in repo-agnostic workflow language. The skills are meant to be reusable across repositories, so avoid baking in project-specific branch names, validation commands, or Hydra-specific assumptions.
 - When extending a skill, keep the separation of responsibilities intact: implementation parallelism, review-resolution, and final readiness are modeled as three separate skills rather than one combined workflow.
-- Prefer plugin-qualified invocation names in docs and examples, such as `/workflow-orchestration:parallel-implementation-loop`, because the README treats plugin namespacing as the normal usage pattern.
+- Prefer plugin-qualified invocation names in docs and examples, such as `/flow:parallel-impl`, because the README treats plugin namespacing as the normal usage pattern.
 
 ## Session continuity — SESSION.md + HANDOFF.json
 
@@ -59,4 +61,4 @@ When SESSION.md is absent or malformed, check for `.agent/HANDOFF.json`:
   missing/non-array array fields): report the parse failure, ignore the file, and
   proceed as if it were absent.
 
-Schema reference: `plugins/workflow-orchestration/docs/session-md-schema.md`
+Schema reference: `plugins/flow/docs/session-md-schema.md`

@@ -1,12 +1,12 @@
 {
   "name": "agent-orchestration",
-  "version": "2.2.1",
-  "description": "Umbrella marketplace for workflow orchestration and spec-driven development plugins.",
+  "version": "3.0.0",
+  "description": "Umbrella marketplace for workflow, clean-code enforcement, and design pattern plugins.",
   "type": "module",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "test": "node --test test/**/*.test.js && npm --prefix plugins/workflow-orchestration test && npm --prefix plugins/clean-code-codex test",
+    "test": "node --test test/**/*.test.js && npm --prefix plugins/flow test && npm --prefix plugins/ccc test && npm --prefix plugins/patterns test",
     "validate:plugin": "npm test",
     "validate:runtime": "node scripts/verify-runtime.mjs"
   },

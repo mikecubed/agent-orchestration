@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository role
 
-This repository is an umbrella marketplace repo for **GitHub Copilot CLI** and **Claude Code** plugins. The `workflow-orchestration` plugin now lives under `plugins/workflow-orchestration/`, `sdd-workflow` lives under `plugins/sdd-workflow/`, and `clean-code-codex` lives under `plugins/clean-code-codex/`.
+This repository is an umbrella marketplace repo for **GitHub Copilot CLI** and **Claude Code** plugins. The `flow` plugin (workflow orchestration with integrated SDD) lives under `plugins/flow/`, `ccc` (clean-code enforcement) lives under `plugins/ccc/`, and `patterns` (PEAA skills) lives under `plugins/patterns/`.
 
 ## Validation commands
 
@@ -13,43 +13,44 @@ This repository is an umbrella marketplace repo for **GitHub Copilot CLI** and *
 - Run umbrella validation with `npm test` or `npm run validate:plugin`.
 - Run runtime verification with `npm run validate:runtime`. This performs isolated install/list/uninstall checks and session-only plugin loading checks for both plugin bundles in Copilot CLI and Claude Code.
 - Run the umbrella-only test file with `node --test test/umbrella-layout.test.js`.
-- Run the workflow plugin test file with `node --test plugins/workflow-orchestration/test/plugin-layout.test.js`.
-- Run the Codex plugin test file with `node --test plugins/clean-code-codex/test/plugin-layout.test.js`.
+- Run the flow plugin test file with `node --test plugins/flow/test/plugin-layout.test.js`.
+- Run the ccc plugin test file with `node --test plugins/ccc/test/plugin-layout.test.js`.
+- Run the patterns plugin test file with `node --test plugins/patterns/test/plugin-layout.test.js`.
 
 ## Architecture
 
 - `.github/plugin/marketplace.json` and `.claude-plugin/marketplace.json` are the umbrella marketplace manifests.
-- `plugins/workflow-orchestration/` contains the workflow plugin package, manifests, shared skills, tests, and plugin-local docs.
-- `plugins/sdd-workflow/` contains the vendored SDD companion plugin bundle.
-- `plugins/clean-code-codex/` contains the vendored Codex plugin bundle, including skills, command, agent, scripts, and hooks.
+- `plugins/flow/` contains the unified workflow + SDD plugin package, manifests, shared skills, tests, and plugin-local docs.
+- `plugins/ccc/` contains the clean-code enforcement plugin bundle, including skills, command, agent, scripts, and hooks.
+- `plugins/patterns/` contains the PEAA patterns plugin bundle.
 - `test/umbrella-layout.test.js` enforces the umbrella marketplace/package layout.
-- `plugins/workflow-orchestration/test/plugin-layout.test.js` enforces the workflow plugin manifests, skill contract, and package contents.
-- `scripts/verify-runtime.mjs` performs real runtime verification against the installed CLIs for both plugin bundles.
+- `plugins/flow/test/plugin-layout.test.js` enforces the flow plugin manifests, skill contract, and package contents.
+- `scripts/verify-runtime.mjs` performs real runtime verification against the installed CLIs for all plugin bundles.
 
 ## Repository-specific conventions
 
 - Keep umbrella docs at the repo root and plugin-specific docs inside the relevant plugin directory.
-- Keep shared identity metadata aligned across `plugins/workflow-orchestration/package.json`, `plugins/workflow-orchestration/plugin.json`, and `plugins/workflow-orchestration/.claude-plugin/plugin.json`.
-- Both marketplace files must point at `plugins/workflow-orchestration` and `plugins/sdd-workflow` correctly.
-- Preserve the intentional path difference for workflow-orchestration: Copilot uses `["skills/"]`; Claude uses `"./skills/"`.
+- Keep shared identity metadata aligned across `plugins/flow/package.json`, `plugins/flow/plugin.json`, and `plugins/flow/.claude-plugin/plugin.json`.
+- Marketplace files must point at `plugins/flow`, `plugins/ccc`, and `plugins/patterns` correctly.
+- Preserve the intentional path difference for flow: Copilot uses `["skills/"]`; Claude uses `"./skills/"`.
 - Every workflow skill must keep the tested shape, including frontmatter with `name` and `description`, plus `## Purpose`, `## When to Use It`, `## Project-Specific Inputs`, `## Workflow`, `## Required Gates`, `## Stop Conditions`, and an example section.
-- The workflow plugin test file (`plugins/workflow-orchestration/test/plugin-layout.test.js`) hardcodes the workflow skill names. Adding a new workflow skill requires adding it there as well as to both workflow manifests.
+- The flow plugin test file (`plugins/flow/test/plugin-layout.test.js`) hardcodes the workflow skill names. Adding a new workflow skill requires adding it there as well as to both flow manifests.
 - Keep skill content repo-agnostic and reusable across repositories.
 - Preserve the three-skill split: implementation parallelism, review resolution, and final readiness are separate workflows.
-- Prefer plugin-qualified names in examples, such as `/workflow-orchestration:parallel-implementation-loop`.
+- Prefer plugin-qualified names in examples, such as `/flow:parallel-impl`.
 
 ## Local plugin usage
 
-To load the workflow-orchestration plugin in Claude Code for the current session:
+To load the flow plugin in Claude Code for the current session:
 
 ```bash
-claude --plugin-dir ./plugins/workflow-orchestration
+claude --plugin-dir ./plugins/flow
 ```
 
 To check that Claude can see the plugin skills non-interactively:
 
 ```bash
-claude -p --plugin-dir ./plugins/workflow-orchestration --output-format text "List the plugin-qualified skill names loaded from this plugin, one per line and nothing else."
+claude -p --plugin-dir ./plugins/flow --output-format text "List the plugin-qualified skill names loaded from this plugin, one per line and nothing else."
 ```
 
 Reload plugin changes in an interactive Claude session with:

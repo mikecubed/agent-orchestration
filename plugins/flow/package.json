@@ -1,0 +1,22 @@
+{
+  "name": "flow",
+  "version": "3.0.0",
+  "description": "Workflow orchestration and SDD plugin for GitHub Copilot CLI and Claude Code.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "validate:runtime": "node ../../scripts/verify-runtime.mjs flow"
+  },
+  "files": [
+    "plugin.json",
+    ".claude-plugin/",
+    "skills/",
+    "agents/",
+    "docs/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
