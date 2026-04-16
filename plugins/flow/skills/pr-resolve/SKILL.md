@@ -208,6 +208,7 @@ query {
   repository(owner: "OWNER", name: "REPO") {
     pullRequest(number: PR_NUMBER) {
       reviewThreads(first: 100) {
+        pageInfo { hasNextPage endCursor }
         nodes { id isResolved comments(first: 1) { nodes { body path } } }
       }
     }
