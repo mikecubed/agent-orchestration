@@ -1,13 +1,13 @@
 ---
 name: docs-check
 description: >
-  Documentation coverage enforcement for TypeScript, JavaScript, Python, and Go.
+  Documentation coverage enforcement for TypeScript, JavaScript, Python, Go, and Rust.
   Detects missing JSDoc/docstrings on exported symbols, misleading or stale inline
   comments, and absent README files in new packages. Does not overlap with dead-check
   (commented-out code). Wired into the conductor's review operation.
-version: "1.0.0"
-last-reviewed: "2026-04-04"
-languages: [typescript, javascript, python, go]
+version: "1.1.0"
+last-reviewed: "2026-04-15"
+languages: [typescript, javascript, python, go, rust]
 changelog: "../../CHANGELOG.md"
 tools: Read, Grep, Glob, Bash
 model: opus
@@ -28,7 +28,7 @@ Precedence in the overall system: SEC → TDD → ARCH/TYPE →
 ## Rules
 
 ### DOCS-1 — Missing JSDoc / Docstring on Exported Symbol
-**Severity**: WARN | **Languages**: typescript, javascript, python, go | **Source**: CCC
+**Severity**: WARN | **Languages**: typescript, javascript, python, go, rust | **Source**: CCC
 
 **What it prohibits**: Exported functions, classes, interfaces, and public methods
 with no documentation comment. Callers cannot understand the contract without docs.
@@ -46,12 +46,18 @@ class PublicClass:                   # no docstring
 // Go
 func ExportedFunction(...) { }      // no preceding // ExportedFunction ... comment
 type ExportedType struct { }        // no preceding // ExportedType ... comment
+
+// Rust
+pub fn exported_function(...) { }   // no preceding /// doc comment
+pub struct ExportedType { }         // no preceding /// doc comment
+pub trait ExportedTrait { }         // no preceding /// doc comment
 ```
 
 **Exemptions**:
-- Private/unexported symbols (prefixed with `_` in Python/JS, lowercase in Go)
+- Private/unexported symbols (prefixed with `_` in Python/JS, lowercase in Go,
+  `pub(crate)` or non-`pub` in Rust)
 - Simple getters/setters whose name is fully self-documenting and have no parameters
-- Test files
+- Test files (including Rust `#[cfg(test)]` modules)
 
 **Detection**:
 1. Grep for `export function`, `export class`, `export const.*=.*function`,
@@ -60,7 +66,12 @@ type ExportedType struct { }        // no preceding // ExportedType ... comment
    public function or class — names starting with `_` are private) with no
    `"""` or `'''` docstring on the next line; also honour `__all__` when present
 3. Grep for `^func [A-Z]` in Go with no preceding `//` comment line
-4. For each match: verify the symbol is not in a test file and is not
+4. Grep for `^\s*pub\s+(async\s+|unsafe\s+|const\s+)*fn\s+`,
+   `^\s*pub\s+struct\s+`, `^\s*pub\s+trait\s+`, `^\s*pub\s+enum\s+`,
+   `^\s*pub\s+type\s+` in Rust `.rs` files with no preceding `///` doc
+   comment line; exclude items inside `#[cfg(test)]` modules and
+   `pub(crate)` / `pub(super)` visibility
+5. For each match: verify the symbol is not in a test file and is not
    private/unexported
 
 **agent_action**:
@@ -81,7 +92,7 @@ type ExportedType struct { }        // no preceding // ExportedType ... comment
 ---
 
 ### DOCS-2 — Misleading or Stale Inline Comment
-**Severity**: WARN | **Languages**: typescript, javascript, python, go | **Source**: CCC
+**Severity**: WARN | **Languages**: typescript, javascript, python, go, rust | **Source**: CCC
 
 **What it prohibits**: Inline comments that contradict the code they annotate.
 Signs of staleness: comments referencing removed variables, old function names,
@@ -126,7 +137,7 @@ func Parse() { }                    // NewParser does not exist in this file
 ---
 
 ### DOCS-3 — Missing README in New Package / Module Directory
-**Severity**: WARN | **Languages**: typescript, javascript, python, go | **Source**: CCC
+**Severity**: WARN | **Languages**: typescript, javascript, python, go, rust | **Source**: CCC
 
 **What it prohibits**: New directories that contain source files but no
 README.md. Applies to directories that appear to be a new module/package
@@ -156,8 +167,9 @@ src/utils/database/
 
 **Detection**:
 1. For each new directory in the diff: check if it contains source files
-   (`.ts`, `.js`, `.py`, `.go`) and an entry point (`index.ts`, `__init__.py`,
-   `package.json`, or Go package declaration)
+   (`.ts`, `.js`, `.py`, `.go`, `.rs`) and an entry point (`index.ts`,
+   `__init__.py`, `package.json`, Go package declaration, or `Cargo.toml` /
+   `lib.rs`)
 2. Check if `README.md` exists in that directory
 3. If source files are present and no README.md: flag as DOCS-3
 

@@ -3,10 +3,11 @@ name: resilience-check
 description: >
   Static resilience-pattern analysis. Detects missing retry/backoff, absent circuit
   breakers, unbounded timeouts, and missing deadline propagation in TypeScript,
-  JavaScript, Python, and Go. Wired into the conductor's review and write operations.
-version: "1.0.0"
-last-reviewed: "2026-04-04"
-languages: [typescript, javascript, python, go]
+  JavaScript, Python, Go, and Rust. Wired into the conductor's review and write
+  operations.
+version: "1.1.0"
+last-reviewed: "2026-04-15"
+languages: [typescript, javascript, python, go, rust]
 changelog: "../../CHANGELOG.md"
 tools: Read, Grep, Glob, Bash
 model: opus
@@ -23,7 +24,7 @@ Precedence in the overall system: SEC → TDD → ARCH/TYPE →
 ## Rules
 
 ### RESILIENCE-1 — Missing Retry / Backoff
-**Severity**: BLOCK | **Languages**: TypeScript, JavaScript, Python, Go | **Source**: CCC
+**Severity**: BLOCK | **Languages**: TypeScript, JavaScript, Python, Go, Rust | **Source**: CCC
 
 **What it prohibits**: HTTP/network calls and external API calls that fail hard
 on first attempt with no retry or backoff strategy. Operations that
@@ -42,21 +43,29 @@ httpx.get(url)                       # no retry wrapper
 // Go
 http.Get(url)                        // no retry wrapper
 http.Post(url, contentType, body)    // no retry wrapper
+
+// Rust
+reqwest::get(url).await?;            // bare reqwest, no retry wrapper
+client.get(url).send().await?;       // bare reqwest Client, no retry wrapper
+hyper::Client::new().get(uri);       // bare hyper, no retry wrapper
 ```
 
 **Exemptions**:
 - Idempotency-sensitive operations explicitly documented as no-retry
 - Internal in-process calls (not crossing a network boundary)
 - Calls already wrapped in a retry library (`axios-retry`, `tenacity`, `retry`,
-  `go-retry`, exponential backoff wrappers)
+  `go-retry`, `reqwest-retry`, `backon`, `again`, exponential backoff wrappers)
 
 **Detection**:
 1. Grep for `fetch(`, `axios.`, `requests.get`, `requests.post`, `httpx.`,
-   `http.Get(`, `http.Post(` in non-test source files
+   `http.Get(`, `http.Post(`, `reqwest::get(`, `reqwest::Client`,
+   `client.get(`, `client.post(` (in `.rs` files where `client` is a
+   `reqwest::Client`), `hyper::Client` in non-test source files
 2. For each match: check if a retry wrapper or decorator exists within 10 lines
    above or in the enclosing function scope
 3. Check if the call site is inside a known retry utility (e.g., `axios-retry`
-   interceptor, `@retry` decorator, `tenacity.retry`, `go-retry` loop)
+   interceptor, `@retry` decorator, `tenacity.retry`, `go-retry` loop,
+   `reqwest_retry`, `backon::Retryable`, `again::retry`)
 4. Flag calls with no retry evidence
 
 **agent_action**:
@@ -83,6 +92,13 @@ http.Post(url, contentType, body)    // no retry wrapper
        return err
    }, retry.Attempts(3), retry.Delay(time.Second))
    ```
+   ```rust
+   // Rust — use backon
+   use backon::{ExponentialBuilder, Retryable};
+   let result = (|| async { reqwest::get(url).await })
+       .retry(ExponentialBuilder::default())
+       .await?;
+   ```
 4. If `--fix`: wrap the call with the appropriate retry library — preserve
    existing error handling and do not alter the response type
 
@@ -94,7 +110,7 @@ with a code comment explaining the no-retry decision.
 ---
 
 ### RESILIENCE-2 — No Circuit Breaker on Critical External Dependency
-**Severity**: WARN | **Languages**: TypeScript, JavaScript, Python, Go | **Source**: CCC
+**Severity**: WARN | **Languages**: TypeScript, JavaScript, Python, Go, Rust | **Source**: CCC
 
 **What it prohibits**: Services that call external dependencies (payment
 processors, auth providers, third-party APIs) without circuit breaker
@@ -112,12 +128,15 @@ response = requests.post("https://api.twilio.com/send", data=payload)
 
 // Go
 resp, err := http.Post("https://external-payment.example.com/charge", ...)
+
+// Rust
+let resp = client.post("https://api.stripe.com/v1/charges").send().await?;
 ```
 
 **Exemptions**:
 - Non-critical read-only external calls (e.g., fetching a public RSS feed)
 - Calls already behind a circuit breaker (`opossum`, `cockatiel`, `pybreaker`,
-  `gobreaker`, `resilience4j`, Hystrix patterns)
+  `gobreaker`, `resilience4j`, Hystrix patterns, `recloser`, `failsafe-rs`)
 
 **Detection**:
 1. Identify external HTTP calls to non-localhost hosts in non-test source files
@@ -146,7 +165,7 @@ resp, err := http.Post("https://external-payment.example.com/charge", ...)
 ---
 
 ### RESILIENCE-3 — Unbounded Timeout
-**Severity**: WARN | **Languages**: TypeScript, JavaScript, Python, Go | **Source**: CCC
+**Severity**: WARN | **Languages**: TypeScript, JavaScript, Python, Go, Rust | **Source**: CCC
 
 **What it prohibits**: Network calls and external I/O with no timeout
 configured. Default timeouts of major HTTP libraries are often unlimited or
@@ -166,6 +185,10 @@ httpx.get(url)                         // no timeout= parameter
 http.Get(url)                          // default http.Client has no timeout
 resp, err := client.Do(req)            // client with no Timeout field set
 ctx := context.Background()            // no deadline on context passed to call
+
+// Rust
+reqwest::get(url).await?;              // default Client has no timeout
+client.get(url).send().await?;         // Client built without .timeout()
 ```
 
 **Exemptions**:
@@ -176,9 +199,12 @@ ctx := context.Background()            // no deadline on context passed to call
 
 **Detection**:
 1. Grep for `fetch(`, `axios.`, `requests.get`, `requests.post`, `httpx.`,
-   `http.Get(`, `http.Post(`, `client.Do(` in non-test source files
+   `http.Get(`, `http.Post(`, `client.Do(`, `reqwest::get(`,
+   `reqwest::Client`, `client.get(`, `client.post(` (in `.rs` files
+   where `client` is a `reqwest::Client`) in non-test source files
 2. For each match: check if a timeout parameter, `AbortSignal.timeout`,
-   `timeout=`, or context deadline is present in the same statement or
+   `timeout=`, context deadline, `.timeout()` builder method, or
+   `tokio::time::timeout` wrapper is present in the same statement or
    enclosing client configuration
 3. Flag calls with no timeout evidence
 
@@ -201,6 +227,19 @@ ctx := context.Background()            // no deadline on context passed to call
    client := &http.Client{Timeout: 5 * time.Second}
    ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
    defer cancel()
+   ```
+   ```rust
+   // Rust — set timeout on the Client builder
+   let client = reqwest::Client::builder()
+       .timeout(std::time::Duration::from_secs(5))
+       .build()?;
+   // Or wrap with tokio::time::timeout
+   // (The ?? works when the error type implements From<Elapsed>,
+   // e.g. anyhow::Result. Map the Elapsed error explicitly otherwise.)
+   let resp = tokio::time::timeout(
+       std::time::Duration::from_secs(5),
+       client.get(url).send(),
+   ).await??;
    ```
 4. If `--fix`: add the timeout parameter — use 5 seconds as a safe default
    and add a comment prompting the developer to tune for the specific endpoint
