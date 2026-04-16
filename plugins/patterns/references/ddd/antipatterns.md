@@ -268,7 +268,7 @@ DDD antipatterns. Evans-named antipatterns marked *(Evans term)*. Others `[inter
 ## Quick Reference: Symptom → Pattern
 
 | Observable symptom | Primary antipattern | Fix pattern(s) |
-|-------------------|--------------------|-|
+|-------------------|--------------------|----------------|
 | Domain objects are pure data bags | Anemic Domain Model | Entities, Value Objects, thin Services |
 | Business logic in controllers | Smart UI | Layered Architecture |
 | One model for the whole system | Big Ball of Mud | Bounded Context, Context Map |

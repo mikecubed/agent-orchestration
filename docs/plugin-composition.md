@@ -8,13 +8,13 @@
 flowchart LR
     USER[Developer request]
     FLOW[flow]
-    PLAN[planning-orchestration]
+    PLAN[plan]
     SDD[sdd skills]
     CCC[ccc]
     PAT[patterns]
-    SPEC[sdd.specify]
-    P[sdd.plan]
-    TASKS[sdd.tasks]
+    SPEC[sdd-specify]
+    P[sdd-plan]
+    TASKS[sdd-tasks]
     EXEC[parallel-impl]
 
     USER --> FLOW

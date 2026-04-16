@@ -47,7 +47,7 @@ Before you start, identify:
 - the active repository and relevant code areas (if known);
 - any existing constraints the developer has already mentioned;
 - the repository's validation commands;
-- whether the SDD skills (`flow:sdd-specify`, `flow:sdd-plan`, `flow:sdd-tasks`) is available in the current runtime;
+- whether the SDD skills (`flow:sdd-specify`, `flow:sdd-plan`, `flow:sdd-tasks`) are available in the current runtime;
 - where durable ideation artifacts should live.
 
 ## Default Roles

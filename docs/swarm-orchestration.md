@@ -66,8 +66,8 @@ flowchart TD
     SYSTEMS --> SP["Superpowers"]
     SYSTEMS --> GSD["GSD"]
 
-    US --> US1["planning-orchestration\nCoordinator / Worker\nscout → planner → reviewer"]
-    US --> US2["parallel-implementation-loop\nFixed-track Coordinator\n2-3 tracks, bounded revision"]
+    US --> US1["plan\nCoordinator / Worker\nscout → planner → reviewer"]
+    US --> US2["parallel-impl\nFixed-track Coordinator\n2-3 tracks, bounded revision"]
     US --> US3["ccc conductor\nRule-routed Coordinator\nfixed decision tree per op type"]
 
     SP --> SP1["dispatching-parallel-agents\nFan-out / Collect\nN independent agents, no shared state"]

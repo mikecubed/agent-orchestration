@@ -141,7 +141,7 @@ The scout MUST produce a short factual brief covering:
 - validation commands;
 - task boundaries;
 - known dependencies;
-- whether the SDD skills (`flow:sdd-specify`, `flow:sdd-plan`, `flow:sdd-tasks`) appears available;
+- whether the SDD skills (`flow:sdd-specify`, `flow:sdd-plan`, `flow:sdd-tasks`) appear available;
 - shared workflow defaults status — record whether defaults were found, which planning-relevant keys were consumed (e.g., artifact sink, automation policy), and which keys were absent or fell back to per-invocation behavior;
 - Prior-learnings consulted (always record matches, `none-found`, or `skipped` — see lookup below).
 
