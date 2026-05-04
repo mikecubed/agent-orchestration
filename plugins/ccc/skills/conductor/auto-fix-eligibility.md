@@ -38,6 +38,10 @@ ambiguity) or requires a human decision. This file is loaded by the conductor
 | ARCH-4 | BLOCK | ❌ Human required | Extracting infrastructure is architectural |
 | ARCH-5 | WARN | ❌ Human required | Cascade refactoring requires design decision |
 | ARCH-6 | INFO | ❌ Report only | No fix action |
+| ARCH-7 | WARN/BLOCK/INFO | ❌ Human required | Replacing inheritance with composition (Strategy, Decorator, Bridge, injection) is a design decision |
+| ARCH-8 | BLOCK | ❌ Human required | Moving construction to a factory or composition root requires lifetime/ownership decisions |
+| ARCH-9 | BLOCK | ❌ Human required | Defining and shaping a port is a domain/API design decision |
+| ARCH-10 | WARN/BLOCK | ❌ Human required | Introducing or relocating a composition root is an architectural decision |
 | TYPE-1 | BLOCK | ❌ Human required | Correct type depends on domain semantics |
 | TYPE-2 | BLOCK | ❌ Human required | Runtime guard implementation requires context |
 | TYPE-3 | WARN | ❌ Human required | Exhaustive cases require knowing all variants |

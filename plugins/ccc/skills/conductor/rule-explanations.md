@@ -147,6 +147,54 @@ deployment environment without modification.
 This rule prevents business logic and application orchestration from becoming
 non-portable due to embedded infrastructure concerns.
 
+## ARCH-7
+
+When subclasses exist primarily to vary one or two pieces of behaviour, inheritance forces
+every variation to inherit unrelated parent state and lifecycle, and it forces all
+collaborators to know the shape of the hierarchy. Strategy, Decorator, Bridge, function
+injection, or policy objects let the same variation live behind a small interface that the
+caller composes at runtime, without binding consumers to a class tree. Inheritance remains
+the right choice for true domain taxonomies, sealed/algebraic hierarchies, framework hooks,
+exception base types, and ORM-imposed hierarchies — those cases stay explicit.
+This rule prevents class trees from becoming the default extension mechanism when injected
+collaborators would express the variation more clearly and at lower coupling.
+
+## ARCH-8
+
+When a domain or application class constructs its own database client, HTTP client, logger,
+clock, or random source, that class silently owns the lifetime, configuration, and
+substitutability of every dependency it touches. Tests can no longer swap those collaborators
+out, the composition root cannot enforce policy, and the same wiring is duplicated everywhere
+the type is constructed. Dependencies must arrive through constructor parameters, function
+parameters, or a dedicated factory, with the composition root deciding which concrete
+implementations are used.
+This rule prevents hidden dependency construction that makes domain and application code
+untestable, non-portable, and impossible to reconfigure without code edits.
+
+## ARCH-9
+
+When domain or application code references concrete infrastructure types — `SqlClient`,
+`HttpAdapter`, `PrismaClient`, framework request/session, SDK client classes — the inner
+layers inherit every change to those concrete types and to their transitive dependencies.
+Depending instead on a small port (interface, protocol, trait) keeps the inner layers stable,
+keeps the surface area shaped by the consumer's actual needs, and makes the adapter the only
+place that has to change when the underlying technology changes. Fat ports that bundle
+unrelated operations violate ISP and pull consumers into changes they do not need.
+This rule prevents leakage of infrastructure detail into domain/application code and keeps
+ports small enough to evolve without breaking unrelated consumers.
+
+## ARCH-10
+
+When wiring is scattered — every handler, controller, job, and test instantiates its own
+graph of services, repositories, and clients — there is no single place that owns object
+lifetime, configuration, or substitution. Service locators and global containers hide that
+problem rather than solving it: business code reaches into a global registry instead of
+declaring what it needs. A composition root concentrates wiring in one explicit place
+(application bootstrap, factory, or module) so that domain and application code only
+declares dependencies, and tests get their own narrowly scoped composition roots.
+This rule prevents object graph wiring from becoming an implicit, duplicated concern that
+hides coupling and makes substitution and testing harder than they need to be.
+
 ---
 
 ## TYPE-1

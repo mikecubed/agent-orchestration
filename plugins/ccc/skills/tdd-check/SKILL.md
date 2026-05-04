@@ -114,13 +114,22 @@ permissionMode: default
 
 **What it requires**: The test file must import or reference a type/interface/signature
 before implementation code is written. Designing the interface through tests prevents
-API regret.
+API regret. For components that depend on collaborators (repositories, gateways, clocks,
+loggers, HTTP/DB/queue clients, SDK adapters), tests MUST target the **contract or port**
+the component depends on — not concrete infrastructure. Inject test doubles or in-memory
+adapters that implement the same port the production composition root will wire up.
 
 **agent_action**:
 1. Check that the test file imports or references the function/type being tested
 2. IF not: define the interface/signature first, before writing implementation
-3. Cite: `TDD-5 (WARN): Define the interface or function signature in the test first.`
-4. Proposed fix: add import + type stub or function signature to test file
+3. For dependency-using components: ensure the test exercises the component through a
+   port/contract and injects test doubles for that port (do not import concrete
+   infrastructure into the test) — see ARCH-8 (dependencies must be injected) and
+   ARCH-9 (depend on stable ports, not concrete infrastructure)
+4. Keep domain logic itself driven by real implementations, not mocks (see TDD-7)
+5. Cite: `TDD-5 (WARN): Define the interface or function signature in the test first.`
+6. Proposed fix: add import + type stub or function signature to test file; for
+   dependency-using components, also add the port and inject a test double
 
 ---
 

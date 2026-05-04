@@ -95,6 +95,7 @@ Load **only** the listed checks. Never pre-load all checks.
 | Situation | Checks to load | Language refs |
 |-----------|---------------|---------------|
 | **write** — new code | `tdd-check` + `type-check` + `naming-check` + `ctx-check` | Yes for tdd, type, naming |
+| **write** — class/service/module/domain/wiring | `tdd-check` + `type-check` + `naming-check` + `ctx-check` + `arch-check` | Yes for tdd, type, naming |
 | **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` + `resilience-check` + `a11y-check` + `docs-check` + `i18n-check` + `ctx-check` | Yes for type, naming |
 | **refactor** — existing code | `tdd-check` (gate only) + `arch-check` + `naming-check` + `size-check` + `dead-check` | Yes for naming |
 | **test** — writing/fixing tests | `tdd-check` + `test-check` | Yes for tdd |
@@ -111,6 +112,12 @@ When dispatching multiple checks, issue **all** Task tool calls in a **single me
 do not wait for each to complete before issuing the next. This is mandatory for performance.
 Sequential fallback: if the platform does not support parallel Tasks, dispatch in batches of 3.
 
+**Write-mode `arch-check` activation**: load `arch-check` during `write`
+operations only when the change creates or modifies classes, services, repositories, modules, adapters, domain models, use cases, or wiring (i.e.,
+the second `write` row above). Trivial pure functions, value-only utilities,
+and isolated edits stay on the lighter `write` path that omits `arch-check`
+to manage token cost.
+
 **To load a check**: Read `skills/{check-name}/SKILL.md`.
 **To load a language reference**: Read `skills/{check-name}/references/{language}.md`.
 
@@ -119,6 +126,7 @@ Sequential fallback: if the platform does not support parallel Tasks, dispatch i
 | Session type | Components loaded | ~Tokens |
 |---|---|---|
 | Typical — write, TypeScript (no `--fix`) | conductor + tdd-check + type-check + naming-check + ctx-check + 3 TS refs | ~11,500 |
+| Class/service write, TypeScript | conductor + tdd-check + type-check + naming-check + ctx-check + arch-check + 3 TS refs | ~13,800 |
 | Minimal — security audit | conductor + sec-check | ~4,723 |
 | Worst-case — CI / full check (no `--fix`) | conductor + all 17 checks + 1 lang ref (largest) | ~29,000 |
 | `--fix` session: add auto-fix-eligibility.md | +1 file on demand | +~1,310 |
@@ -428,7 +436,7 @@ When `--explain RULE-ID` is passed (e.g., `/codex --explain NAME-1`):
 3. Find the `## RULE-ID` section matching the requested rule
 4. Print the section and exit
 
-**If RULE-ID is unknown**: print "Unknown rule ID. Valid IDs: TDD-1–9, ARCH-1–6, TYPE-1–6, NAME-1–7, SIZE-1–6, DEAD-1–5, TEST-1–9, SEC-1–7, DEP-1–5, OBS-1–5" and exit 1.
+**If RULE-ID is unknown**: print "Unknown rule ID. Valid IDs: TDD-1–9, ARCH-1–10, TYPE-1–6, NAME-1–7, SIZE-1–6, DEAD-1–5, TEST-1–9, SEC-1–7, DEP-1–5, OBS-1–5" and exit 1.
 
 **Token cost**: `rule-explanations.md` is loaded on-demand only. It is never loaded during normal scans.
 
