@@ -100,20 +100,14 @@ This is a narrower pass than full `map-codebase` — it gathers only what the AR
 
 ### 3. Evaluate ARCH-1 through ARCH-10
 
-Apply each rule against the gathered context. **Use the canonical rule definitions from `ccc/skills/arch-check/SKILL.md`** — do not restate or paraphrase the rule semantics here, and do not invent diverging severities or detection signals. For each rule, the reviewer produces a verdict and supporting evidence using the canonical detection signals.
+Apply each rule against the gathered context. **Use the canonical rule definitions from `plugins/ccc/skills/arch-check/SKILL.md`** — do not restate or paraphrase the rule semantics here, and do not invent diverging severities, detection signals, or rule names. The reviewer produces a verdict and supporting evidence per rule by consulting the canonical source for:
 
-The ten rules and their headline scope:
+- the official rule name (use it verbatim — do not coin alternative titles);
+- the canonical severity (and its nuance, where ARCH-7..ARCH-10 vary);
+- the canonical detection signals;
+- the canonical `agent_action` recommendation.
 
-- **ARCH-1 — No outward imports from the domain layer** (BLOCK). Confirm domain modules do not import application or infrastructure code.
-- **ARCH-2 — No circular imports** (BLOCK). Trace import graphs (use `madge`, `deptree`, `go vet`, or equivalent) and report any cycle.
-- **ARCH-3 — No cross-feature direct imports** (WARN). Confirm features communicate only through public APIs.
-- **ARCH-4 — Infrastructure must not leak into domain or application** (BLOCK). Confirm ORM, HTTP, SDK, and framework types stay outside domain/application.
-- **ARCH-5 — Cascade depth limit (≤ 2 levels)** (WARN). Identify changes whose effects fan out to more than two downstream modules.
-- **ARCH-6 — Explicit public API required for every module/package** (INFO). Confirm each module declares its public surface.
-- **ARCH-7 — Composition over inheritance** (WARN/BLOCK/INFO). Identify subclassing used to vary behaviour where Strategy, Decorator, Bridge, Adapter, function injection, or policy injection would suffice. Honour the canonical allowed-cases list (true domain taxonomy, framework hooks, sealed/algebraic types, exception bases, ORM-imposed inheritance).
-- **ARCH-8 — Dependencies must be injected** (BLOCK/WARN/INFO). Identify hidden construction of services, repositories, gateways, clients, loggers, clocks, RNGs, configuration readers, databases, HTTP clients, queues, SDK clients, and filesystem adapters inside domain/application code. Recommend moving wiring to the composition root or a dedicated factory.
-- **ARCH-9 — Depend on stable ports, not concrete infrastructure** (BLOCK/WARN/INFO). Enforce the **Dependency Inversion Principle (DIP)** and **Interface Segregation Principle (ISP)**: domain/application code must depend on small, consumer-shaped ports/protocols/traits/interfaces rather than concrete `Sql*`, `Http*`, `Prisma*`, `Redis*`, `S3*`, framework request/session, or SDK client types. Flag fat ports that bundle unrelated responsibilities.
-- **ARCH-10 — Composition root owns wiring** (WARN/BLOCK/INFO). Confirm the application has a single explicit composition root that assembles the object graph; flag service locators, global containers, or recursive concrete construction inside domain/application logic.
+The set of rules to evaluate is **ARCH-1 through ARCH-10**, including the composition-first additions (ARCH-7..ARCH-10) covering composition-over-inheritance, injected dependencies, **DIP**/**ISP** ports, and an explicit composition root. Do not introduce a separate Flow-specific gloss for any rule; if clarification is needed, link to the canonical entry in `plugins/ccc/skills/arch-check/SKILL.md`.
 
 For every rule, record:
 
@@ -231,6 +225,12 @@ Developer: review the architecture of this project before we start the refactor
 
 ### Architecture report output (abbreviated)
 
+> Rule headings below use the canonical names from
+> `plugins/ccc/skills/arch-check/SKILL.md` verbatim. Do not invent alternative
+> names or paraphrased titles. Each section cites the canonical rule and links
+> back to the canonical source for semantics; this example shows shape, not
+> rule definitions.
+
 ```markdown
 # Architecture Review — my-app
 
@@ -238,81 +238,86 @@ Developer: review the architecture of this project before we start the refactor
 **Timestamp:** 2025-07-20T15:00:00Z
 **Scope:** full repository
 **Context source:** map-codebase brief (.agent/codebase-brief.md)
+**Canonical rules source:** plugins/ccc/skills/arch-check/SKILL.md (ARCH-1..ARCH-10)
 **arch-check:** integrated
 
 ## Summary
 
 | Rules evaluated | Pass | Fail | Blocking |
 |-----------------|------|------|----------|
-| 10              | 7    | 3    | 2        |
+| 10              | 6    | 4    | 3        |
 
-## ARCH-1 — Layer violations
+> For each rule below, see `plugins/ccc/skills/arch-check/SKILL.md` for the
+> authoritative description, severity nuance, detection signals, and
+> `agent_action`. This report only records verdicts and evidence.
 
-**Verdict:** FAIL (blocking)
+## ARCH-1 — No Outward Imports from Domain Layer
 
-- `src/api/routes/users.ts:14` imports `src/db/prisma.ts` directly (bypasses service layer)
-- `src/api/middleware/auth.ts:8` reads from `src/db/sessions.ts` directly
+**Verdict:** FAIL (BLOCK, per canonical severity)
 
-**Action:** Route database access through the service layer.
+- `src/domain/orders/Order.ts:14` imports `src/infra/db/prisma.ts`
+- `src/domain/users/User.ts:8` imports `src/application/sessions.ts`
 
-## ARCH-2 — Circular imports
+**Action:** Per canonical `agent_action` for ARCH-1, invert via a port defined
+in the domain and implement in infrastructure.
 
-**Verdict:** PASS
+## ARCH-2 — No Circular Imports
 
-No circular import chains detected (verified with madge).
+**Verdict:** PASS (verified with madge; no cycles found).
 
-## ARCH-3 — Missing public API declarations
+## ARCH-3 — No Cross-Feature Direct Imports
 
-**Verdict:** PASS
+**Verdict:** PASS (cross-feature imports go through public API surfaces).
 
-All cross-boundary imports go through index.ts barrel files.
+## ARCH-4 — Infrastructure Must Not Leak Into Domain or Application
 
-## ARCH-4 — Dependency direction violations
+**Verdict:** FAIL (BLOCK, per canonical severity)
 
-**Verdict:** FAIL (warning)
+- `src/application/usecases/CreateOrder.ts:22` imports `PrismaClient` directly.
 
-- `src/utils/logger.ts:22` imports `src/services/config.ts` (utility depending on service)
+**Action:** Per canonical `agent_action` for ARCH-4, define a port in domain
+and implement the adapter in infrastructure.
 
-**Action:** Extract config reading into a shared config utility.
+## ARCH-5 — Cascade Depth Limit (≤ 2 Levels)
 
-## ARCH-5 — God modules
+**Verdict:** PASS.
 
-**Verdict:** PASS
+## ARCH-6 — Explicit Public API Required for Every Module/Package
 
-No modules exceed the responsibility threshold.
+**Verdict:** PASS (every module exposes an `index.ts` barrel).
 
-## ARCH-6 — Missing abstraction boundaries
+## ARCH-7 — Composition Over Inheritance
 
-**Verdict:** PASS
+**Verdict:** FAIL (WARN, per canonical severity)
 
-Database access is consistently abstracted through the repository layer.
+- `src/services/pricing/BasePricingService.ts` is subclassed by 4 children
+  that each override only `calculate()`.
 
-## ARCH-7 — Composition over inheritance
+**Action:** Per canonical `agent_action` for ARCH-7, replace with a Strategy
+or policy injected into a single `PricingService`.
 
-**Verdict:** FAIL (warning)
+## ARCH-8 — Dependencies Must Be Injected
 
-- `src/services/pricing/BasePricingService.ts` is subclassed by 4 children that each
-  override only `calculate()`. Recommend extracting a `PricingPolicy` strategy and
-  injecting it into a single `PricingService`.
+**Verdict:** FAIL (BLOCK, per canonical severity)
 
-## ARCH-8 — Dependencies must be injected
-
-**Verdict:** FAIL (blocking)
-
-- `src/services/orders/OrderService.ts:18` constructs `new PrismaClient()` internally.
+- `src/services/orders/OrderService.ts:18` constructs `new PrismaClient()`.
 - `src/services/email/Mailer.ts:12` reads `process.env.SMTP_URL` directly.
 
-**Action:** Move both dependencies to constructor parameters wired at the composition root.
+**Action:** Per canonical `agent_action` for ARCH-8, move construction to the
+composition root and pass dependencies through constructor parameters.
 
-## ARCH-9 — Depend on stable ports, not concrete infrastructure
+## ARCH-9 — Depend on Stable Ports, Not Concrete Infrastructure
 
-**Verdict:** FAIL (blocking)
+**Verdict:** FAIL (BLOCK, per canonical severity — **DIP**/**ISP** violation)
 
-- `src/usecases/CreateOrder.ts` imports `PrismaClient` directly (DIP violation).
-  Define a small `OrderRepository` port near the use case (ISP-shaped) and move the
-  Prisma implementation into infrastructure.
+- `src/usecases/CreateOrder.ts` depends on `PrismaClient` instead of a narrow
+  `OrderRepository` port.
 
-## ARCH-10 — Composition root owns wiring
+**Action:** Per canonical `agent_action` for ARCH-9, define the smallest
+useful port near the consuming layer and move the Prisma implementation into
+infrastructure.
+
+## ARCH-10 — Composition Root Owns Wiring
 
 **Verdict:** PASS
 
@@ -322,7 +327,7 @@ dependencies through constructor injection.
 ## Composition-First Findings
 
 - Replace inheritance-based pricing variants with a Strategy + DI (see ARCH-7).
-- Eliminate hidden `new PrismaClient()` and `process.env` reads in domain/application
-  code; route through the composition root (see ARCH-8).
+- Eliminate hidden `new PrismaClient()` and `process.env` reads in
+  domain/application code; route through the composition root (see ARCH-8).
 - Introduce a narrow `OrderRepository` port to satisfy DIP/ISP (see ARCH-9).
 ```

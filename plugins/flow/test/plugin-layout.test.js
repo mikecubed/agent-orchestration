@@ -218,6 +218,23 @@ describe('flow skills layout', () => {
       'arch-review verification gate must cover all 10 ARCH rules');
     assert.doesNotMatch(text, /ARCH-1 through ARCH-6\b/,
       'arch-review must not retain the legacy ARCH-1..ARCH-6 framing');
+
+    const legacyLabels = [
+      /ARCH-1\s+[—-]\s+Layer violations/i,
+      /ARCH-3\s+[—-]\s+Missing public API declarations/i,
+      /ARCH-4\s+[—-]\s+Dependency direction violations/i,
+      /ARCH-5\s+[—-]\s+God modules/i,
+      /ARCH-6\s+[—-]\s+Missing abstraction boundaries/i,
+    ];
+    for (const pattern of legacyLabels) {
+      assert.doesNotMatch(text, pattern,
+        `arch-review must not embed the legacy label ${pattern}`);
+    }
+
+    assert.match(text, /plugins\/ccc\/skills\/arch-check\/SKILL\.md/,
+      'arch-review must point readers to plugins/ccc/skills/arch-check/SKILL.md as the canonical source');
+    assert.match(text, /do not restate or paraphrase the rule semantics/i,
+      'arch-review must explicitly forbid restating/paraphrasing canonical ARCH rule semantics');
   });
 
   it('adds composition-first guidance to the SDD flow agents', () => {

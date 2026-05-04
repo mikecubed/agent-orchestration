@@ -115,6 +115,66 @@ before edits started.
   plugin files, and patterns-plugin files — those belong to other parallel
   tracks per the upgrade plan.
 
+## Revisions
+
+### Round 1 — FLOW-ARCH-001
+
+**Reviewer finding (FLOW-ARCH-001):** `plugins/flow/skills/arch-review/SKILL.md`
+still embedded non-canonical ARCH semantics. The skill declared
+`ccc/arch-check` canonical and forbade restating rule semantics, but Step 3
+("the ten rules and their headline scope") and the example output still
+duplicated and risked drifting legacy ARCH-1..ARCH-6 titles such as
+`ARCH-1 — Layer violations`, `ARCH-3 — Missing public API declarations`,
+`ARCH-4 — Dependency direction violations`, `ARCH-5 — God modules`, and
+`ARCH-6 — Missing abstraction boundaries`.
+
+**Changes (round 1):**
+
+- `plugins/flow/skills/arch-review/SKILL.md`:
+  - Step 3 no longer enumerates a Flow-specific paraphrase of each rule.
+    Instead it instructs the reviewer to pull rule names, severities,
+    detection signals, and `agent_action` recommendations directly from
+    `plugins/ccc/skills/arch-check/SKILL.md`, the named canonical source, and
+    explicitly forbids inventing alternative titles or paraphrased headlines.
+  - The example architecture report was rewritten so every rule heading uses
+    the canonical CCC name verbatim (e.g. `ARCH-1 — No Outward Imports from
+    Domain Layer`, `ARCH-4 — Infrastructure Must Not Leak Into Domain or
+    Application`, `ARCH-6 — Explicit Public API Required for Every
+    Module/Package`). The example metadata block now records the canonical
+    rules source path. Verdicts cite "per canonical severity" / "per
+    canonical `agent_action`" instead of restating definitions.
+- `plugins/flow/test/plugin-layout.test.js`:
+  - Extended the arch-review alignment test to (a) reject each legacy label
+    explicitly (`ARCH-1 — Layer violations`,
+    `ARCH-3 — Missing public API declarations`,
+    `ARCH-4 — Dependency direction violations`, `ARCH-5 — God modules`,
+    `ARCH-6 — Missing abstraction boundaries`); (b) require an explicit
+    pointer to `plugins/ccc/skills/arch-check/SKILL.md`; and (c) require the
+    "do not restate or paraphrase the rule semantics" instruction to remain
+    present.
+
+**Validation (round 1):**
+
+- `npm --prefix plugins/flow test` → 43/43 tests pass across 3 suites
+  (exit 0). The expanded arch-review test exercises the new legacy-label
+  rejections and canonical-source assertion.
+- Targeted greps:
+  - `grep -nE 'Layer violations|Missing public API declarations|Dependency direction violations|God modules|Missing abstraction boundaries' plugins/flow/skills/arch-review/SKILL.md`
+    → no matches (exit 1).
+  - `grep -rnE 'sdd\.(specify|plan|tasks)|sdd-workflow' plugins/flow/agents plugins/flow/skills`
+    → no matches (exit 1).
+
+**Current state after round 1:**
+
+- `plugins/flow/skills/arch-review/SKILL.md` consumes ARCH-1..ARCH-10 entirely
+  by reference to `plugins/ccc/skills/arch-check/SKILL.md`. No paraphrased
+  titles or rule definitions remain in the body or the example output. All
+  rule headings in the example match canonical CCC names exactly.
+- Flow tests (43) all pass and now explicitly guard against the legacy
+  ARCH-1..6 labels and against losing the canonical-source instruction.
+- Out-of-scope surfaces (root marketplace files, CCC files, patterns files)
+  remain untouched.
+
 ## Next action
 
 Coordinator should integrate this branch (`wt/composition-flow-sdd`) into the
