@@ -55,6 +55,26 @@ For Bounded Context, Context Map, ACL, etc.:
 - Walk the context integration decision tree
 - Give realistic scenarios: "You have Team A building orders, Team B building shipping..."
 
+## Composition-first framing for DDD
+
+When teaching tactical patterns, lead with the composition-first defaults:
+
+- Aggregates enforce invariants and expose behavior, but **variability**
+  inside an aggregate is usually best modeled through **value objects,
+  specifications, policies, or injected domain services** — not through
+  entity inheritance.
+- Entity inheritance must be justified by a **true ubiquitous-language
+  subtype relationship** (the domain experts genuinely say "Y is a kind
+  of X"). When subtypes are merely a way to share fields or vary
+  behavior, prefer composition: role objects, capabilities, or policy
+  objects.
+- Repositories are taught as **domain/application-facing ports** with
+  infrastructure adapters. The interface lives near the consumer; the
+  ORM/SDK implementation lives in infrastructure.
+- Domain services stay **stateless and pure**: no database, HTTP,
+  framework, or SDK types inside the domain. External capabilities are
+  expressed as ports and injected.
+
 ## Cross-references
 
 - "For the persistence perspective, see `/peaa-teach [pattern]`"

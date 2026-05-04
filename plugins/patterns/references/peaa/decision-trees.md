@@ -11,6 +11,7 @@ stated by Fowler.
 
 ## Decision Tree Index
 
+0. [Composition-first pre-gate before inheritance mapping](#0-composition-first-pre-gate-before-inheritance-mapping)
 1. [Domain Logic: Which pattern?](#1-domain-logic-which-pattern)
 2. [Data Source: Which pattern?](#2-data-source-which-pattern)
 3. [ORM Inheritance: Which mapping?](#3-orm-inheritance-which-mapping)
@@ -21,6 +22,69 @@ stated by Fowler.
 8. [Distribution: When and how?](#8-distribution-when-and-how)
 9. [Service Layer: Do I need one?](#9-service-layer-do-i-need-one)
 10. [Testing: Isolating external dependencies?](#10-testing-isolating-external-dependencies)
+
+---
+
+## 0. Composition-first pre-gate before inheritance mapping
+
+`[interpretation]`
+
+Run this gate **before** Decision Tree 3 whenever the user is asking how
+to persist a class hierarchy. Inheritance mapping (STI / CTI / Concrete
+Table Inheritance / Inheritance Mappers) is a **last-resort** persistence
+strategy — it can **harden** a questionable object model into the
+database schema and make future change expensive.
+
+```
+You are about to map an inheritance hierarchy to tables.
+│
+├── Is this a TRUE domain taxonomy in the ubiquitous language?
+│   (Domain experts genuinely speak about the subtypes as kinds of the
+│    supertype, with stable mutually exclusive identity.)
+│   │
+│   ├── NO → It's an ACCIDENTAL PERSISTENCE TAXONOMY.
+│   │       Stop. Do not map the hierarchy. Refactor the object model
+│   │       first using the composition options below, then revisit.
+│   │
+│   └── YES → Continue.
+│
+├── What kind of variation does the hierarchy express?
+│   │
+│   ├── BEHAVIOR (algorithm, calculation, rule) only?
+│   │   └── Prefer a composed **policy / strategy** object on a single
+│   │       entity, persisted as a discriminator + policy lookup.
+│   │
+│   ├── ROLE that some instances play and others don't?
+│   │   └── Prefer a **role object** composed onto the entity, often
+│   │       persisted as an associated table or value-object field.
+│   │
+│   ├── OPTIONAL CAPABILITY a subset of instances has?
+│   │   └── Prefer a **capability port** or composed component, often
+│   │       persisted as an optional 1:1 association.
+│   │
+│   ├── DATA-SHAPE difference (different attributes per type)?
+│   │   └── Prefer a **value-object** field capturing the shape, or
+│   │       split into separate aggregates with their own tables.
+│   │
+│   └── BOOLEAN classification rules?
+│       └── Prefer a **Specification** object instead of subclassing.
+│
+└── If, and only if, the hierarchy is a genuine domain taxonomy AND
+    composition cannot express it, fall through to Decision Tree 3
+    (STI / CTI / Concrete Table Inheritance / Inheritance Mappers) as
+    a LAST-RESORT persistence pattern, and document the justification.
+```
+
+**Schema-hardening warning** `[interpretation]`: Inheritance mapping
+couples class structure to table structure. Once a hierarchy is mapped
+via STI/CTI/Concrete Table Inheritance, removing or restructuring the
+hierarchy requires schema migration. Treat the choice as long-lived and
+prefer composition when the design is still in motion.
+
+**See also**: DDD Decision Tree 5 (Composition-first pre-gate before
+entity inheritance) covers the domain-side decision; this tree covers the
+persistence-side decision once the domain decision has already settled
+on inheritance.
 
 ---
 
@@ -115,6 +179,15 @@ or swap between DB and in-memory implementations (e.g., for tests)?
 ## 3. ORM Inheritance: Which mapping?
 
 **Source**: Ch. 12, p. 278–305; and Fowler's inline comparisons between the three strategies
+
+> **Run Decision Tree 0 first.** Inheritance mapping (STI / CTI /
+> Concrete Table Inheritance / Inheritance Mappers) is a **last-resort**
+> persistence pattern. Confirm the hierarchy is a true domain taxonomy
+> rather than an accidental persistence taxonomy, and that composition
+> (role objects, value objects, specifications, policies/strategies)
+> cannot express the variation, before choosing among the mappings
+> below. Inheritance mapping can **harden** a questionable object model
+> into the database schema.
 
 ```
 Do you have an inheritance hierarchy to persist?

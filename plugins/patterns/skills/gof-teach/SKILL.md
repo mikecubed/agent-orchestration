@@ -60,6 +60,23 @@ explain, illustrate, contrast, and test comprehension.
 Do NOT teach these patterns as if they're still novel OO techniques to implement from scratch.
 The concept is timeless; the implementation has evolved.
 
+## Composition-first framing
+
+For Template Method, subclass-driven Factory Method, Singleton, and other
+inheritance-heavy variants, label the classic form clearly as
+**non-default in modern code**:
+
+1. Teach the canonical GoF description first — the pattern is part of the
+   shared vocabulary and must remain accurately explained.
+2. Then state the composition-first alternative: Strategy or function
+   injection in place of Template Method, factory/dependency injection in
+   place of Singleton, factory injection or a composition root in place of
+   subclass-driven Factory Method.
+3. Reserve the inheritance-heavy form for explicit exceptions: true domain
+   taxonomy, framework hook, sealed/algebraic hierarchy, exception base,
+   or a platform constraint that genuinely cannot be expressed by
+   composition.
+
 ## Rules
 
 - Plain language first, always

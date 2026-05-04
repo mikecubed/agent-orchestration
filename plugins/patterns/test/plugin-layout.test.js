@@ -87,7 +87,7 @@ describe('patterns manifests', () => {
     const copilotManifest = readJson(ROOT, 'plugin.json');
     const claudeManifest = readJson(ROOT, '.claude-plugin/plugin.json');
 
-    assert.equal(copilotManifest.version, '3.0.0');
+    assert.equal(copilotManifest.version, '3.1.0');
     assert.equal(claudeManifest.version, copilotManifest.version);
   });
 });

@@ -11,10 +11,64 @@ Used by the `gof-advisor` skill.
 
 ## Decision Tree Index
 
+0. [Composition-first pre-gate](#0-composition-first-pre-gate)
 1. [How should objects be created?](#1-how-should-objects-be-created)
 2. [How should objects be composed?](#2-how-should-objects-be-composed)
 3. [How should objects communicate?](#3-how-should-objects-communicate)
 4. [Is this pattern still needed in my language?](#4-is-this-pattern-still-needed-in-my-language)
+
+---
+
+## 0. Composition-first pre-gate
+
+`[interpretation]`
+
+Run this gate **before** recommending Template Method, subclass-driven
+Factory Method, Singleton, or any other inheritance-heavy variant.
+Composition-first is the default; inheritance-heavy forms are non-default
+in modern code and require explicit justification.
+
+```
+You are about to recommend an inheritance-heavy pattern.
+│
+├── Can the variation be expressed by INJECTING a function or strategy?
+│   └── YES → Prefer Strategy or function injection over Template Method.
+│            Pass the varying step(s) as a callable or strategy object.
+│
+├── Can the responsibility be ADDED dynamically by wrapping?
+│   └── YES → Prefer Decorator over a subclass that only adds one
+│            cross-cutting concern (logging, caching, auth, retry).
+│
+├── Are abstraction and implementation varying INDEPENDENTLY?
+│   └── YES → Prefer Bridge over deep parallel inheritance hierarchies.
+│
+├── Do interfaces just need to be RECONCILED?
+│   └── YES → Prefer Adapter over inheriting from a mismatched base.
+│
+├── Does the consumer just need a DEPENDENCY supplied?
+│   └── YES → Prefer dependency injection, factory injection, or a
+│            composition root over Singleton or hidden global access.
+│
+└── Is inheritance JUSTIFIED by one of:
+    - a true domain taxonomy in the ubiquitous language,
+    - a framework hook the platform requires,
+    - a language-idiomatic sealed/algebraic hierarchy,
+    - an exception base type, or
+    - an unavoidable ORM/platform constraint?
+        └── YES → Inheritance is appropriate. State the justification
+                  alongside the recommendation.
+```
+
+**Default verdict** `[interpretation]`:
+- Template Method → start with **Strategy** or function injection; keep
+  Template Method only for genuine framework hooks where the skeleton is
+  owned by the framework.
+- Subclass-driven Factory Method → start with **factory injection** or a
+  configured factory at the **composition root**; keep subclass-driven
+  Factory Method only when a framework genuinely owns the construction
+  protocol.
+- Singleton → start with **dependency injection**; keep Singleton only for
+  narrow runtime constants or platform-owned resources.
 
 ---
 

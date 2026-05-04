@@ -72,6 +72,22 @@ than [Target Pattern] because [reason from decision tree].
 Should I plan the migration to [Alternative] instead, or proceed with [Target]?
 ```
 
+**Composition-first pre-gate for inheritance mapping.** If the target is
+Single Table Inheritance, Class Table Inheritance, Concrete Table
+Inheritance, or Inheritance Mappers, you must first confirm:
+
+- The hierarchy is a **true domain taxonomy** in the ubiquitous language,
+  not an **accidental persistence taxonomy**.
+- The variation cannot be expressed by **composition, role objects, value
+  objects, specifications, or policy/strategy objects**.
+- The user understands that inheritance mapping can **harden a questionable
+  object model into the database schema** and should be treated as a
+  **last-resort** persistence pattern.
+
+If any of those checks fail, propose a composition-first plan first
+(extract role object / policy / value object) and offer the inheritance
+mapping plan only as a follow-up.
+
 ## Step 4 — Test coverage check
 
 **Always check for tests before producing the plan.**

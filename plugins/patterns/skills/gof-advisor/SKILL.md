@@ -48,11 +48,34 @@ Many GoF patterns are now language features. Check decision tree 4 before recomm
 a manual implementation. If the pattern is built in, say so:
 "Python's `@decorator` IS the Decorator pattern. You don't need to build it — use it."
 
-### Step 4 — Consult the decision trees
+### Step 4 — Composition-first recommendation gate
 
-Walk the relevant tree from `references/gof/decision-trees.md`.
+Composition-first is the default. **Before** recommending Template Method,
+subclass-driven Factory Method, Singleton, or any other inheritance-heavy
+variant, you must first ask:
 
-### Step 5 — Recommend with trade-offs
+- Can **Strategy** (or function injection / closure) handle the variation?
+- Can **Decorator** add the responsibility without subclassing?
+- Can **Bridge** separate the abstraction from its implementation?
+- Can **Adapter** reconcile interfaces without inheriting?
+- Can the dependency be supplied by **dependency injection**, a **factory
+  injection**, or a **composition root** instead of a Singleton?
+
+Only fall through to inheritance-heavy patterns when one of the explicit
+exceptions applies: a true domain taxonomy, a framework hook, a
+language-idiomatic sealed/algebraic hierarchy, an exception base type, or a
+genuinely unavoidable platform constraint. State the justification in the
+recommendation. Treat historical inheritance-heavy forms (e.g., classic
+Template Method, subclass-driven Factory Method, global Singleton) as
+**non-default** in modern code — keep the canonical description but lead
+with the composition-first alternative.
+
+### Step 5 — Consult the decision trees
+
+Walk the relevant tree from `references/gof/decision-trees.md`. Section 0
+"Composition-first pre-gate" must run before any inheritance-heavy branch.
+
+### Step 6 — Recommend with trade-offs
 
 Present: primary recommendation, trade-offs (from book Consequences section),
 alternative if conditions change, one concrete next step.
@@ -95,6 +118,11 @@ alternative if conditions change, one concrete next step.
 
 ## Rules
 
+- **Composition-first is the default.** Strategy, Decorator, Bridge,
+  Adapter, function injection, factory injection, and dependency injection
+  are preferred over Template Method, subclass-driven Factory Method,
+  Singleton, or other inheritance-heavy variants unless inheritance is
+  explicitly justified.
 - **Recommend 1 primary + 1 alternative.** Do not list all patterns.
 - **Cite page numbers.** Every recommendation has a book page.
 - **Check modern relevance first.** Don't recommend building Iterator manually.

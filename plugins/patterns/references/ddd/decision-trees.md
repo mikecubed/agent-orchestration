@@ -14,6 +14,7 @@ Used by `ddd-advisor` and `ddd-strategist`.
 2. [Aggregate boundaries](#2-aggregate-boundaries)
 3. [Context integration pattern](#3-context-integration-pattern)
 4. [Core vs Supporting vs Generic](#4-core-vs-supporting-vs-generic)
+5. [Composition-first pre-gate before entity inheritance](#5-composition-first-pre-gate-before-entity-inheritance)
 
 ---
 
@@ -215,3 +216,63 @@ For each subdomain in your system, ask:
 | Anti-Corruption Layer | Bounded Context | Conformist |
 | Core Domain | Generic Subdomains, Segregated Core | — |
 | Shared Kernel | Customer/Supplier | Separate Ways |
+
+---
+
+## 5. Composition-first pre-gate before entity inheritance
+
+`[interpretation]`
+
+Before introducing or recommending an entity inheritance hierarchy, walk
+this gate. Aggregates enforce invariants and expose behavior, but
+variability is usually better modeled through composition than through
+entity subtyping.
+
+```
+You are considering an entity hierarchy (e.g., Party → Customer/Vendor).
+│
+├── Is the subtype relationship a TRUE ubiquitous-language subtype?
+│   (Domain experts genuinely say "Y is a kind of X" and treat Y as X
+│    everywhere — not just to share fields or vary behavior.)
+│   │
+│   ├── NO → Do not use entity inheritance. Prefer one of:
+│   │       - **Value Object** for attribute-defined concepts
+│   │       - **Specification** for composable boolean rules
+│   │       - **Policy / Strategy** injected into the entity for
+│   │         varying behavior
+│   │       - **Domain Service** (stateless, pure) for operations that
+│   │         don't belong on a single entity
+│   │       - **Role object / capability** composed onto the entity
+│   │       - **Port** for external capabilities (clock, ID generator,
+│   │         pricing, gateway) injected as an interface
+│   │
+│   └── YES → Continue.
+│
+├── Is the variation BEHAVIORAL only (algorithm, calculation, rule)?
+│   └── YES → Prefer an injected **policy** or **strategy** over a
+│            subclass that overrides one or two methods.
+│
+├── Is the variation an OPTIONAL CAPABILITY some entities have?
+│   └── YES → Prefer a composed **role object** or capability port
+│            over a subclass.
+│
+├── Is the variation a DATA-SHAPE difference?
+│   └── YES → Prefer a **value-object** field that captures the
+│            shape, or a separate aggregate, over inheritance.
+│
+└── Inheritance is justified only when:
+    - the subtype is part of the ubiquitous language,
+    - the subtypes have stable, mutually exclusive identity, and
+    - composition genuinely cannot express the relationship.
+        Persistence concerns alone do not justify entity inheritance —
+        see PEAA Decision Tree 0 for the persistence-side pre-gate.
+```
+
+**Repository reminder**: Repositories are domain/application-facing
+**ports** with infrastructure implementations. Define the interface near
+the consumer; keep ORM/HTTP/SDK types out of the domain.
+
+**Domain service reminder**: Domain services stay stateless and pure.
+External capabilities (database, HTTP, clock, randomness, framework, SDK)
+are expressed as ports and injected; they are never instantiated inside
+the domain.

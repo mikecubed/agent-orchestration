@@ -38,6 +38,9 @@ Evans calls this "Refactoring Toward Deeper Insight" (Part III).
 | No domain layer | Layered Architecture | Extract domain objects from controllers/services |
 | Smart UI | Layered Architecture | Extract business rules from views to domain layer |
 | Hardcoded conditionals | Specification pattern | Extract boolean rules as composable objects |
+| Entity inheritance for behavior variation | Policies, strategies, role objects, or value-object capabilities | Replace subtype switching with injected policy or composed role |
+| Domain class importing ORM/HTTP/SDK types | Port + infrastructure adapter | Define a domain-facing port; move concrete dependency to infrastructure |
+| Stateful or I/O-aware domain service | Stateless pure service + injected port | Move I/O to a port; keep the service deterministic |
 
 ## Rules
 

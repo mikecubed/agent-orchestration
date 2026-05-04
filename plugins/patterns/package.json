@@ -1,6 +1,6 @@
 {
   "name": "patterns",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Design pattern plugin for GitHub Copilot CLI and Claude Code.",
   "type": "module",
   "license": "MIT",
