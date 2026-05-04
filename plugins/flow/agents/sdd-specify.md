@@ -144,3 +144,15 @@ Given the feature description in `$ARGUMENTS`, do this:
 10. **Write quality checklist** to `.sdd/{feature-dir}/checklists/requirements.md`.
 
 11. **Report completion** with feature directory path, spec file path, checklist summary, and whether this was a new spec or an in-place refinement.
+
+## Composition-First Requirements
+
+When the feature involves non-trivial behaviour, services, or external systems, capture **composition-first** expectations in the spec so downstream `sdd-plan` and `sdd-tasks` runs inherit them. Add or refine functional requirements that cover, when relevant:
+
+- **Dependency inversion** — domain/application behaviour described in terms of capabilities (ports/protocols/interfaces), not specific vendors, frameworks, or SDKs.
+- **Injected dependencies** — external services, repositories, gateways, clocks, RNGs, loggers, and configuration are supplied to the system rather than constructed internally.
+- **Justified inheritance** — if a user story or requirement implies a class hierarchy, state explicitly whether the hierarchy reflects a true domain taxonomy (ubiquitous language), a framework hook, a sealed/algebraic type, or an exception base; otherwise prefer composition (Strategy, Decorator, Bridge, policy objects) and record that decision.
+- **Pure domain boundary** — entities, value objects, and domain services are described without database, HTTP, filesystem, framework, SDK, or process-global access.
+- **Composition root expectations** — if the feature introduces new wiring (jobs, handlers, adapters, schedulers), note that an explicit composition root must own the wiring; do not allow domain or application logic to use service locators or global containers.
+
+These properties belong in the spec as functional requirements or success criteria, not as implementation choices. Use language such as "system MUST depend on a `PaymentGateway` port", "system MUST receive its clock through dependency injection", or "system MUST keep order pricing logic free of HTTP/DB access". Do not specify concrete vendors, libraries, or class structures here — those decisions belong in `plan.md`.
