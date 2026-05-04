@@ -193,6 +193,76 @@ describe('flow skills layout', () => {
     assert.match(tasks, /preserve prior task IDs, ordering adjustments, and manually curated notes/i);
   });
 
+  it('aligns arch-review with the canonical CCC ARCH-1 through ARCH-10 ruleset', () => {
+    const text = readText(ROOT, path.join('skills', 'arch-review', 'SKILL.md'));
+
+    assert.match(text, /ARCH-1 through ARCH-10/,
+      'arch-review must reference the full ARCH-1..ARCH-10 ruleset');
+    assert.match(text, /ARCH-7\b/, 'arch-review must mention ARCH-7');
+    assert.match(text, /ARCH-8\b/, 'arch-review must mention ARCH-8');
+    assert.match(text, /ARCH-9\b/, 'arch-review must mention ARCH-9');
+    assert.match(text, /ARCH-10\b/, 'arch-review must mention ARCH-10');
+    assert.match(text, /canonical/i,
+      'arch-review must label ccc/arch-check as the canonical rule source');
+    assert.match(text, /ccc\/?\s*arch-check|`arch-check`\s*\(from\s*`?ccc`?\)/i,
+      'arch-review must reference ccc/arch-check as canonical source');
+    assert.match(text, /composition/i,
+      'arch-review must include composition findings');
+    assert.match(text, /dependency injection|inject(ed|ion)/i,
+      'arch-review must include dependency injection findings');
+    assert.match(text, /\bDIP\b/, 'arch-review must reference DIP');
+    assert.match(text, /\bISP\b/, 'arch-review must reference ISP');
+    assert.match(text, /composition root/i,
+      'arch-review must reference composition roots');
+    assert.match(text, /All 10 ARCH rules|10 ARCH rules/,
+      'arch-review verification gate must cover all 10 ARCH rules');
+    assert.doesNotMatch(text, /ARCH-1 through ARCH-6\b/,
+      'arch-review must not retain the legacy ARCH-1..ARCH-6 framing');
+  });
+
+  it('adds composition-first guidance to the SDD flow agents', () => {
+    const specify = readText(ROOT, path.join('agents', 'sdd-specify.md'));
+    const plan = readText(ROOT, path.join('agents', 'sdd-plan.md'));
+    const tasks = readText(ROOT, path.join('agents', 'sdd-tasks.md'));
+
+    for (const [name, text] of [['sdd-specify', specify], ['sdd-plan', plan], ['sdd-tasks', tasks]]) {
+      assert.match(text, /composition[- ]first/i,
+        `${name} should include composition-first guidance`);
+      assert.doesNotMatch(text, /agent:\s*sdd\.(specify|plan|tasks)/,
+        `${name} must not use old dotted SDD agent names`);
+      assert.doesNotMatch(text, /sdd-workflow/i,
+        `${name} must not reference the old sdd-workflow plugin`);
+    }
+
+    assert.match(specify, /dependency inversion|injected dependenc|composition root|justified inheritance|pure domain/i,
+      'sdd-specify must capture composition-first requirements');
+    assert.match(plan, /port|protocol|interface/i,
+      'sdd-plan must prefer ports/protocols/interfaces');
+    assert.match(plan, /composition root/i,
+      'sdd-plan must require explicit composition roots');
+    assert.match(plan, /inject(ed|ion)/i,
+      'sdd-plan must require injected dependencies');
+    assert.match(tasks, /composition root|inject(ed|ion)|inheritance justif|port/i,
+      'sdd-tasks must include composition-first task generation guidance');
+  });
+
+  it('does not reintroduce old dotted SDD agent names anywhere under flow', () => {
+    const filesToCheck = [
+      path.join('skills', 'sdd-feature', 'SKILL.md'),
+      path.join('skills', 'arch-review', 'SKILL.md'),
+      path.join('agents', 'sdd-specify.md'),
+      path.join('agents', 'sdd-plan.md'),
+      path.join('agents', 'sdd-tasks.md'),
+    ];
+
+    for (const relative of filesToCheck) {
+      const text = readText(ROOT, relative);
+      assert.doesNotMatch(text, /\bsdd\.specify\b/, `${relative} contains old dotted name sdd.specify`);
+      assert.doesNotMatch(text, /\bsdd\.plan\b/, `${relative} contains old dotted name sdd.plan`);
+      assert.doesNotMatch(text, /\bsdd\.tasks\b/, `${relative} contains old dotted name sdd.tasks`);
+    }
+  });
+
   it('keeps deliver coordinator-shaped with explicit direct-path, deflection, and handoff contracts', () => {
     const text = readText(ROOT, path.join('skills', 'deliver', 'SKILL.md'));
     const readme = readText(ROOT, 'README.md');

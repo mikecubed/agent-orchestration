@@ -7,7 +7,9 @@ description: Structured architecture analysis evaluating layer boundaries, depen
 
 ## Purpose
 
-Use this skill when a developer or agent needs a systematic evaluation of a codebase's architectural health. It applies the ARCH-1 through ARCH-6 analytical framework to detect layer violations, circular imports, missing abstractions, and dependency direction problems. When the `map-codebase` skill has already run, this skill consumes its factual context brief to avoid redundant discovery.
+Use this skill when a developer or agent needs a systematic evaluation of a codebase's architectural health. It applies the **ARCH-1 through ARCH-10** analytical framework to detect layer violations, circular imports, missing abstractions, dependency direction problems, inheritance used in place of composition, hidden dependency construction, dependence on concrete infrastructure (DIP/ISP violations), and missing composition roots. When the `map-codebase` skill has already run, this skill consumes its factual context brief to avoid redundant discovery.
+
+The `arch-check` skill from the `ccc` plugin is the **canonical source** for ARCH rule IDs, names, severities, and detection signals. This skill must not redefine or diverge from those rule semantics. When `arch-check` is available in the session it is invoked directly and its findings are merged into the report; when it is not available, this skill applies the same rule definitions by reference rather than restating them.
 
 Persistent team, squad, or fleet-style long-lived orchestration is out of scope for this skill. Use a separate orchestration layer if persistent coordination is needed.
 
@@ -49,7 +51,7 @@ Use separate roles for:
 - a **reviewer** model or agent that evaluates the gathered facts against the ARCH rules;
 - a **coordinator** that manages the workflow and merges results into the final report.
 
-The scout produces a factual context brief of the architectural structure. The reviewer applies judgment against the ARCH-1 through ARCH-6 framework. Keep fact-gathering and evaluation separate.
+The scout produces a factual context brief of the architectural structure. The reviewer applies judgment against the ARCH-1 through ARCH-10 framework. Keep fact-gathering and evaluation separate.
 
 ### Model Selection
 
@@ -96,55 +98,29 @@ If no usable brief exists, run a single scout pass to gather the minimum context
 
 This is a narrower pass than full `map-codebase` — it gathers only what the ARCH rules need.
 
-### 3. Evaluate ARCH-1 through ARCH-6
+### 3. Evaluate ARCH-1 through ARCH-10
 
-Apply each rule against the gathered context. For each rule, the reviewer produces a verdict and supporting evidence.
+Apply each rule against the gathered context. **Use the canonical rule definitions from `ccc/skills/arch-check/SKILL.md`** — do not restate or paraphrase the rule semantics here, and do not invent diverging severities or detection signals. For each rule, the reviewer produces a verdict and supporting evidence using the canonical detection signals.
 
-**ARCH-1 — Layer violations**
+The ten rules and their headline scope:
 
-Check whether any module bypasses its expected layer boundary. For example:
-- UI or controller code importing directly from the data / repository layer;
-- presentation logic embedded in business service modules.
+- **ARCH-1 — No outward imports from the domain layer** (BLOCK). Confirm domain modules do not import application or infrastructure code.
+- **ARCH-2 — No circular imports** (BLOCK). Trace import graphs (use `madge`, `deptree`, `go vet`, or equivalent) and report any cycle.
+- **ARCH-3 — No cross-feature direct imports** (WARN). Confirm features communicate only through public APIs.
+- **ARCH-4 — Infrastructure must not leak into domain or application** (BLOCK). Confirm ORM, HTTP, SDK, and framework types stay outside domain/application.
+- **ARCH-5 — Cascade depth limit (≤ 2 levels)** (WARN). Identify changes whose effects fan out to more than two downstream modules.
+- **ARCH-6 — Explicit public API required for every module/package** (INFO). Confirm each module declares its public surface.
+- **ARCH-7 — Composition over inheritance** (WARN/BLOCK/INFO). Identify subclassing used to vary behaviour where Strategy, Decorator, Bridge, Adapter, function injection, or policy injection would suffice. Honour the canonical allowed-cases list (true domain taxonomy, framework hooks, sealed/algebraic types, exception bases, ORM-imposed inheritance).
+- **ARCH-8 — Dependencies must be injected** (BLOCK/WARN/INFO). Identify hidden construction of services, repositories, gateways, clients, loggers, clocks, RNGs, configuration readers, databases, HTTP clients, queues, SDK clients, and filesystem adapters inside domain/application code. Recommend moving wiring to the composition root or a dedicated factory.
+- **ARCH-9 — Depend on stable ports, not concrete infrastructure** (BLOCK/WARN/INFO). Enforce the **Dependency Inversion Principle (DIP)** and **Interface Segregation Principle (ISP)**: domain/application code must depend on small, consumer-shaped ports/protocols/traits/interfaces rather than concrete `Sql*`, `Http*`, `Prisma*`, `Redis*`, `S3*`, framework request/session, or SDK client types. Flag fat ports that bundle unrelated responsibilities.
+- **ARCH-10 — Composition root owns wiring** (WARN/BLOCK/INFO). Confirm the application has a single explicit composition root that assembles the object graph; flag service locators, global containers, or recursive concrete construction inside domain/application logic.
 
-Verdict: PASS if no violations found, FAIL with specific file and import locations.
+For every rule, record:
 
-**ARCH-2 — Circular imports / dependency cycles**
-
-Detect circular import chains. Use static analysis tools if available (e.g., `madge`, `deptree`, `go vet`), or trace import graphs manually for smaller codebases.
-
-Verdict: PASS if no cycles found, FAIL with the cycle chain (A → B → C → A).
-
-**ARCH-3 — Missing public API declarations**
-
-Check whether internal modules are accessed directly by external consumers instead of through a declared public API (e.g., index files, `__init__.py`, `mod.rs`, or explicit exports).
-
-Verdict: PASS if all cross-boundary access goes through public APIs, FAIL with specific violations.
-
-**ARCH-4 — Dependency direction violations**
-
-Verify that dependencies flow in the expected direction (upper layers depend on lower layers, not the reverse). For example:
-- a database module importing from an HTTP handler;
-- a utility library importing from an application service.
-
-Verdict: PASS if dependency direction is consistent, FAIL with specific inversions.
-
-**ARCH-5 — God modules**
-
-Identify modules with too many responsibilities. Heuristics:
-- files exceeding 500 lines with multiple unrelated exports;
-- modules imported by more than 60% of other modules;
-- classes or objects with more than 10 public methods spanning unrelated domains.
-
-Verdict: PASS if no god modules found, FAIL with specific modules and evidence.
-
-**ARCH-6 — Missing or incomplete abstraction boundaries**
-
-Check for cases where abstraction boundaries are implied but not enforced:
-- direct file system or database access scattered across layers;
-- configuration values read directly instead of through a config abstraction;
-- shared types or interfaces that should be in a boundary module but are duplicated.
-
-Verdict: PASS if abstraction boundaries are present and enforced, FAIL with specific gaps.
+- verdict: PASS / FAIL / INCONCLUSIVE;
+- severity (if FAIL): blocking / warning / informational, **matching the canonical severity from `ccc/arch-check`**;
+- specific evidence (file path, line number, symbol);
+- recommended action (brief, actionable, aligned with the canonical `agent_action` for that rule).
 
 ### 4. Integrate arch-check output (if available)
 
@@ -161,23 +137,29 @@ If `arch-check` is not available, note its absence in the report and rely on the
 
 Merge all evaluation results into a single report:
 
-1. one section per ARCH rule;
+1. one section per ARCH rule (ten in total: ARCH-1 through ARCH-10);
 2. each section contains:
-   - rule name and description;
-   - verdict: PASS / FAIL;
-   - severity (if FAIL): blocking / warning / informational;
+   - rule name and description (referencing `ccc/arch-check` rather than restating);
+   - verdict: PASS / FAIL / INCONCLUSIVE;
+   - severity (if FAIL): blocking / warning / informational, matching the canonical CCC severity;
    - specific violation locations (file path, line number where possible);
-   - recommended action (brief, actionable);
-3. a summary section with:
-   - total rules evaluated;
-   - pass / fail counts;
+   - recommended action (brief, actionable, aligned with the canonical `agent_action`);
+3. a dedicated **Composition-First Findings** subsection that surfaces, across rules, any concerns about:
+   - composition vs. inheritance choices (ARCH-7);
+   - hidden dependency construction and missing dependency injection (ARCH-8);
+   - DIP/ISP violations and dependence on concrete infrastructure (ARCH-9);
+   - missing or fragmented composition roots, service locators, global containers (ARCH-10);
+4. a summary section with:
+   - total rules evaluated (10);
+   - pass / fail / inconclusive counts;
    - blocking violation count;
    - whether `arch-check` was integrated;
-4. metadata header with:
+5. metadata header with:
    - repository path;
    - timestamp;
    - scope (full repo or subtree);
-   - context source (map-codebase brief or lightweight discovery).
+   - context source (map-codebase brief or lightweight discovery);
+   - canonical-rules source: `ccc/skills/arch-check/SKILL.md`.
 
 Write the report to the confirmed output path. If the write fails, try the fallback path `docs/architecture-report.md`.
 
@@ -186,7 +168,7 @@ Write the report to the confirmed output path. If the write fails, try the fallb
 Write `.agent/SESSION.md` using the full schema defined in `docs/session-md-schema.md`:
 
 ```yaml
-current-task: "Architecture review against ARCH-1 through ARCH-6"
+current-task: "Architecture review against ARCH-1 through ARCH-10"
 current-phase: "arch-reviewed"
 next-action: "address violations or proceed to implementation"
 workspace: "<repository root or subtree>"
@@ -207,7 +189,7 @@ If the SESSION.md write fails: log a warning and continue. Do not block workflow
 
 ### Evaluation gate
 
-All 6 ARCH rules must be evaluated. A rule that cannot be fully evaluated (e.g., no import graph available for ARCH-2) counts as evaluated but must be recorded with an "inconclusive" verdict and the reason.
+All 10 ARCH rules must be evaluated. A rule that cannot be fully evaluated (e.g., no import graph available for ARCH-2, or no clear composition root surface for ARCH-10) counts as evaluated but must be recorded with an "inconclusive" verdict and the reason.
 
 ### Report artifact gate
 
@@ -221,10 +203,11 @@ If the `arch-check` skill was available, its output must be included in the repo
 
 Before declaring the review complete, confirm ALL of the following. Any failing item blocks the "review complete" declaration.
 
-- [ ] All 6 ARCH rules evaluated — PASS / FAIL
+- [ ] All 10 ARCH rules evaluated — PASS / FAIL
 - [ ] Architecture report artifact produced — PASS / FAIL
 - [ ] SESSION.md written with correct phase — PASS / FAIL
 - [ ] arch-check output included if available — PASS / FAIL
+- [ ] Composition-First Findings subsection present in the report — PASS / FAIL
 
 If any item is FAIL: report the failing item(s) by name, state what must be done to resolve each, and do not advance past the gate.
 
@@ -261,7 +244,7 @@ Developer: review the architecture of this project before we start the refactor
 
 | Rules evaluated | Pass | Fail | Blocking |
 |-----------------|------|------|----------|
-| 6               | 4    | 2    | 1        |
+| 10              | 7    | 3    | 2        |
 
 ## ARCH-1 — Layer violations
 
@@ -303,4 +286,43 @@ No modules exceed the responsibility threshold.
 **Verdict:** PASS
 
 Database access is consistently abstracted through the repository layer.
+
+## ARCH-7 — Composition over inheritance
+
+**Verdict:** FAIL (warning)
+
+- `src/services/pricing/BasePricingService.ts` is subclassed by 4 children that each
+  override only `calculate()`. Recommend extracting a `PricingPolicy` strategy and
+  injecting it into a single `PricingService`.
+
+## ARCH-8 — Dependencies must be injected
+
+**Verdict:** FAIL (blocking)
+
+- `src/services/orders/OrderService.ts:18` constructs `new PrismaClient()` internally.
+- `src/services/email/Mailer.ts:12` reads `process.env.SMTP_URL` directly.
+
+**Action:** Move both dependencies to constructor parameters wired at the composition root.
+
+## ARCH-9 — Depend on stable ports, not concrete infrastructure
+
+**Verdict:** FAIL (blocking)
+
+- `src/usecases/CreateOrder.ts` imports `PrismaClient` directly (DIP violation).
+  Define a small `OrderRepository` port near the use case (ISP-shaped) and move the
+  Prisma implementation into infrastructure.
+
+## ARCH-10 — Composition root owns wiring
+
+**Verdict:** PASS
+
+`src/main.ts` is the single composition root; handlers and jobs receive their
+dependencies through constructor injection.
+
+## Composition-First Findings
+
+- Replace inheritance-based pricing variants with a Strategy + DI (see ARCH-7).
+- Eliminate hidden `new PrismaClient()` and `process.env` reads in domain/application
+  code; route through the composition root (see ARCH-8).
+- Introduce a narrow `OrderRepository` port to satisfy DIP/ISP (see ARCH-9).
 ```
