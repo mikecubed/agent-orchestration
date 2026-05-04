@@ -285,9 +285,10 @@ describe('flow skills layout', () => {
 
     for (const relative of filesToCheck) {
       const text = readText(ROOT, relative);
-      assert.doesNotMatch(text, /\bsdd\.specify\b/, `${relative} contains old dotted name sdd.specify`);
-      assert.doesNotMatch(text, /\bsdd\.plan\b/, `${relative} contains old dotted name sdd.plan`);
-      assert.doesNotMatch(text, /\bsdd\.tasks\b/, `${relative} contains old dotted name sdd.tasks`);
+      for (const legacyName of ['specify', 'plan', 'tasks'].map((name) => `sdd.${name}`)) {
+        assert.doesNotMatch(text, new RegExp(`\\b${legacyName.replace('.', '\\.')}\\b`),
+          `${relative} contains old dotted SDD agent name`);
+      }
     }
   });
 
