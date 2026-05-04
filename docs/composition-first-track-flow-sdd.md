@@ -175,6 +175,35 @@ duplicated and risked drifting legacy ARCH-1..ARCH-6 titles such as
 - Out-of-scope surfaces (root marketplace files, CCC files, patterns files)
   remain untouched.
 
+### Round 2 — FLOW-ARCH-001 convergence fix
+
+**Reviewer finding:** The round 1 resend removed duplicated rule sections and
+legacy labels, but one purpose-line sentence still paraphrased ARCH rule
+semantics as a detector list. Because this was the same issue after one resend,
+the coordinator stopped the resend loop and applied the smallest defensible
+change directly.
+
+**Changes (round 2):**
+
+- `plugins/flow/skills/arch-review/SKILL.md`:
+  - Replaced the frontmatter description with a high-level reference to the
+    canonical CCC ARCH rule set.
+  - Replaced the Purpose sentence's detector list with a high-level statement
+    that evaluation runs against the canonical `ccc/arch-check` ARCH-1 through
+    ARCH-10 framework.
+
+**Validation (round 2):**
+
+- `npm --prefix plugins/flow test` → 43/43 tests pass across 3 suites
+  (exit 0).
+- Targeted checks confirm the removed purpose-line glosses
+  (`to detect layer violations`, `missing abstractions`, and
+  `dependency direction problems`) no longer appear. The only remaining
+  composition-first finding categories are tied directly to canonical
+  `ARCH-7` through `ARCH-10` report sections.
+- `grep -rnE 'sdd\.(specify|plan|tasks)|sdd-workflow' plugins/flow/agents plugins/flow/skills`
+  → no matches (exit 1).
+
 ## Next action
 
 Coordinator should integrate this branch (`wt/composition-flow-sdd`) into the

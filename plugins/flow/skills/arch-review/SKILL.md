@@ -1,13 +1,13 @@
 ---
 name: arch-review
-description: Structured architecture analysis evaluating layer boundaries, dependency direction, circular imports, and public API surface.
+description: Structured architecture analysis against the canonical CCC ARCH rule set.
 ---
 
 > References to `docs/session-md-schema.md` in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file). Other `docs/` paths (such as artifact output destinations) refer to the target project.
 
 ## Purpose
 
-Use this skill when a developer or agent needs a systematic evaluation of a codebase's architectural health. It applies the **ARCH-1 through ARCH-10** analytical framework to detect layer violations, circular imports, missing abstractions, dependency direction problems, inheritance used in place of composition, hidden dependency construction, dependence on concrete infrastructure (DIP/ISP violations), and missing composition roots. When the `map-codebase` skill has already run, this skill consumes its factual context brief to avoid redundant discovery.
+Use this skill when a developer or agent needs a systematic evaluation of a codebase's architectural health against the canonical **ARCH-1 through ARCH-10** framework maintained by `ccc/arch-check`. When the `map-codebase` skill has already run, this skill consumes its factual context brief to avoid redundant discovery.
 
 The `arch-check` skill from the `ccc` plugin is the **canonical source** for ARCH rule IDs, names, severities, and detection signals. This skill must not redefine or diverge from those rule semantics. When `arch-check` is available in the session it is invoked directly and its findings are merged into the report; when it is not available, this skill applies the same rule definitions by reference rather than restating them.
 

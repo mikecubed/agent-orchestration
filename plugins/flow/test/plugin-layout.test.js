@@ -231,6 +231,17 @@ describe('flow skills layout', () => {
         `arch-review must not embed the legacy label ${pattern}`);
     }
 
+    const legacySemanticGlosses = [
+      /evaluating layer boundaries, dependency direction, circular imports, and public API surface/i,
+      /to detect layer violations/i,
+      /missing abstractions/i,
+      /dependency direction problems/i,
+    ];
+    for (const pattern of legacySemanticGlosses) {
+      assert.doesNotMatch(text, pattern,
+        `arch-review must not paraphrase legacy ARCH semantics with ${pattern}`);
+    }
+
     assert.match(text, /plugins\/ccc\/skills\/arch-check\/SKILL\.md/,
       'arch-review must point readers to plugins/ccc/skills/arch-check/SKILL.md as the canonical source');
     assert.match(text, /do not restate or paraphrase the rule semantics/i,
