@@ -272,6 +272,17 @@ describe('flow skills layout', () => {
       'sdd-plan must require injected dependencies');
     assert.match(tasks, /composition root|inject(ed|ion)|inheritance justif|port/i,
       'sdd-tasks must include composition-first task generation guidance');
+    assert.match(tasks, /\/flow:arch-review/,
+      'sdd-tasks must use the copyable /flow:arch-review invocation');
+    const unprefixedArchReviewInvocation = ['flow', 'arch-review'].join(':');
+    assert.doesNotMatch(tasks, new RegExp(`\`${unprefixedArchReviewInvocation}\``),
+      'sdd-tasks must not use the non-copyable arch-review form');
+    assert.match(plan, /\/flow:arch-review/,
+      'sdd-plan must use the copyable /flow:arch-review invocation');
+    assert.match(plan, /plugins\/flow\/skills\/arch-review\/SKILL\.md/,
+      'sdd-plan must cite the canonical arch-review implementation path');
+    assert.doesNotMatch(plan, /reference `flow\/skills\/arch-review`/,
+      'sdd-plan must not cite a non-existent flow/skills/arch-review path');
   });
 
   it('does not reintroduce old dotted SDD agent names anywhere under flow', () => {
