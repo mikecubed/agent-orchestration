@@ -73,3 +73,16 @@ workspace.
 8. **Write** the plan to `.sdd/{feature-dir}/plan.md`.
 
 9. **Report completion** with paths to all generated artifacts, whether this was a new plan or an in-place refinement, and the recommended handoff to `sdd-tasks`.
+
+## Composition-First Planning Requirements
+
+The technical plan must be **composition-first** and align with Clean Architecture and DDD. When filling the Technical Context, Project Structure, Phase 0/1/2, and Constitution / Quality Gates sections, prefer the following patterns and call them out explicitly:
+
+- **Ports over concrete infrastructure (DIP/ISP)** — domain and application code depends on small, consumer-shaped ports/protocols/interfaces/traits. Define the port near the consumer (ISP); place concrete adapters (HTTP clients, ORMs, queues, SDKs, filesystem, clocks, RNGs) in the infrastructure layer. Avoid fat ports that bundle unrelated responsibilities.
+- **Injected dependencies** — every external dependency arrives via constructor parameter, function parameter, or factory. The plan must not place hidden `new`/SDK/global-config access inside domain or application code. Specify how each dependency is constructed and supplied.
+- **Explicit composition root** — name the module, factory, or bootstrap function that assembles the object graph (for example `src/main.ts`, `cmd/server/main.go`, `app/wire.ts`). Handlers, jobs, controllers, and tests must obtain their dependencies from this composition root rather than from service locators, global containers, or recursive concrete construction. Test fixtures may use a test-specific composition root.
+- **Composition over inheritance** — when the plan introduces variability (pricing rules, validation policies, formatting, transport choices), prefer Strategy, Decorator, Bridge, Adapter, function injection, or policy objects. Record any retained inheritance with explicit justification (true domain taxonomy, framework hook, sealed/algebraic type, exception base, or unavoidable ORM constraint).
+- **Pure domain logic** — keep entities, value objects, and domain services free of database, HTTP, filesystem, framework, SDK, or process-global access. Push side effects to the application or infrastructure layer.
+- **Clean Architecture / DDD alignment** — preserve the inward dependency direction (domain ← application ← infrastructure) and keep aggregates focused; treat repositories as domain/application-facing interfaces with infrastructure-side implementations.
+
+The plan's Constitution / Quality Gates section must include the architectural rules `ARCH-1` through `ARCH-10` (canonical source: `plugins/ccc/skills/arch-check/SKILL.md`) and reference `/flow:arch-review` for review-time evaluation (implementation file: `plugins/flow/skills/arch-review/SKILL.md`). Do not restate the rule semantics in the plan; cite them.

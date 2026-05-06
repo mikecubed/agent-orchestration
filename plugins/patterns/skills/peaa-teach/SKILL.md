@@ -51,6 +51,26 @@ Load in this order:
 
 ---
 
+## Composition-first framing for inheritance mapping
+
+When teaching Single Table Inheritance, Class Table Inheritance, Concrete
+Table Inheritance, or Inheritance Mappers:
+
+1. Teach the canonical Fowler description and trade-offs accurately.
+2. Frame all four as **last-resort** persistence patterns. Before
+   recommending any of them, run the **composition-first pre-gate**:
+   - Is this a true domain taxonomy or an accidental persistence taxonomy?
+   - Could the variation be expressed by composition, role objects, value
+     objects, specifications, or policy/strategy objects instead?
+3. **Warn** that inheritance mapping can **harden** a questionable object
+   model into the database schema, making future refactoring expensive.
+   Schema changes follow class changes, and rolling back the hierarchy
+   later requires a migration.
+4. Reserve inheritance mapping for genuine domain taxonomies that
+   composition cannot express.
+
+---
+
 ## Mode: Deep Dive (single pattern)
 
 Deliver in this order — do not skip steps:

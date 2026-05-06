@@ -1,10 +1,15 @@
 ---
 name: arch-check
 description: >
-  Enforces architectural boundary rules (ARCH-1 through ARCH-6). Loaded by the
-  conductor for review, refactor, and new-service operations. Detects layer
-  violations, circular imports, and missing public API declarations. Architecture
-  boundaries are language-agnostic — no language reference files needed.
+  Enforces architectural boundary rules (ARCH-1 through ARCH-10). Loaded by the
+  conductor for review, refactor, and new-service operations, and for write
+  operations that create or modify classes, services, repositories, modules,
+  adapters, domain models, use cases, or wiring. Detects layer violations,
+  circular imports, missing public API declarations, inheritance used as a
+  substitute for composition, hidden dependency construction, dependence on
+  concrete infrastructure instead of stable ports, and missing composition
+  roots. Architecture boundaries are language-agnostic — no language reference
+  files needed.
 version: "1.0.0"
 last-reviewed: "2026-03-04"
 languages: [typescript, python, go, rust, javascript]
@@ -168,6 +173,147 @@ doc, etc.) that lists the exported symbols.
 2. Name the directory
 3. Suggest: create `index.ts` / `__init__.py` / `mod.rs` / Go package-level doc
    exporting only the intended public symbols
+
+---
+
+### ARCH-7 — Composition Over Inheritance
+**Severity**: WARN (default) / BLOCK (deep or behaviour-only) / INFO (justified) | **Languages**: * | **Source**: CCC
+
+**What it prohibits**: Subclassing primarily to vary behaviour when behaviour
+can be injected or composed. Inheritance is permitted when it expresses a true
+domain taxonomy, a framework hook, a language-idiomatic sealed/algebraic
+hierarchy, an exception base type, or an unavoidable ORM-imposed hierarchy.
+
+**Severity nuance**:
+- `WARN` for shallow but avoidable inheritance (1–2 levels used to vary behaviour).
+- `BLOCK` for deep behavioural hierarchies, subclass proliferation, or subclassing
+  used solely to vary algorithms.
+- `INFO` for justified framework hooks, true domain taxonomies, sealed/algebraic
+  hierarchies, base exceptions, or bounded ORM inheritance.
+
+**Detection signals**:
+1. Inheritance chains deeper than two levels
+2. Subclasses overriding only one or two behaviour methods
+3. Type-code or subclass proliferation (many trivial subclasses)
+4. Base classes with many `protected` hooks
+5. Template Method use where Strategy, function injection, or policy injection
+   would be simpler
+
+**Allowed / justified cases**:
+- True domain taxonomy backed by ubiquitous language
+- Framework-required base classes (UI components, jobs, controllers)
+- Sealed/algebraic data types (Rust enums, Kotlin sealed classes, TS discriminated unions)
+- Exception/error base types
+- ORM-imposed inheritance where the ORM offers no composition alternative
+
+**agent_action**:
+1. Cite: `ARCH-7 (WARN|BLOCK|INFO): Inheritance used to vary behaviour where composition would suffice.`
+2. Identify the varying behaviour
+3. Propose Strategy, Decorator, Bridge, Adapter, function injection, or a policy object
+4. If inheritance is retained, require explicit justification matching one of the allowed cases above
+5. DO NOT introduce new subclass hierarchies without justification
+
+---
+
+### ARCH-8 — Dependencies Must Be Injected
+**Severity**: BLOCK (default) / WARN (duplicated wiring) / INFO (factories) | **Languages**: * | **Source**: CCC
+
+**What it prohibits**: Hidden construction of services, repositories, gateways,
+clients, loggers, clocks, random sources, configuration readers, databases,
+HTTP clients, queues, SDK clients, and filesystem adapters inside
+domain/application classes. Dependencies must arrive through constructor
+parameters, function parameters, factories, or composition-root wiring.
+
+**Severity nuance**:
+- `BLOCK` for hidden infrastructure or service construction inside
+  domain/application logic.
+- `WARN` for duplicated wiring outside the composition root.
+- `INFO` for construction inside approved factories/builders or test fixtures.
+
+**Detection signals**:
+1. `new`/constructor calls for repositories, gateways, HTTP/DB/queue clients,
+   loggers, clocks, or RNGs inside domain or application code
+2. Static service-locator lookups (`Container.get`, `ServiceLocator.resolve`)
+   inside domain/application logic
+3. Implicit reads of `process.env`, `os.environ`, global config singletons
+   inside domain/application logic
+
+**Allowed / justified cases**: value objects; entities; errors/exceptions;
+local collections; DTOs; pure helpers; immutable constants; dedicated
+factories/builders; composition-root wiring; framework or test fixture setup.
+
+**agent_action**:
+1. Cite: `ARCH-8 (BLOCK): Hidden construction of dependency '{name}' inside {layer} code.`
+2. Identify the concrete dependency created internally
+3. Move construction to the composition root or a dedicated factory
+4. Pass the dependency through a constructor or function parameter
+5. Preserve explicit ownership and lifetime semantics
+
+---
+
+### ARCH-9 — Depend on Stable Ports, Not Concrete Infrastructure
+**Severity**: BLOCK (default) / WARN (fat ports) / INFO (tighten boundaries) | **Languages**: * | **Source**: CCC
+
+**What it prohibits**: Domain or application code depending on concrete
+infrastructure types (`Sql*`, `Http*`, `Prisma*`, `Redis*`, `S3*`, framework
+request/session, SDK client types) instead of small ports, protocols, traits,
+or interfaces. Enforces DIP and ISP.
+
+**Severity nuance**:
+- `BLOCK` when concrete infrastructure crosses inward into domain/application code.
+- `WARN` for fat ports, broad interfaces, or public APIs that expose
+  implementation details.
+- `INFO` for opportunities to tighten interface boundaries.
+
+**Detection signals**:
+1. Domain/application files importing concrete infrastructure or SDK types
+2. Constructor parameters typed as concrete adapters when a narrow port would suffice
+3. Public API files exporting concrete infrastructure as the primary seam
+4. Ports bundling unrelated responsibilities (ISP violation)
+
+**Allowed / justified cases**: infrastructure layer modules; composition-root
+wiring; adapter implementations that legitimately depend on the concrete
+client they wrap.
+
+**agent_action**:
+1. Cite: `ARCH-9 (BLOCK): Concrete infrastructure type '{type}' used in {layer}.`
+2. Define the smallest useful port near the consuming layer
+3. Split fat ports by consumer need (ISP)
+4. Move the implementation into infrastructure
+5. Wire the concrete adapter at the composition root
+
+---
+
+### ARCH-10 — Composition Root Owns Wiring
+**Severity**: WARN (default) / BLOCK (service locator) / INFO (small scripts) | **Languages**: * | **Source**: CCC
+
+**What it requires**: Non-trivial applications must have an explicit
+composition root — a startup module, factory, or bootstrap function — where
+the object graph is assembled. Domain and application code must not assemble
+their own dependencies through service locators, global containers, or
+recursive concrete construction.
+
+**Severity nuance**:
+- `WARN` when a non-trivial app has no clear composition root.
+- `BLOCK` when business logic accesses service locators, global containers, or
+  recursively constructs concrete dependencies.
+- `INFO` for small scripts or trivial pure modules where a composition root
+  would add ceremony.
+
+**Detection signals**:
+1. Repeated wiring across handlers, controllers, jobs, or tests
+2. Service locators or global containers accessed from domain/application logic
+3. Constructors that recursively build concrete dependencies
+4. No clear startup/factory/module responsible for wiring
+
+**Allowed / justified cases**: small scripts; trivial pure modules; throwaway
+prototypes; test-specific composition roots or fixtures.
+
+**agent_action**:
+1. Cite: `ARCH-10 (WARN|BLOCK): Object graph wiring is scattered or accessed via service locator.`
+2. Introduce or identify a single composition root for the application
+3. Move wiring there; keep framework adapters thin
+4. Allow test-specific composition roots or fixtures for tests
 
 ---
 

@@ -35,6 +35,21 @@ questions (bounded contexts, context maps), redirect to `/ddd-strategist`.
 ## Key advisor rules
 
 - **Default to Value Object** — most developers over-use Entity. If it doesn't need identity tracking, it's a Value Object.
+- **Compose variability, do not inherit it.** Aggregates enforce
+  invariants and expose behavior, but variability should usually be modeled
+  through **value objects, specifications, policies, domain services, or
+  ports** rather than entity inheritance. Entity inheritance requires a
+  true ubiquitous-language subtype relationship — if "Customer is-a Party"
+  is not how the domain experts speak, prefer composition (roles,
+  capabilities, policies) over inheritance.
+- **Repositories are domain/application-facing interfaces** with
+  infrastructure implementations. Define the repository as a port in the
+  domain or application layer; place the database/ORM/SDK adapter in
+  infrastructure. Domain code depends on the repository interface, not on
+  the concrete adapter.
+- **Domain services stay stateless and pure.** No I/O, framework, or SDK
+  types in the domain layer. External capabilities (clock, ID generator,
+  pricing API, payment gateway) are expressed as ports and injected.
 - **Services are a last resort** — push behavior onto Entities/VOs first. Services are for operations that genuinely don't belong on any object.
 - **Small aggregates** — prefer small over large. Reference other aggregates by ID.
 - **For strategic questions** → "For bounded context and team boundary decisions, use `/ddd-strategist`."

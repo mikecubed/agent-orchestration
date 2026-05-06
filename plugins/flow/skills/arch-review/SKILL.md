@@ -1,13 +1,15 @@
 ---
 name: arch-review
-description: Structured architecture analysis evaluating layer boundaries, dependency direction, circular imports, and public API surface.
+description: Structured architecture analysis against the canonical CCC ARCH rule set.
 ---
 
 > References to `docs/session-md-schema.md` in this skill refer to the plugin-level `docs/` directory (`../../docs/` relative to this file). Other `docs/` paths (such as artifact output destinations) refer to the target project.
 
 ## Purpose
 
-Use this skill when a developer or agent needs a systematic evaluation of a codebase's architectural health. It applies the ARCH-1 through ARCH-6 analytical framework to detect layer violations, circular imports, missing abstractions, and dependency direction problems. When the `map-codebase` skill has already run, this skill consumes its factual context brief to avoid redundant discovery.
+Use this skill when a developer or agent needs a systematic evaluation of a codebase's architectural health against the canonical **ARCH-1 through ARCH-10** framework maintained by `ccc/arch-check`. When the `map-codebase` skill has already run, this skill consumes its factual context brief to avoid redundant discovery.
+
+The `arch-check` skill from the `ccc` plugin is the **canonical source** for ARCH rule IDs, names, severities, and detection signals. This skill must not redefine or diverge from those rule semantics. When `arch-check` is available in the session it is invoked directly and its findings are merged into the report; when it is not available, this skill applies the same rule definitions by reference rather than restating them.
 
 Persistent team, squad, or fleet-style long-lived orchestration is out of scope for this skill. Use a separate orchestration layer if persistent coordination is needed.
 
@@ -49,7 +51,7 @@ Use separate roles for:
 - a **reviewer** model or agent that evaluates the gathered facts against the ARCH rules;
 - a **coordinator** that manages the workflow and merges results into the final report.
 
-The scout produces a factual context brief of the architectural structure. The reviewer applies judgment against the ARCH-1 through ARCH-6 framework. Keep fact-gathering and evaluation separate.
+The scout produces a factual context brief of the architectural structure. The reviewer applies judgment against the ARCH-1 through ARCH-10 framework. Keep fact-gathering and evaluation separate.
 
 ### Model Selection
 
@@ -96,55 +98,23 @@ If no usable brief exists, run a single scout pass to gather the minimum context
 
 This is a narrower pass than full `map-codebase` — it gathers only what the ARCH rules need.
 
-### 3. Evaluate ARCH-1 through ARCH-6
+### 3. Evaluate ARCH-1 through ARCH-10
 
-Apply each rule against the gathered context. For each rule, the reviewer produces a verdict and supporting evidence.
+Apply each rule against the gathered context. **Use the canonical rule definitions from `plugins/ccc/skills/arch-check/SKILL.md`** — do not restate or paraphrase the rule semantics here, and do not invent diverging severities, detection signals, or rule names. The reviewer produces a verdict and supporting evidence per rule by consulting the canonical source for:
 
-**ARCH-1 — Layer violations**
+- the official rule name (use it verbatim — do not coin alternative titles);
+- the canonical severity (and its nuance, where ARCH-7..ARCH-10 vary);
+- the canonical detection signals;
+- the canonical `agent_action` recommendation.
 
-Check whether any module bypasses its expected layer boundary. For example:
-- UI or controller code importing directly from the data / repository layer;
-- presentation logic embedded in business service modules.
+The set of rules to evaluate is **ARCH-1 through ARCH-10**, including the composition-first additions (ARCH-7..ARCH-10) covering composition-over-inheritance, injected dependencies, **DIP**/**ISP** ports, and an explicit composition root. Do not introduce a separate Flow-specific gloss for any rule; if clarification is needed, link to the canonical entry in `plugins/ccc/skills/arch-check/SKILL.md`.
 
-Verdict: PASS if no violations found, FAIL with specific file and import locations.
+For every rule, record:
 
-**ARCH-2 — Circular imports / dependency cycles**
-
-Detect circular import chains. Use static analysis tools if available (e.g., `madge`, `deptree`, `go vet`), or trace import graphs manually for smaller codebases.
-
-Verdict: PASS if no cycles found, FAIL with the cycle chain (A → B → C → A).
-
-**ARCH-3 — Missing public API declarations**
-
-Check whether internal modules are accessed directly by external consumers instead of through a declared public API (e.g., index files, `__init__.py`, `mod.rs`, or explicit exports).
-
-Verdict: PASS if all cross-boundary access goes through public APIs, FAIL with specific violations.
-
-**ARCH-4 — Dependency direction violations**
-
-Verify that dependencies flow in the expected direction (upper layers depend on lower layers, not the reverse). For example:
-- a database module importing from an HTTP handler;
-- a utility library importing from an application service.
-
-Verdict: PASS if dependency direction is consistent, FAIL with specific inversions.
-
-**ARCH-5 — God modules**
-
-Identify modules with too many responsibilities. Heuristics:
-- files exceeding 500 lines with multiple unrelated exports;
-- modules imported by more than 60% of other modules;
-- classes or objects with more than 10 public methods spanning unrelated domains.
-
-Verdict: PASS if no god modules found, FAIL with specific modules and evidence.
-
-**ARCH-6 — Missing or incomplete abstraction boundaries**
-
-Check for cases where abstraction boundaries are implied but not enforced:
-- direct file system or database access scattered across layers;
-- configuration values read directly instead of through a config abstraction;
-- shared types or interfaces that should be in a boundary module but are duplicated.
-
-Verdict: PASS if abstraction boundaries are present and enforced, FAIL with specific gaps.
+- verdict: PASS / FAIL / INCONCLUSIVE;
+- severity (if FAIL): blocking / warning / informational, **matching the canonical severity from `ccc/arch-check`**;
+- specific evidence (file path, line number, symbol);
+- recommended action (brief, actionable, aligned with the canonical `agent_action` for that rule).
 
 ### 4. Integrate arch-check output (if available)
 
@@ -161,23 +131,29 @@ If `arch-check` is not available, note its absence in the report and rely on the
 
 Merge all evaluation results into a single report:
 
-1. one section per ARCH rule;
+1. one section per ARCH rule (ten in total: ARCH-1 through ARCH-10);
 2. each section contains:
-   - rule name and description;
-   - verdict: PASS / FAIL;
-   - severity (if FAIL): blocking / warning / informational;
+   - rule name and description (referencing `ccc/arch-check` rather than restating);
+   - verdict: PASS / FAIL / INCONCLUSIVE;
+   - severity (if FAIL): blocking / warning / informational, matching the canonical CCC severity;
    - specific violation locations (file path, line number where possible);
-   - recommended action (brief, actionable);
-3. a summary section with:
-   - total rules evaluated;
-   - pass / fail counts;
+   - recommended action (brief, actionable, aligned with the canonical `agent_action`);
+3. a dedicated **Composition-First Findings** subsection that surfaces, across rules, any concerns about:
+   - composition vs. inheritance choices (ARCH-7);
+   - hidden dependency construction and missing dependency injection (ARCH-8);
+   - DIP/ISP violations and dependence on concrete infrastructure (ARCH-9);
+   - missing or fragmented composition roots, service locators, global containers (ARCH-10);
+4. a summary section with:
+   - total rules evaluated (10);
+   - pass / fail / inconclusive counts;
    - blocking violation count;
    - whether `arch-check` was integrated;
-4. metadata header with:
+5. metadata header with:
    - repository path;
    - timestamp;
    - scope (full repo or subtree);
-   - context source (map-codebase brief or lightweight discovery).
+   - context source (map-codebase brief or lightweight discovery);
+   - canonical-rules source: `ccc/skills/arch-check/SKILL.md`.
 
 Write the report to the confirmed output path. If the write fails, try the fallback path `docs/architecture-report.md`.
 
@@ -186,7 +162,7 @@ Write the report to the confirmed output path. If the write fails, try the fallb
 Write `.agent/SESSION.md` using the full schema defined in `docs/session-md-schema.md`:
 
 ```yaml
-current-task: "Architecture review against ARCH-1 through ARCH-6"
+current-task: "Architecture review against ARCH-1 through ARCH-10"
 current-phase: "arch-reviewed"
 next-action: "address violations or proceed to implementation"
 workspace: "<repository root or subtree>"
@@ -207,7 +183,7 @@ If the SESSION.md write fails: log a warning and continue. Do not block workflow
 
 ### Evaluation gate
 
-All 6 ARCH rules must be evaluated. A rule that cannot be fully evaluated (e.g., no import graph available for ARCH-2) counts as evaluated but must be recorded with an "inconclusive" verdict and the reason.
+All 10 ARCH rules must be evaluated. A rule that cannot be fully evaluated (e.g., no import graph available for ARCH-2, or no clear composition root surface for ARCH-10) counts as evaluated but must be recorded with an "inconclusive" verdict and the reason.
 
 ### Report artifact gate
 
@@ -221,10 +197,11 @@ If the `arch-check` skill was available, its output must be included in the repo
 
 Before declaring the review complete, confirm ALL of the following. Any failing item blocks the "review complete" declaration.
 
-- [ ] All 6 ARCH rules evaluated — PASS / FAIL
+- [ ] All 10 ARCH rules evaluated — PASS / FAIL
 - [ ] Architecture report artifact produced — PASS / FAIL
 - [ ] SESSION.md written with correct phase — PASS / FAIL
 - [ ] arch-check output included if available — PASS / FAIL
+- [ ] Composition-First Findings subsection present in the report — PASS / FAIL
 
 If any item is FAIL: report the failing item(s) by name, state what must be done to resolve each, and do not advance past the gate.
 
@@ -248,6 +225,12 @@ Developer: review the architecture of this project before we start the refactor
 
 ### Architecture report output (abbreviated)
 
+> Rule headings below use the canonical names from
+> `plugins/ccc/skills/arch-check/SKILL.md` verbatim. Do not invent alternative
+> names or paraphrased titles. Each section cites the canonical rule and links
+> back to the canonical source for semantics; this example shows shape, not
+> rule definitions.
+
 ```markdown
 # Architecture Review — my-app
 
@@ -255,52 +238,96 @@ Developer: review the architecture of this project before we start the refactor
 **Timestamp:** 2025-07-20T15:00:00Z
 **Scope:** full repository
 **Context source:** map-codebase brief (.agent/codebase-brief.md)
+**Canonical rules source:** plugins/ccc/skills/arch-check/SKILL.md (ARCH-1..ARCH-10)
 **arch-check:** integrated
 
 ## Summary
 
 | Rules evaluated | Pass | Fail | Blocking |
 |-----------------|------|------|----------|
-| 6               | 4    | 2    | 1        |
+| 10              | 6    | 4    | 3        |
 
-## ARCH-1 — Layer violations
+> For each rule below, see `plugins/ccc/skills/arch-check/SKILL.md` for the
+> authoritative description, severity nuance, detection signals, and
+> `agent_action`. This report only records verdicts and evidence.
 
-**Verdict:** FAIL (blocking)
+## ARCH-1 — No Outward Imports from Domain Layer
 
-- `src/api/routes/users.ts:14` imports `src/db/prisma.ts` directly (bypasses service layer)
-- `src/api/middleware/auth.ts:8` reads from `src/db/sessions.ts` directly
+**Verdict:** FAIL (BLOCK, per canonical severity)
 
-**Action:** Route database access through the service layer.
+- `src/domain/orders/Order.ts:14` imports `src/infra/db/prisma.ts`
+- `src/domain/users/User.ts:8` imports `src/application/sessions.ts`
 
-## ARCH-2 — Circular imports
+**Action:** Per canonical `agent_action` for ARCH-1, invert via a port defined
+in the domain and implement in infrastructure.
+
+## ARCH-2 — No Circular Imports
+
+**Verdict:** PASS (verified with madge; no cycles found).
+
+## ARCH-3 — No Cross-Feature Direct Imports
+
+**Verdict:** PASS (cross-feature imports go through public API surfaces).
+
+## ARCH-4 — Infrastructure Must Not Leak Into Domain or Application
+
+**Verdict:** FAIL (BLOCK, per canonical severity)
+
+- `src/application/usecases/CreateOrder.ts:22` imports `PrismaClient` directly.
+
+**Action:** Per canonical `agent_action` for ARCH-4, define a port in domain
+and implement the adapter in infrastructure.
+
+## ARCH-5 — Cascade Depth Limit (≤ 2 Levels)
+
+**Verdict:** PASS.
+
+## ARCH-6 — Explicit Public API Required for Every Module/Package
+
+**Verdict:** PASS (every module exposes an `index.ts` barrel).
+
+## ARCH-7 — Composition Over Inheritance
+
+**Verdict:** FAIL (WARN, per canonical severity)
+
+- `src/services/pricing/BasePricingService.ts` is subclassed by 4 children
+  that each override only `calculate()`.
+
+**Action:** Per canonical `agent_action` for ARCH-7, replace with a Strategy
+or policy injected into a single `PricingService`.
+
+## ARCH-8 — Dependencies Must Be Injected
+
+**Verdict:** FAIL (BLOCK, per canonical severity)
+
+- `src/services/orders/OrderService.ts:18` constructs `new PrismaClient()`.
+- `src/services/email/Mailer.ts:12` reads `process.env.SMTP_URL` directly.
+
+**Action:** Per canonical `agent_action` for ARCH-8, move construction to the
+composition root and pass dependencies through constructor parameters.
+
+## ARCH-9 — Depend on Stable Ports, Not Concrete Infrastructure
+
+**Verdict:** FAIL (BLOCK, per canonical severity — **DIP**/**ISP** violation)
+
+- `src/usecases/CreateOrder.ts` depends on `PrismaClient` instead of a narrow
+  `OrderRepository` port.
+
+**Action:** Per canonical `agent_action` for ARCH-9, define the smallest
+useful port near the consuming layer and move the Prisma implementation into
+infrastructure.
+
+## ARCH-10 — Composition Root Owns Wiring
 
 **Verdict:** PASS
 
-No circular import chains detected (verified with madge).
+`src/main.ts` is the single composition root; handlers and jobs receive their
+dependencies through constructor injection.
 
-## ARCH-3 — Missing public API declarations
+## Composition-First Findings
 
-**Verdict:** PASS
-
-All cross-boundary imports go through index.ts barrel files.
-
-## ARCH-4 — Dependency direction violations
-
-**Verdict:** FAIL (warning)
-
-- `src/utils/logger.ts:22` imports `src/services/config.ts` (utility depending on service)
-
-**Action:** Extract config reading into a shared config utility.
-
-## ARCH-5 — God modules
-
-**Verdict:** PASS
-
-No modules exceed the responsibility threshold.
-
-## ARCH-6 — Missing abstraction boundaries
-
-**Verdict:** PASS
-
-Database access is consistently abstracted through the repository layer.
+- Replace inheritance-based pricing variants with a Strategy + DI (see ARCH-7).
+- Eliminate hidden `new PrismaClient()` and `process.env` reads in
+  domain/application code; route through the composition root (see ARCH-8).
+- Introduce a narrow `OrderRepository` port to satisfy DIP/ISP (see ARCH-9).
 ```

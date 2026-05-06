@@ -68,6 +68,7 @@ For each class or module, assign one of:
 | **Pattern present — degraded** | Started as a pattern but has violations |
 | **Antipattern detected** | Matches a known antipattern from antipatterns.md |
 | **Pattern absent — expected** | Should have a pattern here but doesn't |
+| **Inheritance mapping — accidental persistence taxonomy** | STI/CTI/Concrete Table Inheritance/Inheritance Mappers used to persist a hierarchy that does not reflect a true domain taxonomy; flag for composition-first refactor (role object, value object, specification, policy) |
 | **Not pattern-relevant** | Config, utilities, infrastructure — skip |
 
 ## Step 4 — Produce the report

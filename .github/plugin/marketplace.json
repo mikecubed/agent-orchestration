@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Marketplace metadata for workflow, clean-code enforcement, and design pattern plugins.",
-    "version": "3.0.1"
+    "version": "3.1.0"
   },
   "plugins": [
     {
       "name": "flow",
       "source": "plugins/flow",
       "description": "Idea-to-done conductor, planning, delivery, codebase mapping, architecture review, brainstorm ideation, parallel implementation, systematic debugging, incident RCA, e2e test generation, review resolution, PR readiness, diff review, worktree lifecycle, swarm orchestration, contract generation, PR publication, release, knowledge capture, knowledge refresh, and SDD specification skills.",
-      "version": "3.0.1",
+      "version": "3.1.0",
       "author": {
         "name": "Michael Henderson"
       },
@@ -43,7 +43,7 @@
       "name": "ccc",
       "source": "plugins/ccc",
       "description": "Composable, multi-language, TDD-first clean code enforcement system. Orchestrates 17 check sub-skills across TypeScript, JavaScript, Python, Go, and Rust.",
-      "version": "3.0.0",
+      "version": "3.1.0",
       "author": {
         "name": "mikecubed"
       },
@@ -72,7 +72,7 @@
       "name": "patterns",
       "source": "plugins/patterns",
       "description": "Design pattern advisor, evaluator, refactoring planner, and interactive teacher grounded in canonical software architecture books. Includes Fowler's PEAA, Gang of Four, and Evans' DDD pattern catalogs.",
-      "version": "3.0.0",
+      "version": "3.1.0",
       "author": {
         "name": "mikecubed"
       },

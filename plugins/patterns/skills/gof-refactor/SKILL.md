@@ -35,13 +35,32 @@ After producing the plan: "To execute this plan, describe a specific phase
 4. Check for tests
 5. Produce phased plan (same format as PEAA refactor — independently safe phases)
 
+## Composition-first refactor priorities
+
+When inheritance is being used to vary behavior, prefer composition-first
+migrations. The three highest-leverage moves are:
+
+1. **Deep inheritance → Strategy or Decorator.** Extract the varying
+   behavior into an injected algorithm or a wrapping decorator chain.
+   Subclasses that only override one or two hooks become injected
+   functions, strategies, or decorators.
+2. **Global Singleton → dependency injection.** Pass the instance through
+   constructors, function parameters, or a factory at the composition
+   root. Reserve Singleton for genuine constraints (hardware handles,
+   process-level connection pools) with explicit justification.
+3. **Scattered `new` calls → factory or composition root.** Centralize
+   construction in a factory, builder, or the application's composition
+   root so that domain/application code receives dependencies rather than
+   creating them.
+
 ## Common GoF refactorings
 
 | From | To | Key seam |
 |------|-----|----------|
 | Switch on type | Strategy or State | Extract each case into a class/function |
 | Deep inheritance | Decorator or Strategy | Extract varying behavior into composition |
-| Scattered `new` calls | Factory Method or Abstract Factory | Extract creation into factory |
+| Subclass-only-to-override-one-hook | Function/strategy injection | Replace protected hook with injected callable |
+| Scattered `new` calls | Factory Method, Abstract Factory, or composition root | Extract creation into factory or composition root |
 | Global Singleton | Dependency injection | Pass instance through constructors |
 | Callback spaghetti | Command | Wrap each callback in a command object |
 | Manual tree traversal | Composite + Iterator | Unify leaf/node interface |
@@ -50,6 +69,10 @@ After producing the plan: "To execute this plan, describe a specific phase
 
 ## Rules
 
+- Composition-first is the default target. When the source code uses
+  inheritance to vary behavior, prefer Strategy, Decorator, Bridge,
+  Adapter, function injection, or dependency injection over a like-for-like
+  inheritance refactor unless inheritance is explicitly justified.
 - Minimum 3 phases for non-trivial migrations
 - Each phase leaves the system working
 - Cite specific file paths and line numbers

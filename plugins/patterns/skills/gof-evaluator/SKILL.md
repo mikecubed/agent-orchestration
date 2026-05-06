@@ -40,11 +40,18 @@ For each class or module, assign:
 | **Pattern absent — expected** | Should have a pattern here but doesn't |
 
 **Key evaluator behavior**: Detect MISUSE as well as absence. Common misuses:
-- Singleton used as global mutable state
+- Singleton used as global mutable state (composition-first: prefer dependency injection)
 - Decorator wrapping that should be simple inheritance
 - Strategy with only one implementation (premature abstraction)
 - Observer with circular notifications
 - Factory that returns only one concrete type (unnecessary indirection)
+- Template Method or subclass-driven Factory Method used to vary behavior that
+  could be injected as a Strategy, function, or factory — flag the
+  inheritance-heavy form as **non-default in modern code** and recommend the
+  composition-first alternative unless a true domain taxonomy, framework
+  hook, or sealed/algebraic hierarchy justifies inheritance.
+- Deep inheritance hierarchies (>2 levels) used for behavior reuse — flag and
+  suggest Strategy/Decorator composition.
 
 ## Output format
 

@@ -1,7 +1,7 @@
 {
   "name": "patterns",
   "description": "Design pattern advisor, evaluator, refactoring planner, and interactive teacher grounded in canonical software architecture books. Includes Fowler's Patterns of Enterprise Application Architecture (PEAA, 51 patterns), Gamma et al. Gang of Four Design Patterns (GoF, 23 patterns), and Evans' Domain-Driven Design (DDD).",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "author": {
     "name": "mikecubed"
   },

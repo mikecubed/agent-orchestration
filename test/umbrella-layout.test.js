@@ -9,6 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 const FLOW_ROOT = path.join(ROOT, 'plugins', 'flow');
+const CCC_ROOT = path.join(ROOT, 'plugins', 'ccc');
+const PATTERNS_ROOT = path.join(ROOT, 'plugins', 'patterns');
 
 function readJson(root, relativePath) {
   return JSON.parse(fs.readFileSync(path.join(root, relativePath), 'utf8'));
@@ -51,6 +53,8 @@ describe('agent-orchestration package', () => {
 describe('agent-orchestration marketplace metadata', () => {
   it('defines a Copilot marketplace with flow, ccc, and patterns entries', () => {
     const flowManifest = readJson(FLOW_ROOT, 'plugin.json');
+    const cccManifest = readJson(CCC_ROOT, 'plugin.json');
+    const patternsManifest = readJson(PATTERNS_ROOT, 'plugin.json');
     const marketplace = readJson(ROOT, '.github/plugin/marketplace.json');
     const flowEntry = marketplace.plugins.find((entry) => entry.name === 'flow');
     const cccEntry = marketplace.plugins.find((entry) => entry.name === 'ccc');
@@ -67,16 +71,18 @@ describe('agent-orchestration marketplace metadata', () => {
     assert.equal(cccEntry.source, 'plugins/ccc');
     assert.deepEqual(cccEntry.skills, ['skills/']);
     assert.equal(cccEntry.agents, 'agents/');
-    assert.equal(cccEntry.version, '3.0.0');
+    assert.equal(cccEntry.version, cccManifest.version);
 
     assert.ok(patternsEntry, 'expected patterns plugin entry');
     assert.equal(patternsEntry.source, 'plugins/patterns');
     assert.deepEqual(patternsEntry.skills, ['skills/']);
-    assert.equal(patternsEntry.version, '3.0.0');
+    assert.equal(patternsEntry.version, patternsManifest.version);
   });
 
   it('defines a Claude marketplace with flow, ccc, and patterns entries', () => {
     const flowManifest = readJson(FLOW_ROOT, 'plugin.json');
+    const cccManifest = readJson(CCC_ROOT, 'plugin.json');
+    const patternsManifest = readJson(PATTERNS_ROOT, 'plugin.json');
     const marketplace = readJson(ROOT, '.claude-plugin/marketplace.json');
     const flowEntry = marketplace.plugins.find((entry) => entry.name === 'flow');
     const cccEntry = marketplace.plugins.find((entry) => entry.name === 'ccc');
@@ -91,12 +97,12 @@ describe('agent-orchestration marketplace metadata', () => {
     assert.ok(cccEntry, 'expected ccc plugin entry');
     assert.equal(cccEntry.source, './plugins/ccc');
     assert.equal(cccEntry.skills, './skills/');
-    assert.equal(cccEntry.version, '3.0.0');
+    assert.equal(cccEntry.version, cccManifest.version);
 
     assert.ok(patternsEntry, 'expected patterns plugin entry');
     assert.equal(patternsEntry.source, './plugins/patterns');
     assert.equal(patternsEntry.skills, './skills/');
-    assert.equal(patternsEntry.version, '3.0.0');
+    assert.equal(patternsEntry.version, patternsManifest.version);
   });
 });
 

@@ -53,3 +53,16 @@ and write all artifacts under the repository-local `.sdd/` workspace.
 6. **Write** tasks to `.sdd/{feature-dir}/tasks.md`.
 
 7. **Report** total task count, per-story breakdown, parallelization opportunities, suggested MVP scope, and whether this was a new task list or an in-place refinement.
+
+## Composition-First Task Generation
+
+When the plan calls for ports, injected dependencies, composition roots, or a composition-vs-inheritance decision, the generated task list must include corresponding tests and validation tasks. Include the following kinds of tasks where applicable, ordered with tests before implementation:
+
+- **Port / protocol / interface tasks** — define the smallest useful port for each external dependency named in the plan (DIP/ISP). Add a contract or interface test that exercises the port without a concrete adapter.
+- **Adapter implementation tasks** — implement the concrete infrastructure adapter for each port (HTTP/DB/queue/SDK/filesystem/clock/RNG). Place the adapter in the infrastructure layer and pair it with an integration test against the real or fake dependency.
+- **Dependency injection wiring tasks** — wire each adapter to its consumer through constructor parameters or factories; do not allow hidden construction inside domain or application code. Include a unit test that substitutes a fake/double for the port to prove the consumer is decoupled.
+- **Composition root tasks** — create or update the explicit composition root (startup module, factory, or bootstrap function) that assembles the object graph. Include a smoke test or wiring test that boots the composition root and verifies the graph is complete.
+- **Inheritance justification tasks** — for any retained inheritance hierarchy in the plan, add a task to record the justification (true domain taxonomy, framework hook, sealed/algebraic type, exception base, or ORM constraint) in code comments or design notes, and a refactor task to convert unjustified inheritance to composition (Strategy, Decorator, Bridge, Adapter, function injection, or policy object) before implementation completes.
+- **Architecture validation task** — include at least one task to run `/flow:arch-review` (or invoke `ccc/arch-check`) against the implemented feature and confirm `ARCH-1` through `ARCH-10` are PASS or have justified waivers.
+
+Mark tasks `[P]` only when they touch independent files and have no shared mutable state. Keep test tasks before implementation tasks within each story group.

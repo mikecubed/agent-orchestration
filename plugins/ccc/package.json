@@ -1,6 +1,6 @@
 {
   "name": "ccc",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Composable, multi-language, TDD-first clean code enforcement system. Orchestrates 17 check sub-skills across TypeScript, JavaScript, Python, Go, and Rust.",
   "type": "module",
   "license": "MIT",

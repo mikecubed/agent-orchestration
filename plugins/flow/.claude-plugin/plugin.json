@@ -1,7 +1,7 @@
 {
   "name": "flow",
   "description": "Idea-to-done conductor, planning, delivery, codebase mapping, architecture review, brainstorm ideation, parallel implementation, systematic debugging, incident RCA, e2e test generation, review resolution, PR readiness, diff review, worktree lifecycle, swarm orchestration, contract generation, PR publication, release, knowledge capture, knowledge refresh, and SDD specification skills.",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "author": {
     "name": "Michael Henderson"
   },

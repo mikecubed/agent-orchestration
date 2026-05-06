@@ -74,13 +74,35 @@ Before recommending a pattern, check if the user's framework already provides it
 If the framework already implements the pattern, say so explicitly. Explain WHAT the
 framework is doing (the pattern) so the user understands the concept, not just the tool.
 
-### Step 4 — Consult the decision trees
+### Step 4 — Composition-first pre-gate before inheritance mapping
+
+If the user is asking about persisting an inheritance hierarchy (Single
+Table Inheritance, Class Table Inheritance, Concrete Table Inheritance,
+Inheritance Mappers), run this pre-gate **before** recommending a mapping
+strategy:
+
+1. **Is this a true domain taxonomy** in the ubiquitous language, or is
+   it an **accidental persistence taxonomy** that exists only because
+   someone reached for inheritance to share fields?
+2. **Is the variation behavior, role, optional capability, or data
+   shape** rather than identity? Prefer **composition, role objects,
+   value objects, specifications, and policy/strategy objects** before
+   inheritance mapping.
+3. Only when the hierarchy is a genuine domain taxonomy and composition
+   cannot express it should you proceed to STI / CTI / Concrete Table
+   Inheritance / Inheritance Mappers as **last-resort** persistence
+   patterns. Warn the user that inheritance mapping can **harden a
+   questionable object model into the database schema**, making future
+   change expensive.
+
+### Step 5 — Consult the decision trees
 
 Load `references/peaa/decision-trees.md` and walk the relevant decision tree for the user's
 problem domain. The trees encode Fowler's own "Making a Choice" guidance. Use them — do
-not invent your own criteria.
+not invent your own criteria. For inheritance-mapping questions, Section 0
+"Composition-first pre-gate" runs before Section 3.
 
-### Step 5 — Recommend with trade-offs
+### Step 6 — Recommend with trade-offs
 
 Never recommend just one pattern without mentioning alternatives. Always present:
 - **Primary recommendation**: best fit for their stated conditions
