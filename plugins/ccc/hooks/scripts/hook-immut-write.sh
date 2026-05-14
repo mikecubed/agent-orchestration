@@ -36,9 +36,13 @@
 
   _core_dirs="$(python3 -c "import sys,json; d=json.load(open('${_LAYERMAP}')); print(' '.join(d.get('core_dirs',[])))" 2>/dev/null || echo "")"
 
+  # Match root-level (`core/foo.ts`), nested, and trailing paths.
   _in_core=""
   for _d in $_core_dirs; do
-    if [[ "$TOOL_FILE" == *"/${_d}/"* || "$TOOL_FILE" == *"/${_d}" ]]; then
+    if [[ "$TOOL_FILE" == *"/${_d}/"* \
+       || "$TOOL_FILE" == *"/${_d}" \
+       || "$TOOL_FILE" == "${_d}/"* \
+       || "$TOOL_FILE" == "${_d}" ]]; then
       _in_core="1"
       break
     fi

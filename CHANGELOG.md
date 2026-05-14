@@ -49,12 +49,16 @@ references must be updated by hand.
 | TDD-7 (mock discipline) | TEST-BEHAVIOR + TEST-NO-MOCK-FOR-PURE | Implementation-pinning + mocking-pure-functions |
 | TDD-8 (property-based) | (dropped) | Too aspirational per pragmatism principle |
 | TDD-9 (mutation score) | TEST-9 (already existed; demoted to INFO) | Aspirational, not gating |
-| ARCH-1 (domain → infra import) | BOUND-1 | Renamed; layer detection now prefers core/+shell/ |
-| ARCH-2..3 (port stability) | BOUND-2 | Merged |
-| ARCH-4 (composition root) | BOUND-3 | Severity nuance preserved |
-| ARCH-5 (circular imports) | BOUND-4 | Renamed |
-| ARCH-6..7 (inheritance) | COMP-1 | Merged; carve-outs preserved |
-| ARCH-8..10 | (various) | Subsumed under BOUND/COMP or moved to size/naming |
+| ARCH-1 (no outward imports from domain) | BOUND-1 | Renamed; layer detection now prefers core/+shell/ |
+| ARCH-2 (no circular imports) | BOUND-4 | Renamed |
+| ARCH-3 (no cross-feature direct imports) | (dropped) | Heuristic; relied on `internal/` convention; replaced by case-by-case review |
+| ARCH-4 (infra leaks into domain/app) | BOUND-1 | Merged with ARCH-1 — both about inward-direction violations |
+| ARCH-5 (cascade depth limit) | (dropped) | Too aspirational per pragmatism principle |
+| ARCH-6 (explicit public API required) | (dropped) | Aspirational; was already INFO |
+| ARCH-7 (composition over inheritance) | COMP-1 | Renamed; severity nuance + carve-outs preserved |
+| ARCH-8 (dependencies must be injected) | BOUND-3 | Merged with ARCH-10 — both about composition-root wiring |
+| ARCH-9 (depend on stable ports, not concrete infra) | BOUND-2 | Renamed |
+| ARCH-10 (composition root owns wiring) | BOUND-3 | Merged with ARCH-8 |
 | CTX-1..3 (session hygiene) | SESS-1..3 | Skill renamed ctx-check → session-check |
 | (new) | PURE-1..3 | Side effects / ambient state / mock-required signal in core |
 | (new) | IMMUT-1..3 | Parameter mutation / shared mutable state / partial construction |
