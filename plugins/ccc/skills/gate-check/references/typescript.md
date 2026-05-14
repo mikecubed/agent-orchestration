@@ -1,8 +1,8 @@
-# TDD Language Reference — TypeScript
+# Test Gate Language Reference — TypeScript
 
-Loaded by `tdd-check` when language = `typescript`.
+Loaded by `gate-check` when language = `typescript`.
 Provides TypeScript-specific test framework defaults, file naming conventions,
-and tooling guidance for each TDD rule.
+and scaffold templates for the test gate.
 
 ---
 

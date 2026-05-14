@@ -68,15 +68,15 @@ echo "Estimator: word count × 1.3"
 echo ""
 
 # ─── Scenario 1: Typical write session (TypeScript) ─────────────────────────
-print_section "Scenario 1: Typical write (conductor + tdd + type + naming + 3 TS refs)"
+print_section "Scenario 1: Typical write (conductor + gate + type + naming + 3 TS refs)"
 s1=0
 for component in \
   "conductor/SKILL.md:$CONDUCTOR" \
   "conductor/shared-contracts.md:$SHARED" \
-  "tdd-check/SKILL.md:$SKILLS_DIR/tdd-check/SKILL.md" \
+  "gate-check/SKILL.md:$SKILLS_DIR/gate-check/SKILL.md" \
   "type-check/SKILL.md:$SKILLS_DIR/type-check/SKILL.md" \
   "naming-check/SKILL.md:$SKILLS_DIR/naming-check/SKILL.md" \
-  "tdd-check/references/typescript.md:$SKILLS_DIR/tdd-check/references/typescript.md" \
+  "gate-check/references/typescript.md:$SKILLS_DIR/gate-check/references/typescript.md" \
   "type-check/references/typescript.md:$SKILLS_DIR/type-check/references/typescript.md" \
   "naming-check/references/typescript.md:$SKILLS_DIR/naming-check/references/typescript.md"; do
   label="${component%%:*}"
@@ -125,7 +125,7 @@ for check_dir in "$SKILLS_DIR"/*/; do
   row "$check/SKILL.md" "$t"
   s4=$((s4 + t))
 done
-# Largest single language ref set (tdd-check go)
+# Largest single language ref set (gate-check go, largest of any ref)
 largest_ref=$(find "$SKILLS_DIR" -path "*/references/*.md" \
   -exec wc -w {} \; 2>/dev/null | sort -rn | head -1 | awk '{print $2}')
 t=$(tokens "$largest_ref")

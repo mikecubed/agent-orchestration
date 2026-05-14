@@ -1,8 +1,8 @@
-# TDD Language Reference — Rust
+# Test Gate Language Reference — Rust
 
-Loaded by `tdd-check` when language = `rust`.
+Loaded by `gate-check` when language = `rust`.
 Provides Rust-specific test framework defaults, file naming conventions,
-and tooling guidance for each TDD rule.
+and scaffold templates for the test gate.
 
 ---
 

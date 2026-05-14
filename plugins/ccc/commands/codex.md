@@ -29,7 +29,7 @@ Parse them according to the CLI argument table in the conductor SKILL.md:
 - `--write` — permit scaffold/write operations (default: off)
 - `--history` — read `.codex/history.jsonl` and show trend report (default: off)
 - `--deep` — enable exhaustive scans (default: off)
-- `--scaffold-tests` — on TDD-1 BLOCK: generate failing test skeleton before stopping (default: off)
+- `--scaffold-tests` — on TEST-PINNED BLOCK: generate failing test skeleton before stopping (default: off)
 - `--diff-only` — scope analysis to `git diff HEAD` changed files only (default: off)
 - `--explain [RULE-ID]` — append plain-language explanations to violations; or print a single rule explanation and exit (default: off)
 - `--refresh` — force re-detection of language/framework/layers; update `.codex/config.json` (default: off)
@@ -40,7 +40,7 @@ Parse them according to the CLI argument table in the conductor SKILL.md:
 /codex src/                             # Review src/ only
 /codex --fix                            # Auto-remediate WARN violations
 /codex --diff-only                      # Review only changed files
-/codex --scaffold-tests                 # Generate test skeletons on TDD-1 blocks
+/codex --scaffold-tests                 # Generate test skeletons on TEST-PINNED blocks
 /codex --explain NAME-1                 # Print NAME-1 explanation and exit
 /codex --explain                        # Add explanations to all violation entries
 /codex --refresh                        # Re-detect language/framework/layers

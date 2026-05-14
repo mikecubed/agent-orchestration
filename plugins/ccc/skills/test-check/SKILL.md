@@ -1,11 +1,14 @@
 ---
 name: test-check
 description: >
-  Enforces test quality rules (TEST-1 through TEST-8). Loaded by the conductor
-  for review and test operations. Detects weak assertions, insufficient coverage,
-  missing property tests, slow unit tests, I/O in unit tests, missing boundary
-  conditions, and test ratio imbalances. Complements tdd-check (workflow
-  enforcement) by enforcing the quality of tests that already exist.
+  Enforces test quality rules (TEST-1 through TEST-9, plus TEST-BEHAVIOR,
+  TEST-NO-MOCK-FOR-PURE, TEST-VACUOUS). Loaded by the conductor for review
+  and test operations. Detects weak assertions, insufficient coverage,
+  missing property tests, slow unit tests, I/O in unit tests, missing
+  boundary conditions, mock-pinned implementation tests, mocks of pure
+  core functions, and tests with no meaningful assertion. Complements
+  gate-check (which enforces that tests exist and went red→green) by
+  enforcing the quality of tests that exist.
 version: "1.0.0"
 last-reviewed: "2026-03-04"
 languages: [typescript, python, go, rust, javascript]
@@ -17,8 +20,10 @@ permissionMode: default
 
 # Test Check — Test Quality Enforcement
 
-Precedence in the overall system: SEC → TDD → ARCH/TYPE →
-**TEST-1, TEST-2 (BLOCK)** → TEST-3 through TEST-8.
+Precedence in the overall system: SEC → gate (TEST-PINNED, TEST-RED-FIRST) →
+BOUND/PURE/RESULT/TYPED → COMP/IMMUT →
+**TEST-1, TEST-2, TEST-6, TEST-BEHAVIOR, TEST-NO-MOCK-FOR-PURE (BLOCK)** →
+TEST-VACUOUS, TEST-3..5, TEST-7..9 (WARN/INFO).
 
 ---
 
@@ -112,7 +117,7 @@ repositories) with line or branch coverage below 80%.
 ---
 
 ### TEST-4 — Property Tests Required for Entities
-**Severity**: WARN | **Languages**: * | **Source**: CCC (mirrors TDD-8)
+**Severity**: WARN | **Languages**: * | **Source**: CCC
 
 **What it prohibits**: Entity or value object types that lack at least one
 property-based test verifying their invariants. Example-based tests cannot
@@ -230,7 +235,7 @@ source of off-by-one errors and null pointer exceptions.
 ---
 
 ### TEST-8 — Test-to-Implementation Ratio Monitoring
-**Severity**: INFO | **Languages**: * | **Source**: CCC (mirrors TDD-9)
+**Severity**: INFO | **Languages**: * | **Source**: CCC
 
 **What it monitors**: The ratio of test lines to implementation lines. A ratio
 below 1:1 does not automatically trigger a violation but indicates the test suite
@@ -289,3 +294,105 @@ implementations.
 - mutmut: compute `caught / (caught + survived) * 100` from `"X out of Y mutants survived"`
 - cargo-mutants: compute `caught / (caught + missed) * 100` from `"X caught, Y missed"`
 - go-mutesting: extract `"The mutation score is X.XX"` from stdout
+
+---
+
+### TEST-BEHAVIOR — Tests Assert Outputs, Not Internal Call Sequences
+**Severity**: BLOCK | **Languages**: * | **Source**: CCC
+
+**What it prohibits**: Test assertions on internal call sequences, mock call
+counts, private fields, or internal state. Tests that observe *how* the
+implementation works (rather than *what* it produces) break on every refactor
+and signal that the test is pinning the implementation, not the behavior.
+
+**Detection signals**:
+- `toHaveBeenCalledTimes(`, `toHaveBeenCalledWith(`, `expect(mock.calls)` (Jest/Vitest)
+- `assert_called_with`, `assert_called_once`, `mock.call_args_list` (Python `unittest.mock`)
+- `verify(`, `times(`, `inOrder` (Mockito-style)
+- Access patterns: `obj._private`, `obj.__private`, reflection used to read private state
+- `should have called X N times` in assertion descriptions
+
+**Allowed cases**:
+- Asserting on a return value, a typed domain event, or an observable side
+  effect (e.g., a row was written to an in-memory adapter)
+- Verifying that an *expected* side effect happened via the adapter's public
+  surface (count the resulting rows, not the mock calls)
+- Mock call assertions when the test is genuinely about a protocol (e.g., the
+  adapter must call `bus.publish(event)` exactly once on success) — but
+  prefer asserting the resulting state where possible
+
+**agent_action**:
+1. Cite: `TEST-BEHAVIOR (BLOCK): Test asserts on internal call sequence or private state at {file}:{line}.`
+2. Show the offending assertion.
+3. Propose the equivalent assertion on the return value, public field, or
+   typed event.
+4. If the test is genuinely about a protocol, narrow the assertion to the
+   minimal observable contract.
+
+---
+
+### TEST-NO-MOCK-FOR-PURE — Tests of Core Functions Must Not Import Mocking Libraries
+**Severity**: BLOCK | **Languages**: * | **Source**: CCC
+
+**What it prohibits**: A test file that exercises a function or type located in
+`core/` (per the conductor's Section 14 layer detection) importing a mocking
+library. Pure functions need only inputs and outputs — if a test needs to mock
+something to exercise a core function, the function is not pure and belongs in
+`shell/` (or its dependencies belong in `shell/`).
+
+**Detection**:
+1. Resolve the layer of the file under test (per conductor's Section 14).
+2. If the file is in `core/`: grep its test file for imports of:
+   - JS/TS: `jest`, `vi.mock`, `sinon`, `testdouble`
+   - Python: `unittest.mock`, `pytest-mock`, `mock`
+   - Go: `gomock`, `testify/mock`
+   - Rust: `mockall`, `mockito`
+3. Flag any such import.
+
+**agent_action**:
+1. Cite: `TEST-NO-MOCK-FOR-PURE (BLOCK): Test of core function '{name}' imports '{lib}' at {file}:{line}.`
+2. Diagnose: if a mock is needed, the dependency is impure — it belongs in
+   shell, and the function under test should accept its outputs as parameters.
+3. Propose: extract the impure dependency to shell; pass its result into the
+   pure core function as a parameter; test the pure core function directly
+   with literal inputs.
+
+**Bypass prohibition**: "I'm just mocking the clock / RNG / config" → That
+function is not pure. Pass the time / seed / config value in as a parameter
+instead.
+
+---
+
+### TEST-VACUOUS — Tests Must Have Meaningful Assertions
+**Severity**: WARN (default) / BLOCK (with `--deep`) | **Languages**: * | **Source**: CCC
+
+**What it prohibits**: Tests with no assertion, or only truthy/existence
+checks that pass on virtually any non-null implementation:
+- `expect(result).toBeDefined()` / `assertIsNotNone(result)` as the *only*
+  assertion
+- `assert result` (Python) without a comparison
+- `assert!(result.is_some())` (Rust) without `assert_eq!` on the inner value
+- A test function body that calls the function but asserts nothing
+
+**Detection**:
+1. Grep test files for test functions whose body contains exactly one
+   assertion of the weak forms above.
+2. Grep for test functions whose body contains zero assertion calls.
+3. Cross-reference with TEST-1 (which BLOCKs weak assertions categorically);
+   TEST-VACUOUS adds the "no assertion at all" and "only weak" classes.
+
+**Allowed cases**:
+- A type-existence smoke test, *if* a follow-up test in the same file asserts
+  on the value (the smoke test is documentation, not the only test).
+- Tests explicitly marked as pending or skipped (with `it.skip`, `@pytest.mark.skip`,
+  `#[ignore]`) — these don't run.
+
+**agent_action**:
+1. Cite: `TEST-VACUOUS (WARN): Test '{name}' at {file}:{line} has no meaningful assertion.`
+2. Propose a specific assertion using the value the function actually returns.
+3. With `--deep`: upgrade to BLOCK.
+
+This rule pairs with the gate-check's TEST-RED-FIRST: a vacuous test cannot
+go red→green, so a red→green confirmation also confirms the test is not
+vacuous. TEST-VACUOUS is the static-analysis backstop for sessions where the
+red→green record is unavailable.

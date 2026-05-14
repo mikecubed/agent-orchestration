@@ -38,7 +38,7 @@ Pass any arguments the user provided directly to the conductor. Supported flags:
 - `--scope <glob>` — Restrict to matching files
 - `--diff-only` — Review only changed files (git diff HEAD)
 - `--deep` — Exhaustive scan
-- `--scaffold-tests` — Generate test skeletons on TDD-1 blocks
+- `--scaffold-tests` — Generate test skeletons on TEST-PINNED blocks
 - `--history` — Show violation trend report (last 4 weeks)
 - `--explain [RULE-ID]` — Print rule explanation(s)
 - `--refresh` — Re-detect language/framework/layers

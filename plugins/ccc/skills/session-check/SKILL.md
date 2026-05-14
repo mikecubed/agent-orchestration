@@ -1,9 +1,11 @@
 ---
-name: ctx-check
+name: session-check
 description: >
-  Context hygiene enforcement. Detects stale or absent session state, exceeded
+  Session hygiene enforcement. Detects stale or absent session state, exceeded
   failed-hypothesis budgets, and missing codebase briefs before non-trivial
   implementation tasks. Wired into the conductor's write and review operations.
+  Renamed from ctx-check in v4.0 to free the "context" namespace for the new
+  DDD-strategic context-check (bounded contexts, ubiquitous language).
 version: "1.0.0"
 last-reviewed: "2026-04-04"
 languages: [agnostic]
@@ -13,7 +15,7 @@ model: opus
 permissionMode: default
 ---
 
-# Context Check — Session Context Hygiene
+# Session Check — Session Hygiene
 
 Language-agnostic. Fires on `write` and `review` operations regardless of language.
 
@@ -21,7 +23,7 @@ Language-agnostic. Fires on `write` and `review` operations regardless of langua
 
 ## Rules
 
-### CTX-1 — Stale or Absent SESSION.md
+### SESS-1 — Stale or Absent SESSION.md
 **Severity**: WARN | **Languages**: all | **Source**: CCC
 
 **What it prohibits**: Starting a non-trivial implementation or review session when
@@ -51,14 +53,14 @@ last-updated: "2026-01-01T10:00:00Z"   # > 24h ago, session resumed silently
    requirement even if SESSION.md is absent or stale
 
 **agent_action**:
-1. Cite: `CTX-1 (WARN): No active session state found (SESSION.md absent or stale).`
+1. Cite: `SESS-1 (WARN): No active session state found (SESSION.md absent or stale).`
 2. Ask: "This looks like a resumed or new session with no recent checkpoint.
    Should I start fresh, or is there context I should know about?"
 3. Do not block — wait for developer confirmation, then proceed
 
 ---
 
-### CTX-2 — Failed-Hypothesis Budget Exceeded
+### SESS-2 — Failed-Hypothesis Budget Exceeded
 **Severity**: WARN | **Languages**: all | **Source**: CCC
 
 **What it prohibits**: Continuing implementation or debugging when
@@ -87,14 +89,14 @@ a context-hygiene pause to consolidate state and prune dead ends.
 3. Warn if count ≥ 3 and no prior pause is recorded in `## Decisions`
 
 **agent_action**:
-1. Cite: `CTX-2 (WARN): {n} failed hypotheses recorded — context-hygiene pause recommended.`
+1. Cite: `SESS-2 (WARN): {n} failed hypotheses recorded — context-hygiene pause recommended.`
 2. Recommend: "Before forming new hypotheses, write a consolidated summary of what
    is ruled out to `.agent/SESSION.md` and start fresh with only confirmed facts."
 3. Do not block — warn and let developer decide
 
 ---
 
-### CTX-3 — Missing Codebase Brief for Non-Trivial Implementation
+### SESS-3 — Missing Codebase Brief for Non-Trivial Implementation
 **Severity**: WARN | **Languages**: all | **Source**: CCC
 
 **What it prohibits**: Beginning a non-trivial implementation task (new module,
@@ -123,7 +125,7 @@ discovery summary in the session state or task context.
    references: warn
 
 **agent_action**:
-1. Cite: `CTX-3 (WARN): Non-trivial implementation task with no codebase brief recorded.`
+1. Cite: `SESS-3 (WARN): Non-trivial implementation task with no codebase brief recorded.`
 2. Recommend: "Run a scout pass first to map relevant files, boundaries, and
    dependencies before implementing. This prevents scope drift and redundant
    exploration mid-task."

@@ -4,7 +4,7 @@ description: >
   Core orchestrator for Composable Code Codex enforcement. Auto-invoked when writing,
   reviewing, refactoring, or testing code in TypeScript, Python, Go, Rust, or
   JavaScript. Detects language, routes to targeted check sub-skills, enforces the
-  TDD gate on write operations, and runs a Boy Scout check at session end.
+  test gate on write operations, and runs a Boy Scout check at session end.
   Do NOT invoke for documentation-only edits, configuration files (JSON/YAML/TOML),
   or non-code content. (Exception: IaC files such as Terraform HCL, CloudFormation
   YAML/JSON, and Kubernetes manifests should be passed to the conductor with the
@@ -94,17 +94,17 @@ Load **only** the listed checks. Never pre-load all checks.
 
 | Situation | Checks to load | Language refs |
 |-----------|---------------|---------------|
-| **write** — new code | `tdd-check` + `type-check` + `naming-check` + `ctx-check` | Yes for tdd, type, naming |
-| **write** — class/service/module/domain/wiring | `tdd-check` + `type-check` + `naming-check` + `ctx-check` + `arch-check` | Yes for tdd, type, naming |
-| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` + `resilience-check` + `a11y-check` + `docs-check` + `i18n-check` + `ctx-check` | Yes for type, naming |
-| **refactor** — existing code | `tdd-check` (gate only) + `arch-check` + `naming-check` + `size-check` + `dead-check` | Yes for naming |
-| **test** — writing/fixing tests | `tdd-check` + `test-check` | Yes for tdd |
+| **write** — new code | `gate-check` + `type-check` + `naming-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` | Yes for gate, type, naming |
+| **write** — boundary-touching (modules, adapters, ports, domain logic, composition-root wiring) | `gate-check` + `type-check` + `naming-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` + `arch-check` | Yes for gate, type, naming |
+| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` + `resilience-check` + `a11y-check` + `docs-check` + `i18n-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` | Yes for type, naming |
+| **refactor** — existing code | `gate-check` (gate only) + `arch-check` + `naming-check` + `size-check` + `dead-check` + `purity-check` + `immutability-check` | Yes for naming |
+| **test** — writing/fixing tests | `gate-check` + `test-check` | Yes for gate |
 | **security** — security audit | `sec-check` + `iac-check` | No |
 | **dependency** — dep update | `dep-check` | No |
 | **incident** — production issue | `obs-check` + `sec-check` | No |
-| **new service** — scaffold | `tdd-check` + `arch-check` + `sec-check` + `ctx-check` | Yes for tdd |
+| **new service** — scaffold | `gate-check` + `arch-check` + `sec-check` + `session-check` + `purity-check` + `result-check` | Yes for gate |
 | **observability** | `obs-check` | No |
-| **CI / full check** | All checks | Yes for tdd, type, naming |
+| **CI / full check** | All checks | Yes for gate, type, naming |
 | **boy scout** (session end) | `size-check` + `dead-check` + `naming-check` | Yes for naming |
 
 **Parallel dispatch (mandatory for review and CI operations)**:
@@ -113,9 +113,10 @@ do not wait for each to complete before issuing the next. This is mandatory for 
 Sequential fallback: if the platform does not support parallel Tasks, dispatch in batches of 3.
 
 **Write-mode `arch-check` activation**: load `arch-check` during `write`
-operations only when the change creates or modifies classes, services, repositories, modules, adapters, domain models, use cases, or wiring (i.e.,
-the second `write` row above). Trivial pure functions, value-only utilities,
-and isolated edits stay on the lighter `write` path that omits `arch-check`
+operations only when the change touches boundary-relevant code — modules,
+adapters, ports, domain logic, or composition-root wiring (i.e., the second
+`write` row above). Trivial pure functions, value-only utilities, and
+isolated edits stay on the lighter `write` path that omits `arch-check`
 to manage token cost.
 
 **To load a check**: Read `skills/{check-name}/SKILL.md`.
@@ -125,10 +126,10 @@ to manage token cost.
 
 | Session type | Components loaded | ~Tokens |
 |---|---|---|
-| Typical — write, TypeScript (no `--fix`) | conductor + tdd-check + type-check + naming-check + ctx-check + 3 TS refs | ~11,500 |
-| Class/service write, TypeScript | conductor + tdd-check + type-check + naming-check + ctx-check + arch-check + 3 TS refs | ~13,800 |
+| Typical — write, TypeScript (no `--fix`) | conductor + gate + type + naming + session + purity + immut + result + 3 TS refs | ~14,000 |
+| Boundary-touching write, TypeScript | adds arch-check to the above | ~16,500 |
 | Minimal — security audit | conductor + sec-check | ~4,723 |
-| Worst-case — CI / full check (no `--fix`) | conductor + all 17 checks + 1 lang ref (largest) | ~29,000 |
+| Worst-case — CI / full check (no `--fix`) | conductor + all 20 checks + 1 lang ref (largest) | ~33,000 |
 | `--fix` session: add auto-fix-eligibility.md | +1 file on demand | +~1,310 |
 
 > Note: SC-007 (≤1,000) and SC-008 (≤2,000) targets reflect the design goal of a
@@ -138,44 +139,47 @@ to manage token cost.
 
 ---
 
-## 4. TDD Gate — Mandatory Before Any Write
+## 4. Test Gate — Mandatory Before Session Close
 
-**This gate CANNOT be bypassed. Apply before producing any implementation code.**
+**This gate CANNOT be bypassed. Apply before any session ends with new code.**
 
 ```
-INPUT: Agent receives a write/implement request
+INPUT: Agent has finished implementing the requested change
 
-STEP 1 — Test file check:
-  IF no test file exists for this module:
-    WRITE test file first (cite TDD-1)
-    DO NOT produce implementation code yet
-    RETURN control to user to run the test
+STEP 1 — TEST-PINNED check:
+  IDENTIFY all new/modified public symbols (use `git diff HEAD` if available)
+  FOR each symbol:
+    GREP test files for an import of the symbol AND a call/construction
+    IF no match found:
+      BLOCK with `TEST-PINNED (BLOCK): No test exercises '{name}' at {file}:{line}`
+      DO NOT mark the session complete
+      Propose: write a test for {name}
 
-STEP 2 — Interface check:
-  IF test file does not import an interface or function signature:
-    DEFINE the interface/signature first (cite TDD-5)
+STEP 2 — TEST-RED-FIRST check:
+  FOR each new symbol with a test:
+    LOOK FOR a recorded red→green transition in `.codex/history.jsonl`
+    OR confirmation that the user observed the test failing before the
+       implementation existed
+    IF no transition recorded:
+      BLOCK with `TEST-RED-FIRST (BLOCK): Test for '{name}' was never observed failing`
+      Propose: temporarily break the implementation, confirm test fails,
+               revert; record the transition
 
-STEP 3 — Failing test confirmation:
-  IF tests are runnable:
-    VERIFY at least one test is failing before writing implementation
-  ELSE:
-    NOTE: "Tests must be run before this step is marked complete"
+STEP 3 — Scaffold mode:
+  IF `--scaffold-tests` is active AND TEST-PINNED fires:
+    Generate failing test skeleton per gate-check's Scaffold Workflow
+    Write skeleton to disk; confirm test fails before continuing
 
-STEP 4 — Minimal implementation:
-  WRITE the simplest implementation that passes the failing tests (cite TDD-2)
-  NO speculative functionality permitted
-
-STEP 5 — Green confirmation:
-  IF all tests pass → proceed to refactor phase
-  IF any test fails → fix implementation (DO NOT change tests)
-
-STEP 6 — Refactor under green:
-  APPLY SIZE, NAME, ARCH, TYPE rules (cite TDD-3)
-  Any refactor that breaks tests → REVERT and fix before continuing
+ORDER FLEXIBILITY:
+  Tests may be written before, during, or after the implementation. Only the
+  end-of-session state matters: every new symbol has a test that imports and
+  exercises it, every test has a recorded red→green transition.
 ```
 
 **Bypass prohibition**: Requests phrased as "skip tests for speed", "just write the code",
-"tests aren't important here", or similar MUST be refused. Cite TDD-1 and explain the risk.
+"tests aren't important here", or similar MUST be refused. Cite TEST-PINNED and explain
+the risk: the agent's biggest failure mode is shipping code without a test that would
+catch a broken implementation.
 
 ---
 
@@ -192,7 +196,7 @@ Parse these arguments from the user's invocation. Defaults are safe.
 | `--history` | **off** | Without this: skip git history analysis |
 | `--deep` | **off** | Without this: standard (faster) scan only |
 | `--diff-only` | **off** | Scope all analysis to `git diff HEAD` changed files only |
-| `--scaffold-tests` | **off** | On TDD-1/TEST-2 BLOCK: generate failing test skeletons before stopping |
+| `--scaffold-tests` | **off** | On TEST-PINNED or TEST-2 BLOCK: generate failing test skeletons before stopping |
 | `--refresh` | **off** | Force re-detection of language/framework/layers; update `.codex/config.json` |
 
 **Safety rules**:
@@ -267,10 +271,10 @@ When `--diff-only` is active:
 
 When `--scaffold-tests` is active:
 
-1. Set the flag; pass it to `tdd-check` when loading it
-2. Do NOT exit on TDD-1 BLOCK before the scaffold step completes
-3. After scaffold skeleton is written to disk: re-evaluate TDD-1 gate
-4. TDD-1 is provisionally satisfied once skeleton exists; proceed with implementation
+1. Set the flag; pass it to `gate-check` when loading it
+2. Do NOT exit on TEST-PINNED BLOCK before the scaffold step completes
+3. After scaffold skeleton is written to disk: re-evaluate TEST-PINNED gate
+4. TEST-PINNED is provisionally satisfied once skeleton exists; proceed with implementation
    after user confirms at least one test is failing
 5. Implies `--write` permission for test files only
 
@@ -289,13 +293,17 @@ When `--refresh` is active:
 When multiple rules conflict, apply the first applicable precedence and document deferred items:
 
 ```
-1. SEC-*  (BLOCK)  — data exposure; always highest priority
-2. TDD-*  (BLOCK)  — untested code must not advance
-3. ARCH-* (BLOCK)  — structural integrity
-4. TYPE-* (BLOCK)  — type safety
-5. SIZE-2, TEST-1, TEST-2, DEAD-1, DEP-1, OBS-1 (BLOCK) — equal; all apply
-6. All WARN rules
-7. All INFO rules
+1. SEC-* (BLOCK) — data exposure; always highest priority
+2. TEST-PINNED, TEST-RED-FIRST (BLOCK) — gate; untested code must not advance
+3. BOUND-1..4 (BLOCK) — structural boundaries
+4. PURE-1 (BLOCK) — purity violations in core (no I/O / clock / RNG / logging)
+5. RESULT-1 (BLOCK in Rust/TS, WARN elsewhere) — typed error discipline
+6. TYPE-1..6 (BLOCK) — type safety; TYPED-1..2 (WARN) — type-driven design
+7. IMMUT-1 (BLOCK) — parameter mutation in core
+8. COMP-1 (WARN default / BLOCK on deep behavioural hierarchies)
+9. SIZE-2, TEST-1, TEST-2, TEST-6, TEST-BEHAVIOR, TEST-NO-MOCK-FOR-PURE, DEAD-1, DEP-1, OBS-1 (BLOCK) — equal; all apply
+10. All WARN rules (PURE-2, IMMUT-2..3, RESULT-2..3, TEST-VACUOUS, NAME-UL, etc.)
+11. All INFO rules (PURE-3, TYPED-2 in Python/Go, etc.)
 ```
 
 When a WARN fix would increase the risk of a BLOCK violation: defer the WARN fix and
@@ -347,7 +355,7 @@ At the end of every session that modified files:
 START
   → Detect language
   → Detect operation type
-  → IF write/refactor: run TDD gate (Step 4 above)
+  → IF write/refactor: run Test Gate (Step 4 above)
   → Load required checks (Step 3 table)
   → For each check: load SKILL.md + language reference if applicable
   → Check for waivers (Step 7)
@@ -436,7 +444,7 @@ When `--explain RULE-ID` is passed (e.g., `/codex --explain NAME-1`):
 3. Find the `## RULE-ID` section matching the requested rule
 4. Print the section and exit
 
-**If RULE-ID is unknown**: print "Unknown rule ID. Valid IDs: TDD-1–9, ARCH-1–10, TYPE-1–6, NAME-1–7, SIZE-1–6, DEAD-1–5, TEST-1–9, SEC-1–7, DEP-1–5, OBS-1–5" and exit 1.
+**If RULE-ID is unknown**: print "Unknown rule ID. Valid IDs: TEST-PINNED, TEST-RED-FIRST, TEST-1–9, TEST-BEHAVIOR, TEST-NO-MOCK-FOR-PURE, TEST-VACUOUS, BOUND-1–4, COMP-1, PURE-1–3, IMMUT-1–3, RESULT-1–3, TYPE-1–6, TYPED-1–2, NAME-1–7, NAME-UL, SIZE-1–6, DEAD-1–5, SEC-1–7, DEP-1–5, OBS-1–5, IAC-1–5, PERF-1–5, RES-1–5, A11Y-1–5, DOCS-1–5, I18N-1–5, SESS-1–3" and exit 1.
 
 **Token cost**: `rule-explanations.md` is loaded on-demand only. It is never loaded during normal scans.
 

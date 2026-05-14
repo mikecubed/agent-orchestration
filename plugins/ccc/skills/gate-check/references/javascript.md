@@ -1,8 +1,8 @@
-# TDD Language Reference — JavaScript
+# Test Gate Language Reference — JavaScript
 
-Loaded by `tdd-check` when language = `javascript`.
+Loaded by `gate-check` when language = `javascript`.
 Provides JavaScript-specific test framework defaults, file naming conventions,
-and tooling guidance for each TDD rule.
+and scaffold templates for the test gate.
 
 **Important**: JavaScript lacks a compile-time type system. JSDoc annotations
 are required as a substitute where TypeScript's type system would normally catch errors.
