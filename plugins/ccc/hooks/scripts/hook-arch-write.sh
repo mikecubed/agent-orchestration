@@ -91,17 +91,20 @@ echo "0" >"$_EXIT_CODE_FILE"
     _cfg_core=""
     _cfg_shell=""
     if [[ -f "$PWD/.codex/config.json" ]]; then
+      # Strip glob/leading-`./` chrome and keep both bare names and
+      # slash-containing prefixes — the downstream `*/${_d}/*` matcher
+      # handles `src/core`, `packages/domain`, etc. correctly.
       _cfg_core="$(python3 -c "import json,sys
 try:
     d = json.load(open('$PWD/.codex/config.json'))
     lm = d.get('layer_map') or {}
     raw = lm.get('core', [])
     if isinstance(raw, str): raw = [raw]
-    # Strip glob characters; keep directory names only
     names = []
     for p in raw:
         p2 = p.replace('**/', '').replace('/**', '').strip('/')
-        if p2 and '/' not in p2 and '*' not in p2:
+        if p2.startswith('./'): p2 = p2[2:]
+        if p2 and '*' not in p2 and ' ' not in p2:
             names.append(p2)
     print(' '.join(names))
 except Exception:
@@ -115,7 +118,8 @@ try:
     names = []
     for p in raw:
         p2 = p.replace('**/', '').replace('/**', '').strip('/')
-        if p2 and '/' not in p2 and '*' not in p2:
+        if p2.startswith('./'): p2 = p2[2:]
+        if p2 and '*' not in p2 and ' ' not in p2:
             names.append(p2)
     print(' '.join(names))
 except Exception:
