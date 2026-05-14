@@ -196,7 +196,7 @@ Parse these arguments from the user's invocation. Defaults are safe.
 | `--history` | **off** | Without this: skip git history analysis |
 | `--deep` | **off** | Without this: standard (faster) scan only |
 | `--diff-only` | **off** | Scope all analysis to `git diff HEAD` changed files only |
-| `--scaffold-tests` | **off** | On TEST-PINNED or TEST-2 BLOCK: generate failing test skeletons before stopping |
+| `--scaffold-tests` | **off** | On TEST-PINNED BLOCK: generate failing test skeleton before stopping (see §5.5) |
 | `--refresh` | **off** | Force re-detection of language/framework/layers; update `.codex/config.json` |
 
 **Safety rules**:
