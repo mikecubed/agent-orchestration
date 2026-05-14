@@ -67,16 +67,17 @@ echo "0" >"$_EXIT_CODE_FILE"
     fi
 
     # Legacy fallback: domain/entities/models → core; application/services/infra/adapters/db/api/controllers/handlers → shell.
-    # Also runs when only one of core/ or shell/ exists — the convention isn't fully adopted yet,
-    # so fold the present directory into the legacy lists for full coverage.
+    # Also runs when only one of core/ or shell/ exists — the convention isn't fully adopted yet.
+    # Include `core` and `shell` here too so the transitional `core/`+`infra/`/`adapters/` layout
+    # still recognizes `core/` as a core directory.
     if ((match_count == 0)); then
-      for d in domain entities models; do
+      for d in core domain entities models; do
         if find . -type d -name "$d" -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | grep -q .; then
           found_core+=("$d")
           ((match_count++)) || true
         fi
       done
-      for d in application app usecases use-cases use_cases services infra infrastructure adapters db api controllers handlers; do
+      for d in shell application app usecases use-cases use_cases services infra infrastructure adapters db api controllers handlers; do
         if find . -type d -name "$d" -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | grep -q .; then
           found_shell+=("$d")
           ((match_count++)) || true
@@ -84,8 +85,45 @@ echo "0" >"$_EXIT_CODE_FILE"
       done
     fi
 
+    # If .codex/config.json has an explicit layer_map, prefer its core/shell paths
+    # over auto-detection (and mark high confidence).
     local conf
-    if [[ -f "$PWD/.codex/config.json" ]] && python3 -c "import json; d=json.load(open('$PWD/.codex/config.json')); exit(0 if 'layer_map' in d else 1)" 2>/dev/null; then
+    _cfg_core=""
+    _cfg_shell=""
+    if [[ -f "$PWD/.codex/config.json" ]]; then
+      _cfg_core="$(python3 -c "import json,sys
+try:
+    d = json.load(open('$PWD/.codex/config.json'))
+    lm = d.get('layer_map') or {}
+    raw = lm.get('core', [])
+    if isinstance(raw, str): raw = [raw]
+    # Strip glob characters; keep directory names only
+    names = []
+    for p in raw:
+        p2 = p.replace('**/', '').replace('/**', '').strip('/')
+        if p2 and '/' not in p2 and '*' not in p2:
+            names.append(p2)
+    print(' '.join(names))
+except Exception:
+    pass" 2>/dev/null)"
+      _cfg_shell="$(python3 -c "import json,sys
+try:
+    d = json.load(open('$PWD/.codex/config.json'))
+    lm = d.get('layer_map') or {}
+    raw = lm.get('shell', [])
+    if isinstance(raw, str): raw = [raw]
+    names = []
+    for p in raw:
+        p2 = p.replace('**/', '').replace('/**', '').strip('/')
+        if p2 and '/' not in p2 and '*' not in p2:
+            names.append(p2)
+    print(' '.join(names))
+except Exception:
+    pass" 2>/dev/null)"
+    fi
+    if [[ -n "$_cfg_core" || -n "$_cfg_shell" ]]; then
+      found_core=($_cfg_core)
+      found_shell=($_cfg_shell)
       conf="high"
     elif ((match_count >= 2)); then
       conf="high"
@@ -184,8 +222,21 @@ json.dump(data, open('${_LAYERMAP}', 'w'))
       fi
     fi
 
+    # Require a directory boundary so `import shell from "shelljs"` or
+    # `import db from "db-cli"` don't false-positive on shell-dir prefixes.
+    # Accepted forms:
+    #   `…/<shell_d>/…`            nested path segment
+    #   `…/<shell_d>"` or `…/<shell_d>'`  trailing-segment (bare path import)
+    #   `"<shell_d>/…"` or `'<shell_d>/…'`  bare-name import (no leading slash)
+    #   `"./<shell_d>/…"` / `"./<shell_d>"` relative-from-root
     for _shell_d in $_shell_dirs; do
-      if [[ "$_content" == *"/${_shell_d}/"* || "$_content" == *"\"${_shell_d}"* || "$_content" == *"'${_shell_d}"* || "$_content" == *"/${_shell_d}"* ]]; then
+      if [[ "$_content" == *"/${_shell_d}/"* \
+         || "$_content" == *"/${_shell_d}\""* \
+         || "$_content" == *"/${_shell_d}'"* \
+         || "$_content" == *"\"${_shell_d}/"* \
+         || "$_content" == *"'${_shell_d}/"* \
+         || "$_content" == *"\"${_shell_d}\""* \
+         || "$_content" == *"'${_shell_d}'"* ]]; then
         _blocked_import="$_content"
         _blocked_line="$_lineno"
         break 2

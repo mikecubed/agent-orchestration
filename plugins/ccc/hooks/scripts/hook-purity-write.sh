@@ -66,8 +66,12 @@ echo "0" >"$_EXIT_CODE_FILE"
   _patterns=()
   case "$_ext" in
     ts|tsx|js|jsx|mjs|cjs)
+      # Match the full import line; the scan loop applies the explicit
+      # type-only exemption (`import type {...}` / `import { type X }`).
+      # The previous `[^t][^y][^p][^e]` guard incorrectly excluded any
+      # binding starting with t/y/p/e — e.g. `import typeorm from 'typeorm'`.
       _patterns=(
-        "^[[:space:]]*import[[:space:]]+[^t][^y][^p][^e].*from[[:space:]]+['\"](fs|fs/promises|node:fs|axios|node-fetch|undici|got|ky|express|fastify|koa|@nestjs/|hono|pg|mysql2|mongoose|mongodb|redis|ioredis|prisma|@prisma/|drizzle-orm|typeorm|knex|@aws-sdk/|@azure/|@google-cloud/|firebase|firebase-admin|winston|pino|bunyan|child_process|node:os|node:process)"
+        "^[[:space:]]*import\\b.*from[[:space:]]+['\"](fs|fs/promises|node:fs|axios|node-fetch|undici|got|ky|express|fastify|koa|@nestjs/|hono|pg|mysql2|mongoose|mongodb|redis|ioredis|prisma|@prisma/|drizzle-orm|typeorm|knex|@aws-sdk/|@azure/|@google-cloud/|firebase|firebase-admin|winston|pino|bunyan|child_process|node:os|node:process)"
         "^[[:space:]]*const[[:space:]]+.*=[[:space:]]*require\\(['\"](fs|axios|express|fastify|pg|mongoose|prisma|@aws-sdk)"
       )
       ;;
@@ -76,13 +80,34 @@ echo "0" >"$_EXIT_CODE_FILE"
         "^[[:space:]]*(import|from)[[:space:]]+(requests|httpx|urllib|aiohttp|flask|fastapi|django|starlette|tornado|sqlalchemy|psycopg|psycopg2|pymongo|redis|motor|asyncpg|boto3|botocore|google\\.cloud|azure|subprocess|os\\.system)\\b"
         "^[[:space:]]*from[[:space:]]+(requests|httpx|flask|fastapi|sqlalchemy|psycopg|psycopg2|boto3)[[:space:]]+import"
       )
-      # Python TYPE_CHECKING guard: imports indented under `if TYPE_CHECKING:`
-      # are type-only and allowed in core. We pre-scan the file for the guard
-      # and, if present, skip indented imports later in the scan loop.
-      _py_has_type_checking=0
-      if echo "$TOOL_CONTENT" | grep -qE '^[[:space:]]*if[[:space:]]+TYPE_CHECKING:' 2>/dev/null; then
-        _py_has_type_checking=1
-      fi
+      # Python TYPE_CHECKING guard: imports syntactically inside an
+      # `if TYPE_CHECKING:` block are type-only and allowed in core.
+      # Use the AST to find the exact line numbers — a naive "any indented
+      # import in a file containing TYPE_CHECKING" check would silently
+      # exempt runtime imports inside function bodies.
+      _py_type_check_lines=""
+      _py_type_check_lines="$(printf '%s' "$TOOL_CONTENT" | python3 - <<'PYEOF' 2>/dev/null
+import ast, sys
+src = sys.stdin.read()
+def is_tc_test(node):
+    if isinstance(node, ast.Name) and node.id == 'TYPE_CHECKING':
+        return True
+    if isinstance(node, ast.Attribute) and node.attr == 'TYPE_CHECKING':
+        return True
+    return False
+out = set()
+try:
+    tree = ast.parse(src)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.If) and is_tc_test(node.test):
+            for child in ast.walk(node):
+                if isinstance(child, (ast.Import, ast.ImportFrom)):
+                    out.add(child.lineno)
+except Exception:
+    pass
+print(' '.join(str(n) for n in sorted(out)))
+PYEOF
+)"
       ;;
     go)
       _patterns=(
@@ -126,12 +151,21 @@ echo "0" >"$_EXIT_CODE_FILE"
       fi
     fi
 
-    # Python: skip imports indented under `if TYPE_CHECKING:` when the file
-    # has the guard. Heuristic: any import with leading whitespace in such a
-    # file is treated as type-only. Top-level imports still fire.
-    if [[ "$_ext" == "py" && "${_py_has_type_checking:-0}" == "1" ]] \
-       && [[ "$_content" =~ ^[[:space:]]+ ]]; then
-      continue
+    # Python: skip imports whose line number was identified by AST analysis
+    # as inside an `if TYPE_CHECKING:` block. Imports outside that block
+    # — including runtime imports inside other function/conditional bodies —
+    # still fire.
+    if [[ "$_ext" == "py" && -n "${_py_type_check_lines:-}" ]]; then
+      _is_tc_import=0
+      for _tc_ln in $_py_type_check_lines; do
+        if [[ "$_lineno" == "$_tc_ln" ]]; then
+          _is_tc_import=1
+          break
+        fi
+      done
+      if ((_is_tc_import == 1)); then
+        continue
+      fi
     fi
 
     for _pat in "${_patterns[@]}"; do
