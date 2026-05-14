@@ -1,11 +1,12 @@
 ---
 name: naming-check
 description: >
-  Enforces naming convention rules (NAME-1 through NAME-7). Loaded by the
-  conductor for write and review operations. Detects meaningless names,
-  incorrect boolean prefixes, misleading names, abbreviations, and naming
-  inconsistencies. Loads references/{language}.md for language-specific casing
-  conventions before checking.
+  Enforces naming convention rules (NAME-1 through NAME-7, plus NAME-UL).
+  Loaded by the conductor for write and review operations. Detects meaningless
+  names, incorrect boolean prefixes, misleading names, abbreviations, naming
+  inconsistencies, and (for files in `core/`) generic technical suffixes that
+  drift away from ubiquitous language. Loads references/{language}.md for
+  language-specific casing conventions before checking.
 version: "1.0.0"
 last-reviewed: "2026-03-04"
 languages: [typescript, python, go, rust, javascript]
@@ -74,7 +75,7 @@ violations.
 
 ---
 
-## Test Naming Pattern (NAME-7 / TDD-4)
+## Test Naming Pattern (NAME-7)
 
 All test functions must follow the pattern: `[subject]_[scenario]_[expected]`
 
@@ -220,7 +221,7 @@ another, and `Member` in a third — all referring to the same domain concept.
 ---
 
 ### NAME-7 — Test Functions Follow Subject_Scenario_Expected Pattern
-**Severity**: WARN | **Languages**: * | **Source**: CCC / TDD-4
+**Severity**: WARN | **Languages**: * | **Source**: CCC
 
 **What it prohibits**: Test function names that do not follow the
 `[subject]_[scenario]_[expected]` pattern, or that use vague descriptions like
@@ -235,6 +236,46 @@ another, and `Member` in a third — all referring to the same domain concept.
 **agent_action**:
 1. Cite: `NAME-7 (WARN): Test name '{name}' does not follow [subject]_[scenario]_[expected] pattern at {file}:{line}.`
 2. Propose compliant name based on what the test actually validates
+
+---
+
+### NAME-UL — Ubiquitous Language in Core
+**Severity**: WARN | **Languages**: * | **Source**: CCC
+
+**What it prohibits**: Vague, generic, technical suffixes on types and
+functions that live in `core/` (per the conductor's Section 14 layer
+detection). Core code should read in the language domain experts use.
+
+**Banned suffixes/prefixes in core**:
+- `Manager`, `Processor`, `Helper`, `Util`, `Utility`, `Utils`
+- `Service` is allowed *only* if the name actually denotes a domain service
+  (e.g., `PricingService`); banned when used as a generic suffix
+  (`UserService`, `OrderService` covering arbitrary operations on the entity).
+- `Handler` is **allowed** — HTTP handlers, event handlers, and command
+  handlers are legitimate names at inbound boundaries. But `Handler` in core
+  (away from inbound boundaries) is suspect.
+- Generic verbs as function names: `process`, `handle`, `do`, `execute`,
+  `perform` without a domain object (`processOrder` is fine, `process` alone
+  is not).
+
+**Why WARN, not BLOCK**: name choice is heuristic and codebase-specific. The
+rule prevents the most common drift toward generic technical naming without
+fighting genuine domain vocabulary that happens to look generic.
+
+**Detection** (only on files in `core/`):
+1. Grep type declarations for banned suffixes.
+2. Grep function declarations for banned verb-only names.
+3. Cross-reference with existing NAME-1 (generic nouns) and NAME-4 (banned
+   abbreviations) to avoid double-counting.
+
+**agent_action**:
+1. Cite: `NAME-UL (WARN): '{name}' uses generic technical naming in core at {file}:{line}.`
+2. Ask: what domain term does this represent? Propose the domain-aligned name.
+3. Example: `OrderManager` → ask whether the domain calls this an `Order`
+   itself (anemic name), an `OrderLifecycle`, a `Fulfillment`, a `PricingPolicy`,
+   etc.
+4. With `--fix`: never auto-rename — naming is a judgment call that requires
+   domain context the agent doesn't have.
 
 ---
 

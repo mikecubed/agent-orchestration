@@ -1,8 +1,8 @@
-# TDD Language Reference — Go
+# Test Gate Language Reference — Go
 
-Loaded by `tdd-check` when language = `go`.
+Loaded by `gate-check` when language = `go`.
 Provides Go-specific test framework defaults, file naming conventions,
-and tooling guidance for each TDD rule.
+and scaffold templates for the test gate.
 
 ---
 

@@ -3,9 +3,9 @@ name: auto-fix-eligibility
 description: >
   Auto-fix eligibility reference for the conductor --fix mode.
   Loaded on demand ONLY when --fix is active in the current session.
-  Enumerates all 64 rules (SIZE-1 and SIZE-2 each have two threshold rows) with their auto-remediation status and notes.
-version: "1.0.0"
-last-reviewed: "2026-03-05"
+  Enumerates every rule with its auto-remediation status and notes.
+version: "2.0.0"
+last-reviewed: "2026-05-13"
 ---
 
 # Auto-Fix Eligibility Table
@@ -23,31 +23,30 @@ ambiguity) or requires a human decision. This file is loaded by the conductor
 
 | Rule ID | Severity | Auto-Remediable? | Notes |
 |---------|----------|-----------------|-------|
-| TDD-1 | BLOCK | ❌ Human required | Writing tests requires understanding the contract |
-| TDD-2 | BLOCK | ❌ Human required | Minimal implementation requires spec knowledge |
-| TDD-3 | BLOCK | ❌ Human required | Blocked on test-runner confirmation |
-| TDD-4 | WARN | ❌ Human required | Renaming tests needs understanding of test intent |
-| TDD-5 | WARN | ❌ Human required | Interface design requires human judgment |
-| TDD-6 | WARN | ❌ Human required | Requires knowing the expected assertion value |
-| TDD-7 | BLOCK | ❌ Human required | Domain boundary detection is contextual |
-| TDD-8 | WARN | ❌ Human required | Invariants require domain knowledge to define |
-| TDD-9 | INFO | ❌ Report only | No fix action |
-| ARCH-1 | BLOCK | ❌ Human required | Dependency direction change is architectural |
-| ARCH-2 | BLOCK | ❌ Human required | Breaking circular deps requires architectural decision |
-| ARCH-3 | WARN | ❌ Human required | Requires introducing shared module |
-| ARCH-4 | BLOCK | ❌ Human required | Extracting infrastructure is architectural |
-| ARCH-5 | WARN | ❌ Human required | Cascade refactoring requires design decision |
-| ARCH-6 | INFO | ❌ Report only | No fix action |
-| ARCH-7 | WARN/BLOCK/INFO | ❌ Human required | Replacing inheritance with composition (Strategy, Decorator, Bridge, injection) is a design decision |
-| ARCH-8 | BLOCK | ❌ Human required | Moving construction to a factory or composition root requires lifetime/ownership decisions |
-| ARCH-9 | BLOCK | ❌ Human required | Defining and shaping a port is a domain/API design decision |
-| ARCH-10 | WARN/BLOCK | ❌ Human required | Introducing or relocating a composition root is an architectural decision |
+| TEST-PINNED | BLOCK | ❌ Human required | Writing tests requires understanding the contract |
+| TEST-RED-FIRST | BLOCK | ❌ Human required | Confirming a red→green transition requires temporarily breaking the implementation; human-confirmable |
+| BOUND-1 | BLOCK | ❌ Human required | Dependency direction change is architectural |
+| BOUND-2 | BLOCK | ❌ Human required | Defining and shaping a port is a domain/API design decision |
+| BOUND-3 | BLOCK/WARN | ❌ Human required | Moving construction to composition root requires lifetime/ownership decisions |
+| BOUND-4 | BLOCK | ❌ Human required | Breaking circular deps requires architectural decision |
+| COMP-1 | WARN/BLOCK/INFO | ❌ Human required | Replacing inheritance with composition (Strategy, Decorator, function injection) is a design decision |
+| PURE-1 | BLOCK | ❌ Human required | Removing side effects from core requires shifting them to shell — architectural |
+| PURE-2 | WARN | ❌ Human required | Replacing ambient reads with explicit parameters threads through callers |
+| PURE-3 | INFO | ❌ Report only | Signal only; cross-reference TEST-NO-MOCK-FOR-PURE |
+| IMMUT-1 | BLOCK | ⚠️ Conditional | Auto-rewrite to immutable form when the pattern is simple (e.g., `.push` → spread); complex cases need human |
+| IMMUT-2 | WARN | ❌ Human required | Synchronization strategy requires concurrency design |
+| IMMUT-3 | WARN | ❌ Human required | Builder/factory pattern requires API design |
+| RESULT-1 | BLOCK/WARN | ❌ Human required | Changing return type from `throw` to `Result` requires updating all call sites |
+| RESULT-2 | WARN | ❌ Human required | Adopting Option/Maybe requires call-site updates |
+| RESULT-3 | WARN | ⚠️ Conditional | Auto-fix can add a TODO comment or propagate the error; meaningful recovery requires human |
 | TYPE-1 | BLOCK | ❌ Human required | Correct type depends on domain semantics |
 | TYPE-2 | BLOCK | ❌ Human required | Runtime guard implementation requires context |
 | TYPE-3 | WARN | ❌ Human required | Exhaustive cases require knowing all variants |
 | TYPE-4 | WARN | ❌ Human required | Branded type definition requires domain knowledge |
 | TYPE-5 | WARN | ❌ Human required | Nullable semantics require understanding the contract |
 | TYPE-6 | INFO | ❌ Report only | No fix action |
+| TYPED-1 | WARN | ❌ Human required | Newtype wrappers require domain knowledge to name |
+| TYPED-2 | WARN/INFO | ❌ Human required | Sum-type variants require enumerating all states |
 | NAME-1 | BLOCK | ❌ Human required | Meaningful name depends on domain knowledge |
 | NAME-2 | WARN | ✅ Auto-remediable | Add `is/has/should/can` prefix; rename all sites within scope |
 | NAME-3 | BLOCK | ❌ Human required | Correcting misleading names requires domain knowledge |
@@ -55,8 +54,9 @@ ambiguity) or requires a human decision. This file is loaded by the conductor
 | NAME-5 | WARN | ✅ Auto-remediable | Expand known abbreviations; rename all sites within scope |
 | NAME-6 | WARN | ❌ Human required | Canonical term selection requires team agreement |
 | NAME-7 | WARN | ❌ Human required | Propose test name in `subject_scenario_expected` pattern; human must confirm/rename |
-| SIZE-1 | WARN/BLOCK | ⚠️ Partial / ❌ Human | WARN (40–79 lines): can extract obvious sub-functions; BLOCK (≥80 lines): architectural decisions required |
-| SIZE-2 | WARN/BLOCK | ⚠️ Partial / ❌ Human | WARN (351–499 lines): can split when boundary is clear; BLOCK (≥500 lines): responsibility clarification required |
+| NAME-UL | WARN | ❌ Human required | Domain-aligned naming requires context |
+| SIZE-1 | WARN/BLOCK | ⚠️ Partial / ❌ Human | WARN (40–79 lines): can extract obvious sub-functions; BLOCK (≥80): architectural decisions required |
+| SIZE-2 | WARN/BLOCK | ⚠️ Partial / ❌ Human | WARN (351–499 lines): can split when boundary is clear; BLOCK (≥500): responsibility clarification required |
 | SIZE-3 | WARN | ❌ Human required | Nesting reduction requires structural refactoring |
 | SIZE-4 | WARN | ❌ Human required | Parameter consolidation into objects requires API design |
 | SIZE-5 | BLOCK | ❌ Human required | Splitting flag-argument functions requires API design |
@@ -74,6 +74,10 @@ ambiguity) or requires a human decision. This file is loaded by the conductor
 | TEST-6 | BLOCK | ⚠️ Conditional | Add mock wrapper if logger/mock framework is already in scope |
 | TEST-7 | WARN | ✅ Auto-remediable | Generate boundary test stubs with identified boundary values |
 | TEST-8 | INFO | ❌ Report only | No fix action |
+| TEST-9 | INFO/WARN | ❌ Report only | Mutation score reporting; no fix action |
+| TEST-BEHAVIOR | BLOCK | ❌ Human required | Rewriting assertions away from mock-count/private-state requires understanding test intent |
+| TEST-NO-MOCK-FOR-PURE | BLOCK | ❌ Human required | Moving impure dependencies to shell is an architectural decision |
+| TEST-VACUOUS | WARN/BLOCK | ❌ Human required | Replacing a vacuous assertion with a meaningful one requires knowing the expected value |
 | SEC-1 | BLOCK | ⚠️ Partial | Replace literal with env var reference; secret rotation is a human step |
 | SEC-2 | BLOCK | ✅ Auto-remediable | Add schema validation wrapper at config module entry point |
 | SEC-3 | BLOCK | ✅ Auto-remediable | Replace injection point with safe alternative (DOMPurify / dispatch table) |
@@ -91,3 +95,6 @@ ambiguity) or requires a human decision. This file is loaded by the conductor
 | OBS-3 | WARN | ⚠️ Partial | Add framework instrumentation reference; do not add manual spans if auto-instrumentation available |
 | OBS-4 | WARN | ✅ Auto-remediable | Add minimal `/health` endpoint stub |
 | OBS-5 | INFO | ⚠️ Partial | Generate error message template with key variables; human fills in specifics |
+| SESS-1 | WARN | ❌ Human required | Session state file update requires user decision |
+| SESS-2 | WARN | ❌ Human required | Context-hygiene pause is a user action |
+| SESS-3 | WARN | ❌ Human required | Scout brief is a discovery action |

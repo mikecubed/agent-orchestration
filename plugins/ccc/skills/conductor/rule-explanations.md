@@ -5,195 +5,178 @@ Loaded on demand only: when `--explain` is active or a single RULE-ID is request
 
 ---
 
-## TDD-1
+## TEST-PINNED
 
-When a developer writes implementation code before a test exists, there is no way to know
-when the code is finished or whether it actually solves the right problem. The resulting code
-tends to be hard to test after the fact because its structure was never shaped by testability
-concerns. Writing the test first forces you to define the expected behaviour in concrete,
-executable terms before a single line of implementation exists.
-This rule prevents shipping untested logic that silently breaks when requirements change.
+The single biggest source of agent-introduced bugs is code that ships without a test that
+exercises it. Strict test-first ordering caught some of this but added enough friction that
+agents would write vacuous or mock-heavy tests just to clear the gate. TEST-PINNED instead
+requires that every new public symbol has at least one test that imports and calls it — at
+session end. Order within the session is free, but the session cannot close with new code
+that no test touches.
+This rule prevents ship-without-test, the canonical agent failure mode, without dictating
+when during the session the test must be written.
 
-## TDD-2
+## TEST-RED-FIRST
 
-Once a failing test is green, there is a strong temptation to keep adding "useful" behaviour
-to the implementation while you have the file open. That extra code has no test coverage,
-no specification, and no reason to exist yet — it is speculative complexity. Every line beyond
-the minimum needed to pass the current tests must wait for a test that demands it.
-This rule prevents accumulating untested, speculative code that inflates maintenance cost
-without delivering verified value.
-
-## TDD-3
-
-Refactoring while tests are red means changing the structure of code whose correctness is
-already in question. You cannot tell whether a new failure is caused by your refactor or by
-the original bug you were trying to fix. Always restore the green state first, then improve
-the design from a known-good baseline.
-This rule prevents introducing structural regressions that are indistinguishable from the
-original defect.
-
-## TDD-4
-
-A test named `test1`, `checkStuff`, or `verifyOk` communicates nothing about what scenario
-it covers or what outcome it expects. When the test fails in CI, a developer must read the
-entire test body to understand what broke. The pattern `[subject]_[scenario]_[expected]`
-makes the failure self-describing in the test report without opening the file.
-This rule prevents opaque test failures that waste time during incident investigation.
-
-## TDD-5
-
-When implementation is written before an interface is defined, the interface ends up shaped
-by implementation details rather than by caller needs. Callers then depend on accidental
-characteristics that can change at any time. Defining the interface first forces a clean
-separation between the contract (what) and the mechanism (how).
-This rule prevents interfaces that leak implementation details and create hidden coupling
-between modules.
-
-## TDD-6
-
-Assertions like `assertTrue(result)` or `toBeTruthy()` pass for any truthy value — an empty
-string, a non-null object, the number 1 — regardless of whether the actual value is correct.
-A test with a weak assertion is nearly useless because it can pass even when the code
-produces wrong output. Meaningful assertions check the exact value or structure you expect.
-This rule prevents false-confidence test suites where tests pass despite incorrect behaviour.
-
-## TDD-7
-
-Mocking the domain layer to test domain logic replaces the real business rules with
-simplified stubs. When the stub diverges from the real implementation — which it always
-eventually does — the tests pass while the actual business behaviour is broken. Domain logic
-must be tested through its real implementation, not through a simplified double.
-This rule prevents test suites that give green results while production domain behaviour
-is incorrect.
-
-## TDD-8
-
-A test that checks only one specific input can miss entire classes of bugs that only appear
-at boundaries or with unusual data. Entities with invariants (e.g., "balance must never be
-negative") need property-based tests that generate hundreds of random inputs to probe those
-invariants automatically. Hand-written examples alone are not sufficient coverage for data
-with non-trivial constraints.
-This rule prevents invariant violations that only manifest with inputs the developer
-didn't think to test by hand.
-
-## TDD-9
-
-When the test-to-code ratio falls significantly below 1:1, it signals that implementation
-is outpacing verification. Each untested line is a liability that silently accumulates
-until a refactor or bug reveals it. Monitoring the ratio across the codebase makes it
-visible before it becomes a crisis.
-This rule prevents the gradual erosion of test coverage that leaves large portions of a
-codebase unverified.
+A green test that was always green tells you nothing about whether the implementation is
+correct. Many agent-written tests are vacuous (they assert nothing meaningful) or pin the
+implementation (they mock the unit under test). TEST-RED-FIRST requires the session to
+record a red→green transition for each new symbol — proving the test would have failed
+without the implementation. The agent may break the implementation temporarily, confirm
+the test fails, then revert.
+This rule prevents the worst class of bug-hiding tests: ones that pass on any code,
+including broken code.
 
 ---
 
-## ARCH-1
+## BOUND-1
 
-When domain layer code imports from the infrastructure layer (databases, HTTP clients, ORMs),
-business logic becomes coupled to delivery mechanisms. Swapping a database engine or
-migrating to a new HTTP library then requires changes throughout the domain, which should
-be the most stable part of the system. The domain must express business rules in terms of
-abstractions, never in terms of concrete infrastructure components.
+When core code imports from shell, infrastructure, or framework code, business logic
+becomes coupled to delivery mechanisms. Swapping a database engine, migrating to a new
+HTTP library, or moving from one framework to another requires changes throughout the
+core — which should be the most stable part of the system. Core must express business
+rules in terms of pure data and ports it owns, never in terms of concrete infrastructure.
 This rule prevents business logic that cannot be tested or evolved without also changing
 infrastructure wiring.
 
-## ARCH-2
+## BOUND-2
 
-When a high-level module directly instantiates a low-level module (e.g., `new MySQLRepository()`
-inside a service), the service is permanently bound to that specific implementation. Testing
-the service requires a real MySQL database; replacing MySQL requires editing the service.
-Depending on an abstraction (interface or protocol) lets the caller decide which implementation
-to inject at runtime.
-This rule prevents high-level business logic from becoming untestable and unportable due
-to hard-coded dependencies on concrete implementations.
+When core code names concrete infrastructure types in its public signatures —
+`SqlConnection`, `HttpClient`, `PrismaClient`, framework request/session, SDK client
+classes — the inner layers inherit every change to those concrete types and to their
+transitive dependencies. Depending instead on a small port (interface, protocol, trait,
+or function type) defined in core keeps the inner layers stable, shapes the surface area
+to the consumer's actual needs, and makes the adapter the only place that has to change
+when the underlying technology changes. Fat ports that bundle unrelated operations
+violate ISP and pull consumers into changes they don't need.
+This rule prevents infrastructure detail from leaking into core code and keeps ports
+small enough to evolve without breaking unrelated consumers.
 
-## ARCH-3
+## BOUND-3
 
-A module with multiple reasons to change — say, one that handles user authentication,
-formats email notifications, and manages billing — must be modified whenever any of those
-concerns change. Each change risks breaking the others, and the blast radius of every edit
-grows over time. A module with a single responsibility changes for exactly one reason
-and can be understood, tested, and deployed in isolation.
-This rule prevents cascading breakages caused by unrelated changes sharing the same
-module.
+When core code constructs its own database client, HTTP client, logger, clock, or
+random source, that code silently owns the lifetime, configuration, and substitutability
+of every dependency it touches. Tests can't swap those collaborators out, the composition
+root can't enforce policy, and the same wiring is duplicated everywhere the type is
+constructed. Service locators and global containers hide this problem rather than
+solving it: business code reaches into a global registry instead of declaring what it
+needs. Dependencies must arrive through parameters; a composition root concentrates
+wiring in one explicit place.
+This rule prevents hidden dependency construction that makes core code untestable,
+non-portable, and impossible to reconfigure without code edits.
 
-## ARCH-4
+## BOUND-4
 
-When module A imports module B and module B imports module A, neither can be loaded,
-tested, or compiled independently. Circular dependencies are a symptom of missing
-abstractions — some concept that both modules share has not been extracted into its own
-module. Circular graphs also break tree-shaking, incremental compilation, and dependency
-analysis tooling.
+When module A imports module B and module B imports module A (directly or transitively),
+neither can be loaded, tested, or compiled independently. Circular dependencies are
+typically a symptom of missing abstractions — some concept that both modules share has
+not been extracted. Cycles also break tree-shaking, incremental compilation, and
+dependency analysis tooling.
 This rule prevents modules that cannot be independently deployed, tested, or compiled
 due to mutual dependency cycles.
 
-## ARCH-5
+## COMP-1
 
-When one bounded context directly calls internal types or functions of another bounded
-context, a change in the internal details of the first context breaks the second silently.
-Bounded contexts must communicate through published interfaces (events, APIs, shared
-kernels) — never through internal references. This is the primary architectural mechanism
-for keeping large systems evolvable.
-This rule prevents internal implementation changes in one bounded context from
-unexpectedly breaking a different part of the system.
+When subclasses exist primarily to vary one or two pieces of behavior, inheritance forces
+every variation to inherit unrelated parent state and lifecycle, and forces all
+collaborators to know the shape of the hierarchy. Strategy, Decorator, function injection,
+or policy objects let the same variation live behind a small interface that the caller
+composes at runtime, without binding consumers to a class tree. Inheritance remains the
+right choice for true domain taxonomies backed by ubiquitous language, sealed/algebraic
+data types, framework-required hooks, exception base types, and ORM-imposed hierarchies —
+those cases stay explicit.
+This rule prevents class trees from becoming the default extension mechanism when
+injected collaborators would express the variation more clearly and at lower coupling.
 
-## ARCH-6
+## PURE-1
 
-Infrastructure concerns — SQL queries, HTTP client setup, file I/O, environment variable
-reads — belong in the infrastructure layer. When these leak into the domain or application
-layer, business logic becomes entangled with delivery details that should be swappable.
-A domain object that reads from `process.env` directly cannot be reused in a different
-deployment environment without modification.
-This rule prevents business logic and application orchestration from becoming
-non-portable due to embedded infrastructure concerns.
+When core code does I/O, reads the clock, generates random numbers, or logs to stdout,
+it stops being a pure function of its inputs. The same call with the same arguments can
+now produce different results, depending on the time of day, the state of a remote
+database, or what's in the environment. Tests require mocks; behavior under refactor is
+unpredictable; reasoning becomes impossible without running the code. The fix is
+mechanical: receive the I/O result, the current time, the random seed, or the log sink
+as an explicit parameter from shell.
+This rule prevents the single biggest cause of un-reasonable, un-testable core code:
+hidden side effects that turn deterministic logic into stateful behavior.
 
-## ARCH-7
+## PURE-2
 
-When subclasses exist primarily to vary one or two pieces of behaviour, inheritance forces
-every variation to inherit unrelated parent state and lifecycle, and it forces all
-collaborators to know the shape of the hierarchy. Strategy, Decorator, Bridge, function
-injection, or policy objects let the same variation live behind a small interface that the
-caller composes at runtime, without binding consumers to a class tree. Inheritance remains
-the right choice for true domain taxonomies, sealed/algebraic hierarchies, framework hooks,
-exception base types, and ORM-imposed hierarchies — those cases stay explicit.
-This rule prevents class trees from becoming the default extension mechanism when injected
-collaborators would express the variation more clearly and at lower coupling.
+When core code reads from `process.env`, module-level mutable globals, thread-locals, or
+service locators, the function's actual inputs include data that isn't in its signature.
+Callers can't tell what they're getting; tests can't reproduce the conditions; the
+function silently depends on context that's invisible from the call site. Pass the value
+in as a parameter; shell reads ambient state at startup.
+This rule prevents core functions from depending on context that no caller can see in
+the signature.
 
-## ARCH-8
+## PURE-3
 
-When a domain or application class constructs its own database client, HTTP client, logger,
-clock, or random source, that class silently owns the lifetime, configuration, and
-substitutability of every dependency it touches. Tests can no longer swap those collaborators
-out, the composition root cannot enforce policy, and the same wiring is duplicated everywhere
-the type is constructed. Dependencies must arrive through constructor parameters, function
-parameters, or a dedicated factory, with the composition root deciding which concrete
-implementations are used.
-This rule prevents hidden dependency construction that makes domain and application code
-untestable, non-portable, and impossible to reconfigure without code edits.
+When a test for a function in core needs to import a mocking library, the function isn't
+pure — its dependencies have side effects that the test must fake. The right fix is
+structural: extract the impure work to shell, pass its result into the pure core function
+as a parameter. PURE-3 is the soft warning; TEST-NO-MOCK-FOR-PURE is the harder block
+that fires during reviews.
+This rule surfaces a strong signal of misplaced impurity during write/refactor sessions.
 
-## ARCH-9
+## IMMUT-1
 
-When domain or application code references concrete infrastructure types — `SqlClient`,
-`HttpAdapter`, `PrismaClient`, framework request/session, SDK client classes — the inner
-layers inherit every change to those concrete types and to their transitive dependencies.
-Depending instead on a small port (interface, protocol, trait) keeps the inner layers stable,
-keeps the surface area shaped by the consumer's actual needs, and makes the adapter the only
-place that has to change when the underlying technology changes. Fat ports that bundle
-unrelated operations violate ISP and pull consumers into changes they do not need.
-This rule prevents leakage of infrastructure detail into domain/application code and keeps
-ports small enough to evolve without breaking unrelated consumers.
+When a core function mutates a value passed in as a parameter, the caller's data is
+silently corrupted. The function's contract — implied by its signature — is "returns a
+result"; in practice it also rewrites the caller's input. This is the canonical "spooky
+action at a distance" bug. The fix is to produce a new value (map/spread/clone/copy)
+rather than mutate in place; local mutation inside the function body is fine.
+This rule prevents one of the most insidious bug classes in mutable-by-default languages:
+parameter mutation observable across a function boundary.
 
-## ARCH-10
+## IMMUT-2
 
-When wiring is scattered — every handler, controller, job, and test instantiates its own
-graph of services, repositories, and clients — there is no single place that owns object
-lifetime, configuration, or substitution. Service locators and global containers hide that
-problem rather than solving it: business code reaches into a global registry instead of
-declaring what it needs. A composition root concentrates wiring in one explicit place
-(application bootstrap, factory, or module) so that domain and application code only
-declares dependencies, and tests get their own narrowly scoped composition roots.
-This rule prevents object graph wiring from becoming an implicit, duplicated concern that
-hides coupling and makes substitution and testing harder than they need to be.
+When module-level mutable state in core is accessible from concurrent contexts (workers,
+async tasks, goroutines), every read and write races with every other thread's access.
+Bugs from these races are intermittent, environment-dependent, and almost impossible to
+reproduce locally. Legitimate uses exist (caches, registries) but each is a flag for
+careful review.
+This rule surfaces shared mutable state that may race; the fix depends on whether the
+state belongs in core at all.
+
+## IMMUT-3
+
+When an object is constructed in two phases — first an empty shell, then field
+assignments — the object passes through an invalid intermediate state. If anything
+references it during construction (an exception, a callback, a logging hook), behavior
+is undefined. The fix is to construct with all fields at once using a builder pattern,
+factory, or named-argument constructor.
+This rule prevents invalid intermediate states from being observable to other code.
+
+## RESULT-1
+
+When a core function uses raw exceptions for *domain* failures (validation, business rule
+violations, not-found), the function signature lies: it claims to return a value but
+actually throws on most realistic inputs. Callers can't tell from the type system whether
+they need to handle failure; the type-checker can't enforce that they do. Typed errors
+(`Result<T, E>`, discriminated unions, `(value, error)`) put the failure path in the
+signature where the compiler can enforce handling. The rule is BLOCK in Rust and
+TypeScript where the pattern is idiomatic; WARN in Python and JavaScript where exceptions
+are conventional.
+This rule prevents signatures that lie about whether a function can fail.
+
+## RESULT-2
+
+When a core function returns `null`/`None`/`undefined` to mean "not found" without an
+explicit `Option`/`Maybe` type in the signature, callers must read the function body to
+learn that the return value can be missing. Typed alternatives (`Option<T>`,
+`Result<T, NotFound>`) put the possibility in the signature.
+This rule prevents missing-value bugs that the type system should catch.
+
+## RESULT-3
+
+A catch site that does nothing — empty body, bare `pass`, log-and-continue without
+recovery — silently turns failures into successes. If the error matters (and it usually
+does), the caller never learns about it. The fix is either (a) re-raise/propagate,
+(b) handle explicitly with a meaningful recovery, or (c) add a comment explaining why
+the error is intentionally ignored.
+This rule prevents silent error suppression — one of the most common ways production
+bugs hide for weeks.
 
 ---
 
@@ -252,6 +235,27 @@ is permanently lost. Each variable should have the most specific type that corre
 describes all values it will hold.
 This rule prevents loss of type-system guarantees caused by variables that drift to
 overly-wide types through assignment.
+
+## TYPED-1
+
+When two parameters of the same primitive type represent different domain concepts
+(`customer_id: str, order_id: str`), the compiler can't catch a caller that swaps them.
+Both arguments are valid strings; the system accepts the call; behavior silently goes
+wrong. Newtype wrappers (TS branded types, Python NewType, Go named types, Rust newtypes)
+let the type system reject the swap at compile time.
+This rule prevents argument-order bugs that the type system should catch — without
+generating noise on parameters that genuinely play the same role.
+
+## TYPED-2
+
+When a state machine is represented as a free-form string (or untyped constant), nothing
+prevents typos, invalid transitions, or representable-but-illegal states. Sum types /
+discriminated unions / tagged enums encode the valid states in the type system and
+(when variants carry data) make illegal states unrepresentable. The rule is WARN in
+TypeScript and Rust where sum types are ergonomic; INFO in Python and Go where the
+language convention adds friction.
+This rule prevents string-typed state machines from allowing invalid states the type
+system could have caught.
 
 ---
 
@@ -324,6 +328,18 @@ function is called. Noun-form function names frequently signal that the function
 too many things or has unclear responsibility.
 This rule prevents functions with ambiguous names that make it impossible to understand
 what they do without reading their entire body.
+
+## NAME-UL
+
+When core code uses generic technical suffixes like `Manager`, `Processor`, `Helper`,
+or `Util`, the name says nothing about what the type actually represents in the
+business domain. Readers (and the agent itself, on later passes) have to read the
+implementation to learn what the thing is. Domain-aligned naming —
+`PricingPolicy`, `FulfillmentRecord`, `OrderLifecycle` — encodes the ubiquitous
+language directly in the code. `Handler` is allowed outside core (HTTP handlers, event
+handlers, command handlers are legitimate names at inbound boundaries).
+This rule prevents core types and functions from drifting toward generic technical
+naming that obscures the domain meaning.
 
 ---
 
@@ -522,6 +538,39 @@ test effectiveness.
 This rule prevents superficially passing test suites that fail to detect actual defects
 because assertions are too weak to distinguish correct code from mutated (buggy) code.
 
+## TEST-BEHAVIOR
+
+When a test asserts on internal call sequences, mock call counts, private fields, or
+internal state, the test is pinning the *implementation*, not the *behavior*. Any
+refactor — even a refactor that preserves correctness — breaks the test. The test then
+gets "fixed" by mirroring the new implementation, repeating the cycle. Tests should
+assert on observable outputs and domain events; mock-count assertions belong only when
+the test is genuinely about a protocol (e.g., "publish exactly once").
+This rule prevents implementation-pinned tests that decay under refactor without
+catching real bugs.
+
+## TEST-NO-MOCK-FOR-PURE
+
+When a test of a function in core needs to import a mocking library, the function isn't
+pure — its dependencies have side effects that the test must fake. The right fix is
+structural: move the impure dependency to shell, pass its result into the pure core
+function as an explicit parameter, and test the pure function directly with literal
+inputs. Mock-based testing of core code is a signal that the core/shell separation has
+been violated.
+This rule prevents impure dependencies from hiding in core code under the cover of
+mocks in the test suite.
+
+## TEST-VACUOUS
+
+A test with no assertion, or only truthy/existence checks (`toBeDefined`,
+`assertIsNotNone`, bare `assert result`), passes regardless of whether the
+implementation is correct. The test technically exists but provides zero
+verification — it pins nothing. Combined with TEST-PINNED's existence check, a
+vacuous test gives a false sense of coverage. The fix is a specific assertion on
+the value the function returns.
+This rule pairs with TEST-RED-FIRST as the static-analysis backstop for sessions
+where the red→green record is unavailable.
+
 ---
 
 ## SEC-1
@@ -695,3 +744,33 @@ downstream effect surfaces, by which point the root cause is long gone from memo
 logs. Every failure path must produce an observable signal.
 This rule prevents failures that are invisible to monitoring systems, allowing problems
 to compound undetected until they produce a much larger, harder-to-diagnose outage.
+
+---
+
+## SESS-1
+
+When a session begins without an up-to-date `SESSION.md` checkpoint, the agent is
+working blind: prior decisions, failed approaches, and partial state are unavailable.
+Resuming silently leads to retracing dead ends and unintentionally undoing prior work.
+The fix is to confirm intent with the developer at the start of any non-trivial session
+when the state file is absent or stale.
+This rule prevents silent session resumption that wastes effort and unwinds prior
+decisions.
+
+## SESS-2
+
+When a session accumulates three or more failed hypotheses in `SESSION.md`, it's a
+signal that the agent (or the developer) is iterating without consolidating what's
+been ruled out. Continuing in the same direction produces noise; a pause to write down
+what's known false and reset to confirmed facts is more productive.
+This rule prevents hypothesis-chasing sessions from spiraling without consolidation.
+
+## SESS-3
+
+When a non-trivial implementation task begins without a scout brief — relevant files
+identified, boundaries mapped, dependencies understood — the agent is likely to
+re-discover the codebase mid-task, drift in scope, or write code that conflicts with
+unseen constraints. A short discovery pass before implementation is far cheaper than
+unwinding bad decisions after.
+This rule prevents implementation without context, which is the second-biggest source
+of agent-introduced rework after missing tests.

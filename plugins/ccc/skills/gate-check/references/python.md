@@ -1,8 +1,8 @@
-# TDD Language Reference — Python
+# Test Gate Language Reference — Python
 
-Loaded by `tdd-check` when language = `python`.
+Loaded by `gate-check` when language = `python`.
 Provides Python-specific test framework defaults, file naming conventions,
-and tooling guidance for each TDD rule.
+and scaffold templates for the test gate.
 
 ---
 

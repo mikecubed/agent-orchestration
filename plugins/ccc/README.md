@@ -81,7 +81,7 @@ chmod +x /path/to/ccc/hooks/scripts/*.sh
 Update the script paths in `.github/hooks/hooks.json` to absolute paths pointing
 to the copied `hooks/scripts/` directory.
 
-> **Note**: Without hooks, the agent still enforces all 65 rules on demand — hooks add
+> **Note**: Without hooks, the agent still enforces the full rule set on demand — hooks add
 > real-time blocking/warning at the point of action. See [`docs/hooks.md`](docs/hooks.md)
 > for full hook details and per-CLI configuration.
 
@@ -107,7 +107,7 @@ This vendored bundle ships four top-level surfaces:
 | Conductor skill | `skills/conductor/SKILL.md` | The only always-loaded skill; detects operation type and dispatches sub-skills |
 | Hook guide | `docs/hooks.md` | Setup and behavior reference for the automatic enforcement hooks |
 
-The conductor is the only entry point. It dispatches **17 check sub-skills** on
+The conductor is the only entry point. It dispatches **20 check sub-skills** on
 demand, based on operation type and scope.
 
 ---
@@ -122,7 +122,7 @@ demand, based on operation type and scope.
 /codex --fix                    # Auto-remediate WARN violations
 /codex src/ --scope "**/*.ts"   # TypeScript files in src/ only
 /codex --deep --history         # Exhaustive scan + git history analysis
-/codex --scaffold-tests         # Generate test skeletons on TDD-1 blocks
+/codex --scaffold-tests         # Generate test skeletons on TEST-PINNED blocks
 /codex --diff-only              # Review only changed files (git diff HEAD)
 /codex --explain NAME-1         # Print NAME-1 explanation and exit
 /codex --explain                # Add explanations to all violations
@@ -143,10 +143,10 @@ review, refactor, or test code — no explicit invocation required.
 | `path` | repo root | Limit scope to a file or directory |
 | `--scope <glob>` | repo root | Restrict all operations to matching paths |
 | `--fix` | off | Permit auto-remediation edits for WARN violations |
-| `--write` | off | Permit scaffold/write operations (TDD-gated) |
+| `--write` | off | Permit scaffold/write operations (gated by TEST-PINNED/TEST-RED-FIRST) |
 | `--history` | off | Include git history analysis (needed for SEC-1/SEC-6) |
 | `--deep` | off | Enable slower exhaustive scans |
-| `--scaffold-tests` | off | Generate test skeletons on TDD-1 blocks |
+| `--scaffold-tests` | off | Generate test skeletons on TEST-PINNED blocks |
 | `--diff-only` | off | Review only changed files (git diff HEAD) |
 | `--explain [RULE-ID]` | off | Print explanation for a specific rule, or add explanations to all violations |
 | `--refresh` | off | Re-detect language/framework/layers (clears `.codex/config.json` cache) |
@@ -164,14 +164,17 @@ This table is exhaustive for the bundle's shipped skill surface.
 
 | Skill / check | Rules | Use it when | Auto-dispatched for | Language refs |
 |---------------|-------|-------------|---------------------|---------------|
-| `conductor` | — | Always — it is the sole entry point and dispatch coordinator | every `/codex` run and agent activation | No |
-| `tdd-check` | TDD-1 – TDD-9 | You are writing code, refactoring under test, or fixing tests and need the non-bypassable TDD gate | write, refactor, test, new service, CI/full check | Yes |
-| `arch-check` | ARCH-1 – ARCH-6 | You want architecture boundary and design-shape feedback | review, refactor, new service, CI/full check | No |
-| `type-check` | TYPE-1 – TYPE-6 | You need type-safety review for supported languages | write, review, CI/full check | Yes |
-| `naming-check` | NAME-1 – NAME-7 | You want naming clarity and consistency review | write, review, refactor, boy scout, CI/full check | Yes |
+| `conductor` | — | Always — the sole entry point and dispatch coordinator | every `/codex` run and agent activation | No |
+| `gate-check` | TEST-PINNED, TEST-RED-FIRST | You need the test gate on writes (no new code without a test that exercises it; sessions must record a red→green transition) | write, refactor, test, new service, CI/full check | Yes |
+| `arch-check` | BOUND-1 – BOUND-4, COMP-1 | You want boundary-direction, port discipline, no-circular-imports, and composition-over-inheritance feedback | review, refactor, new service, boundary writes, CI/full check | No |
+| `purity-check` | PURE-1 – PURE-3 | You want functional-core enforcement: no I/O / clock / RNG / logging in `core/` | write, review, refactor, CI/full check | No |
+| `immutability-check` | IMMUT-1 – IMMUT-3 | You want to catch parameter mutation, shared mutable state, partial-construction patterns | write, review, refactor, CI/full check | No |
+| `result-check` | RESULT-1 – RESULT-3 | You want typed-error discipline (Result<T,E> over exceptions for domain failures) | write, review, new service, CI/full check | No |
+| `type-check` | TYPE-1 – TYPE-6, TYPED-1, TYPED-2 | You need type-safety review plus type-driven design (newtypes, sum types for state) | write, review, CI/full check | Yes |
+| `naming-check` | NAME-1 – NAME-7, NAME-UL | You want naming clarity, consistency, and (in `core/`) ubiquitous-language alignment | write, review, refactor, boy scout, CI/full check | Yes |
 | `size-check` | SIZE-1 – SIZE-6 | You want function/class size pressure and decomposition guidance | review, refactor, boy scout, CI/full check | No |
 | `dead-check` | DEAD-1 – DEAD-5 | You want unused/commented-out/dead code surfaced | review, refactor, boy scout, CI/full check | No |
-| `test-check` | TEST-1 – TEST-8 | You need test quality, coverage shape, or regression-test guidance | review, test, CI/full check | No |
+| `test-check` | TEST-1 – TEST-9, TEST-BEHAVIOR, TEST-NO-MOCK-FOR-PURE, TEST-VACUOUS | You need test quality and behavior-pinning checks (no mock-counts, no mocks for pure functions, no vacuous tests) | review, test, CI/full check | No |
 | `sec-check` | SEC-1 – SEC-7 | You want security review, secret scanning, or incident-facing hardening feedback | review, security, incident, new service, CI/full check | No |
 | `dep-check` | DEP-1 – DEP-5 | You are reviewing dependency risk, manifest updates, or CVE exposure | dependency, CI/full check | No |
 | `obs-check` | OBS-1 – OBS-5 | You want observability/logging/alerting feedback or are handling a production issue | review, incident, observability, CI/full check | No |
@@ -181,20 +184,21 @@ This table is exhaustive for the bundle's shipped skill surface.
 | `a11y-check` | A11Y-1 – A11Y-5 | You want accessibility review for UI surfaces and interaction patterns | review, CI/full check | No |
 | `docs-check` | DOCS-1 – DOCS-5 | You want missing or misleading prose/API/usage documentation surfaced | review, CI/full check | No |
 | `i18n-check` | I18N-1 – I18N-5 | You want localization/internationalization issues surfaced | review, CI/full check | No |
-| `ctx-check` | CTX-1 – CTX-5 | You want context-boundary and new-service scaffolding checks, especially around ownership and surrounding constraints | write, review, new service, CI/full check | No |
+| `session-check` | SESS-1 – SESS-3 | You want session-hygiene checks (state freshness, failed-hypothesis budget, codebase brief presence) — renamed from `ctx-check` in v4.0 | write, review, new service, CI/full check | No |
 
 **Situations → checks dispatched**:
 
 | Situation | Checks loaded |
 |-----------|--------------|
-| Writing new code | tdd-check, type-check, naming-check, ctx-check |
-| PR / code review | arch-check, type-check, naming-check, size-check, dead-check, test-check, obs-check, sec-check, iac-check, perf-check, resilience-check, a11y-check, docs-check, i18n-check, ctx-check |
-| Refactoring | tdd-check (gate), arch-check, naming-check, size-check, dead-check |
-| Running tests | tdd-check, test-check |
+| Writing new code | gate-check, type-check, naming-check, session-check, purity-check, immutability-check, result-check |
+| Boundary-touching write (modules, adapters, ports, domain logic, composition root) | + arch-check |
+| PR / code review | arch-check, type-check, naming-check, size-check, dead-check, test-check, obs-check, sec-check, iac-check, perf-check, resilience-check, a11y-check, docs-check, i18n-check, session-check, purity-check, immutability-check, result-check |
+| Refactoring | gate-check (gate), arch-check, naming-check, size-check, dead-check, purity-check, immutability-check |
+| Running tests | gate-check, test-check |
 | Security audit | sec-check, iac-check |
 | Dependency update | dep-check |
 | Production incident | obs-check, sec-check |
-| New service/module | tdd-check, arch-check, sec-check, ctx-check |
+| New service/module | gate-check, arch-check, sec-check, session-check, purity-check, result-check |
 | Adding observability | obs-check |
 | CI / full check | All checks |
 | Boy Scout session end | size-check, dead-check, naming-check |
@@ -277,7 +281,7 @@ They must be explicit, scoped, time-bound, and attributed.
 **Inline waiver** (in the affected source file):
 
 ```
-# WAIVER: ARCH-2 | scope: src/legacy/ | expiry: 2026-06-01 | owner: @team-lead | ticket: PROJ-1234
+# WAIVER: BOUND-4 | scope: src/legacy/ | expiry: 2026-06-01 | owner: @team-lead | ticket: PROJ-1234
 # reason: Legacy adapter layer cannot be refactored until Q3 migration completes
 ```
 
@@ -285,8 +289,8 @@ They must be explicit, scoped, time-bound, and attributed.
 
 ```yaml
 waivers:
-  - id: WAIVER-ARCH-2-1234
-    rule_id: ARCH-2
+  - id: WAIVER-BOUND-4-1234
+    rule_id: BOUND-4
     scope: src/legacy/**
     reason: Legacy adapter cannot be refactored until Q3 migration
     owner: "@team-lead"
