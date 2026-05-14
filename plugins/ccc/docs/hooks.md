@@ -15,9 +15,12 @@ just after) a problematic action occurs.
 | SEC-7 (bash injection) | `hooks/scripts/hook-sec-bash.sh` | PreToolUse (Bash) | **Block** before execution | **Block** before execution |
 | SIZE-1 / DEAD-1 (quality) | `hooks/scripts/hook-quality.sh` | PostToolUse (Write\|Edit) | Warn after write | Warn after write |
 | DEP-1 (vulnerabilities) | `hooks/scripts/hook-dep.sh` | PostToolUse (Write) | Warn after write | Warn after write |
-| `hook-arch-write.sh`     | PreToolUse  | Write\|Edit | ARCH-1 (**Block**) | ARCH-1 (Warn) |
-| `hook-coverage-delta.sh` | PostToolUse | Write\|Edit | TEST-DELTA (Warn) | TEST-DELTA (Warn) |
-| `hook-obs-write.sh`      | PostToolUse | Write\|Edit | OBS-1 (Warn) | OBS-1 (Warn) |
+| BOUND-1 (boundary direction) | `hooks/scripts/hook-arch-write.sh` | PreToolUse (Write\|Edit) | **Block** before write | Warn before write |
+| PURE-1 (side effects in core) | `hooks/scripts/hook-purity-write.sh` | PreToolUse (Write\|Edit) | **Block** before write | Warn before write |
+| IMMUT-1 (parameter mutation) | `hooks/scripts/hook-immut-write.sh` | PostToolUse (Write\|Edit) | Warn after write | Warn after write |
+| RESULT-1 (throw for domain failure) | `hooks/scripts/hook-result-write.sh` | PostToolUse (Write\|Edit) | Warn after write | Warn after write |
+| TEST-DELTA (coverage delta) | `hooks/scripts/hook-coverage-delta.sh` | PostToolUse (Write\|Edit) | Warn after write | Warn after write |
+| OBS-1 (empty catch) | `hooks/scripts/hook-obs-write.sh` | PostToolUse (Write\|Edit) | Warn after write | Warn after write |
 
 ---
 
@@ -114,9 +117,14 @@ plugin hooks.
 |--------|-------------|----------------|
 | SEC-1 (write) | Pre-write **block** (deny) | Pre-write **warn** |
 | SEC-7 (bash) | Pre-execution **block** | Pre-execution **block** |
+| BOUND-1 (write) | Pre-write **block** (deny) | Pre-write **warn** |
+| PURE-1 (write) | Pre-write **block** (deny) | Pre-write **warn** |
+| IMMUT-1 | Post-write warn | Post-write warn |
+| RESULT-1 | Post-write warn | Post-write warn |
 | SIZE-1 | Post-write warn | Post-write warn |
 | DEAD-1 | Post-write warn | Post-write warn |
 | DEP-1 | Post-write warn | Post-write warn |
+| OBS-1 | Post-write warn | Post-write warn |
 | Pattern sets | Identical | Identical |
 | Severity levels | Identical | Identical |
 | Remediation messages | Identical | Identical |
@@ -125,9 +133,10 @@ plugin hooks.
 | Excluded paths | Identical | Identical |
 | Test fixture downgrade | Block→Warn | Warn (unchanged) |
 
-The only documented behavioural difference is **SEC-1 write enforcement**:
+The documented behavioural difference for BLOCK-severity write hooks is:
 Claude Code blocks the write before it happens; GitHub Copilot CLI surfaces the
-finding immediately after, so the agent self-corrects on the next turn.
+finding immediately after, so the agent self-corrects on the next turn. This
+applies to SEC-1, BOUND-1, and PURE-1.
 
 ---
 
@@ -157,16 +166,18 @@ agent is never blocked by hook infrastructure failures.
 
 ---
 
-## `hook-arch-write.sh` — Architecture Boundary Enforcement
+## `hook-arch-write.sh` — Boundary Direction Enforcement
 
 **Event**: PreToolUse  
 **Trigger**: Write\|Edit  
-**Rule**: ARCH-1 (BLOCK)  
+**Rule**: BOUND-1 (BLOCK)  
 **Timeout**: 10 seconds
 
 ### What it checks
 
-Detects when a file in the `domain` layer imports code from the `application` or `infrastructure` layers. Layer boundaries are detected by scanning for `domain/`, `application/`, `infrastructure/` (and aliases: `core/`, `app/`, `infra/`) directories under `src/`.
+Detects when a file in the `core` layer imports code from the `shell` layer. Layer boundaries follow the conductor's Section 14: prefer `core/` + `shell/` anywhere in the tree, fall back to legacy paths (`domain/`, `entities/`, `models/` → core; `application/`, `services/`, `infra/`, `adapters/`, `db/`, `api/`, `controllers/`, `handlers/` → shell).
+
+TypeScript `import type` is exempted (type-only imports erase at compile time).
 
 ### Layer map detection
 
@@ -176,12 +187,12 @@ The hook generates a layer map the first time it runs and caches it at `/tmp/cod
 
 **Claude Code (block)**:
 ```json
-{"permissionDecision":"deny","message":"ARCH-1: Domain layer import of infrastructure code detected.\nFile: src/domain/user.ts\nImport: '../../infrastructure/db/UserRepository'\nFix: Inject the repository via a port interface defined in the domain layer."}
+{"permissionDecision":"deny","message":"BOUND-1: Core layer import of shell/infrastructure detected.\nFile: src/core/user.ts\nImport: '../../shell/db/UserRepository'\nFix: Define a port (interface/protocol/trait/function type) in core; implement the adapter in shell; have shell call into core."}
 ```
 
 **GH Copilot CLI (warn)**:
 ```
-⚠️  ARCH-1 (BLOCK): Domain layer imports infrastructure in 'src/domain/user.ts' line 1: '../../infrastructure/db/UserRepository'. Inject via port interface instead.
+⚠️  BOUND-1 (BLOCK): Core layer imports shell/infrastructure in 'src/core/user.ts' line 1: '../../shell/db/UserRepository'. Define a port in core; implement in shell.
 ```
 
 ### How to disable
@@ -196,6 +207,114 @@ Add to `.claude/settings.json`:
 - Confidence is heuristic — detection requires recognizable directory names
 - Monorepo packages each get their own layer map entry
 - TTL cache means layer map changes take up to 5 minutes to reflect
+
+---
+
+## `hook-purity-write.sh` — Functional Core Enforcement
+
+**Event**: PreToolUse  
+**Trigger**: Write\|Edit  
+**Rule**: PURE-1 (BLOCK)  
+**Timeout**: 10 seconds
+
+### What it checks
+
+Detects side-effect imports inside files in the `core/` layer (per the layermap cached by `hook-arch-write.sh`). Pattern set per language:
+
+| Language | Detected patterns |
+|---|---|
+| TS/JS | `fs`, `axios`, `express`, `pg`, `mongoose`, `prisma`, `@aws-sdk/*`, `winston`, `child_process`, … |
+| Python | `requests`, `httpx`, `flask`, `fastapi`, `sqlalchemy`, `psycopg`, `pymongo`, `boto3`, `subprocess`, … |
+| Go | `net/http`, `database/sql`, `gin`, `gorm`, `github.com/aws/aws-sdk-go`, … |
+| Rust | `std::fs`, `std::process`, `reqwest`, `axum`, `sqlx`, `diesel`, `aws_sdk`, … |
+
+TypeScript type-only imports (`import type { Foo }`) are exempted.
+
+### Output format
+
+**Claude Code (block)**:
+```json
+{"permissionDecision":"deny","message":"PURE-1: Side-effect import in core file.\nFile: src/core/order.ts\nImport: \"import { Pool } from 'pg'\"\nFix: receive the side-effect result as a parameter from shell, or move this function to shell."}
+```
+
+**GH Copilot CLI (warn)**:
+```
+⚠️  PURE-1 (BLOCK): Side-effect import in core file 'src/core/order.ts' line 1: 'import { Pool } from "pg"'. Receive the result as a parameter from shell.
+```
+
+### Known limitations
+
+- Pattern-matching only; misses dynamically constructed imports
+- Only fires when the layer map has `confidence != "none"`
+- Domain-failure exceptions caught at the skill level (full purity-check skill provides richer detection of clock/RNG/logging calls)
+
+---
+
+## `hook-immut-write.sh` — Immutability Enforcement
+
+**Event**: PostToolUse  
+**Trigger**: Write\|Edit  
+**Rule**: IMMUT-1 (WARN)  
+**Timeout**: 10 seconds
+
+### What it checks
+
+Surfaces in-place mutation methods inside core/ files: `.push`, `.splice`, `.shift`, `.pop`, `.fill`, `.copyWithin`, `Object.assign(target, ...)` (TS/JS); `list.append`, `list.extend`, `list.insert`, `list.pop`, `list.remove`, dict `.update`/`.setdefault` (Python); `sort.Slice` (Go); `.push`, `.insert`, `.remove` on common Rust collection types.
+
+The hook is heuristic — it cannot tell whether the mutated receiver is a parameter. WARN severity acknowledges the false-positive risk. The full `immutability-check` skill makes the decision with full context.
+
+### Output format
+
+```
+⚠️  IMMUT-1 (WARN): Mutation pattern in core file 'src/core/order.ts' line 24: 'items.push(item)'. If 'items.push(item)' mutates a parameter, return a new value instead.
+```
+
+Only one warning is emitted per file per hook run to avoid noise.
+
+### Known limitations
+
+- Cannot distinguish local mutation from parameter mutation
+- Emits at most one finding per file
+- Skipped entirely when the layer map has no core layer detected
+
+---
+
+## `hook-result-write.sh` — Typed-Error Enforcement
+
+**Event**: PostToolUse  
+**Trigger**: Write\|Edit  
+**Rule**: RESULT-1 (WARN)  
+**Timeout**: 10 seconds
+
+### What it checks
+
+Surfaces throw/raise/panic patterns inside core/ files that look like domain failures:
+
+| Language | Detected patterns |
+|---|---|
+| TS/JS | `throw new XError(...)` (typed-error subclass — flagged because in core it should be `Result<T, E>`); `throw new Error(...)` with string args |
+| Python | `raise XError(...)`, `raise XException(...)` |
+| Go | `panic(...)` |
+| Rust | `panic!`, `.unwrap()`, `.expect(` |
+
+Acceptable patterns NOT flagged:
+- `return Err(...)` in Rust
+- `return value, err` in Go
+- `Result.err(...)` / `{ ok: false, error }` returns in TS/JS
+
+### Output format
+
+```
+⚠️  RESULT-1 (WARN): Possible domain failure thrown/raised in core 'src/core/order.ts' line 24: 'throw new OrderNotFound(id)'. Consider Result<T, E> / typed error return instead.
+```
+
+The hook emits WARN uniformly. The full `result-check` skill applies the language-specific severity calibration (BLOCK in Rust/TypeScript, WARN in Python/Go/JavaScript).
+
+### Known limitations
+
+- Heuristic — cannot tell if the throw is in a `default` arm of an exhaustive match
+- Emits one finding per file
+- Skipped entirely when the layer map has no core layer detected
 
 ---
 

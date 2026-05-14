@@ -2,7 +2,7 @@
 
 Loaded by `gate-check` when language = `go`.
 Provides Go-specific test framework defaults, file naming conventions,
-and scaffold templates for the test gate.
+and scaffold templates for the test gate (TEST-PINNED, TEST-RED-FIRST).
 
 ---
 
@@ -33,13 +33,17 @@ A separate `tests/` directory is non-idiomatic in Go; use build tags for integra
 
 ---
 
-## TDD-1: Test File Detection
+## TEST-PINNED: Test File Detection
 
 Look for:
 ```
 {file}_test.go           (same directory as source)
 {file}_integration_test.go
 ```
+
+For each new exported (PascalCase) symbol: confirm a `Test{Name}*` function
+exists in the matching `_test.go` file and that it constructs or calls the
+symbol.
 
 **Build tags for integration tests** (Go 1.17+):
 ```go
@@ -52,60 +56,19 @@ Run with: `go test -tags=integration ./...`
 
 ---
 
-## TDD-4: Test Naming — Go stdlib
-
-Pattern: `TestSubject_Scenario_Expected` (PascalCase with underscores).
-For table-driven tests: subject in function name, scenario/expected in the `name` field of each test case.
-
----
-
 ## Table-Driven Test Idiom
 
 The table-driven test pattern is idiomatic Go and strongly preferred. Each test case struct has a `name` string field used with `t.Run(tt.name, ...)`.
 
 ---
 
-## TDD-7: Mocks — Permitted vs Prohibited
-
-**Permitted**: interface-based test doubles for I/O (database, HTTP, external services).
-**Prohibited**: replacing domain logic with mocks — use the real implementation.
-**Go idiom**: define the interface, implement an in-memory version for tests; no mock library required.
-
----
-
-## TDD-8: Property-Based Tests — testing/quick
-
-Use `quick.Check(f, nil)` with a property function returning `bool`. For richer generators, use `pgregory.net/rapid`.
-
----
-
-## TDD-9: Test Ratio — Measurement
-
-```bash
-# Count source lines (excluding test files)
-find . -name "*.go" ! -name "*_test.go" ! -path "*/vendor/*" | xargs wc -l | tail -1
-
-# Count test lines
-find . -name "*_test.go" ! -path "*/vendor/*" | xargs wc -l | tail -1
-```
-
----
-
 ## Coverage Configuration
 
 ```bash
-# Run tests with coverage
 go test -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out -o coverage.html
 go tool cover -func=coverage.out | grep total
-
-# Fail if coverage below threshold (CI)
-go test -coverprofile=coverage.out ./... && \
-  go tool cover -func=coverage.out | \
-  awk '/^total:/{if ($3+0 < 80) {print "Coverage below 80%"; exit 1}}'
 ```
-
-**Targets**: Domain layer: 90% | Application layer: 80%
 
 ---
 
@@ -118,9 +81,9 @@ Use `httptest.NewServer(router)` to spin up a real HTTP server for integration t
 ## Non-Standard Framework Handling
 
 If the project uses testify, gomega, or ginkgo:
-- Apply TDD-1 through TDD-9 language-agnostically
+- Apply TEST-PINNED and TEST-RED-FIRST language-agnostically
 - Note the non-standard framework in the report without blocking
-- Adapt TDD-4 naming pattern to the framework's `It()/Describe()` conventions
+- Adapt naming to the framework's `It()/Describe()` conventions
 
 ---
 

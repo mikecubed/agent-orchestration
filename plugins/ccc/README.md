@@ -107,7 +107,7 @@ This vendored bundle ships four top-level surfaces:
 | Conductor skill | `skills/conductor/SKILL.md` | The only always-loaded skill; detects operation type and dispatches sub-skills |
 | Hook guide | `docs/hooks.md` | Setup and behavior reference for the automatic enforcement hooks |
 
-The conductor is the only entry point. It dispatches **20 check sub-skills** on
+The conductor is the only entry point. It dispatches **21 check sub-skills** on
 demand, based on operation type and scope.
 
 ---
@@ -167,9 +167,10 @@ This table is exhaustive for the bundle's shipped skill surface.
 | `conductor` | — | Always — the sole entry point and dispatch coordinator | every `/codex` run and agent activation | No |
 | `gate-check` | TEST-PINNED, TEST-RED-FIRST | You need the test gate on writes (no new code without a test that exercises it; sessions must record a red→green transition) | write, refactor, test, new service, CI/full check | Yes |
 | `arch-check` | BOUND-1 – BOUND-4, COMP-1 | You want boundary-direction, port discipline, no-circular-imports, and composition-over-inheritance feedback | review, refactor, new service, boundary writes, CI/full check | No |
-| `purity-check` | PURE-1 – PURE-3 | You want functional-core enforcement: no I/O / clock / RNG / logging in `core/` | write, review, refactor, CI/full check | No |
-| `immutability-check` | IMMUT-1 – IMMUT-3 | You want to catch parameter mutation, shared mutable state, partial-construction patterns | write, review, refactor, CI/full check | No |
-| `result-check` | RESULT-1 – RESULT-3 | You want typed-error discipline (Result<T,E> over exceptions for domain failures) | write, review, new service, CI/full check | No |
+| `purity-check` | PURE-1 – PURE-3 | You want functional-core enforcement: no I/O / clock / RNG / logging in `core/` | write, review, refactor, CI/full check | Yes |
+| `immutability-check` | IMMUT-1 – IMMUT-3 | You want to catch parameter mutation, shared mutable state, partial-construction patterns | write, review, refactor, CI/full check | Yes |
+| `result-check` | RESULT-1 – RESULT-3 | You want typed-error discipline (Result<T,E> over exceptions for domain failures) | write, review, new service, CI/full check | Yes |
+| `context-check` | CTXT-1 – CTXT-3 | You want strategic-DDD signals: shared models across bounded contexts, vague domain naming, external API models leaking into core without an ACL | review, new service, CI/full check | No |
 | `type-check` | TYPE-1 – TYPE-6, TYPED-1, TYPED-2 | You need type-safety review plus type-driven design (newtypes, sum types for state) | write, review, CI/full check | Yes |
 | `naming-check` | NAME-1 – NAME-7, NAME-UL | You want naming clarity, consistency, and (in `core/`) ubiquitous-language alignment | write, review, refactor, boy scout, CI/full check | Yes |
 | `size-check` | SIZE-1 – SIZE-6 | You want function/class size pressure and decomposition guidance | review, refactor, boy scout, CI/full check | No |
@@ -192,13 +193,13 @@ This table is exhaustive for the bundle's shipped skill surface.
 |-----------|--------------|
 | Writing new code | gate-check, type-check, naming-check, session-check, purity-check, immutability-check, result-check |
 | Boundary-touching write (modules, adapters, ports, domain logic, composition root) | + arch-check |
-| PR / code review | arch-check, type-check, naming-check, size-check, dead-check, test-check, obs-check, sec-check, iac-check, perf-check, resilience-check, a11y-check, docs-check, i18n-check, session-check, purity-check, immutability-check, result-check |
+| PR / code review | arch-check, type-check, naming-check, size-check, dead-check, test-check, obs-check, sec-check, iac-check, perf-check, resilience-check, a11y-check, docs-check, i18n-check, session-check, purity-check, immutability-check, result-check, context-check |
 | Refactoring | gate-check (gate), arch-check, naming-check, size-check, dead-check, purity-check, immutability-check |
 | Running tests | gate-check, test-check |
 | Security audit | sec-check, iac-check |
 | Dependency update | dep-check |
 | Production incident | obs-check, sec-check |
-| New service/module | gate-check, arch-check, sec-check, session-check, purity-check, result-check |
+| New service/module | gate-check, arch-check, sec-check, session-check, purity-check, result-check, context-check |
 | Adding observability | obs-check |
 | CI / full check | All checks |
 | Boy Scout session end | size-check, dead-check, naming-check |
@@ -213,10 +214,13 @@ In addition to on-demand skills, the plugin ships with a set of **automatic enfo
 |------|---------|-------------|----------------|
 | SEC-1 — No Hardcoded Secrets | Write or Edit | **Block** before write | Warn after write |
 | SEC-7 — No Bash Injection | Bash command | **Block** before execution | **Block** before execution |
+| BOUND-1 — Core/Shell Boundary Direction | Write or Edit | **Block** before write | Warn after write |
+| PURE-1 — No Side Effects in Core | Write or Edit | **Block** before write | Warn after write |
+| IMMUT-1 — No Parameter Mutation in Core | Write or Edit | Warn after write | Warn after write |
+| RESULT-1 — No Domain-Failure Throws in Core | Write or Edit | Warn after write | Warn after write |
 | SIZE-1 — Functions Must Be Small | Write or Edit | Warn after write | Warn after write |
 | DEAD-1 — No Commented-Out Code | Write or Edit | Warn after write | Warn after write |
 | DEP-1 — No Known Vulnerabilities | Writing a manifest | Warn after write | Warn after write |
-| ARCH-1 — Architecture Boundary | Write or Edit | **Block** before write | Warn after write |
 | TEST-DELTA — Coverage Gap | Write or Edit | Warn after write | Warn after write |
 | OBS-1 — Empty Catch Block | Write or Edit | Warn after write | Warn after write |
 
@@ -236,7 +240,7 @@ See [`docs/hooks.md`](docs/hooks.md) for the full user guide, pattern file refer
 | **INFO** | Informational; shown in report but does not block progress |
 
 **Rule precedence** (highest first when rules conflict):
-`SEC → TDD → ARCH/TYPE → quality BLOCK → WARN → INFO`
+`SEC → gate (TEST-PINNED, TEST-RED-FIRST) → BOUND/PURE/RESULT/TYPED → COMP/IMMUT → quality BLOCK → WARN → INFO`
 
 ---
 

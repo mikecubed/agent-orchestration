@@ -167,4 +167,7 @@ except CacheMissError:
 
 ---
 
+Per-language typed-error idioms (neverthrow, `returns`, Go multi-return,
+Rust Result, typed exception hierarchies): see `references/{language}.md`.
+
 Report schema: see `skills/conductor/shared-contracts.md`.

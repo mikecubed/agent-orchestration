@@ -774,3 +774,38 @@ unseen constraints. A short discovery pass before implementation is far cheaper 
 unwinding bad decisions after.
 This rule prevents implementation without context, which is the second-biggest source
 of agent-introduced rework after missing tests.
+
+---
+
+## CTXT-1
+
+When the same core-layer type is imported across three or more sibling bounded
+contexts (e.g., `billing/`, `auth/`, `reporting/`), the shared shape almost always
+hides distinct domain concepts that were collapsed into one type. Each context has
+its own rules, lifecycle, and invariants for what looks like "a customer" — combining
+them into one struct forces every change to satisfy every context simultaneously. The
+fix is context-specific types translated at boundaries, or an explicit shared kernel
+for genuinely cross-context primitives.
+This rule surfaces accidental coupling between bounded contexts where one type is
+serving as a thin wrapper for three different domain concepts.
+
+## CTXT-2
+
+When core types or functions are named with generic technical suffixes — `Processor`,
+`Manager`, `Helper`, `Util`, `Service` — without a domain-meaningful prefix, the name
+reveals nothing about what the type *is* in the business. Readers must consult the
+implementation, and later refactors easily drift further from the ubiquitous language.
+This is the review-mode partner to `naming-check`'s NAME-UL (which fires on writes).
+This rule prevents core types from drifting toward generic technical naming that
+obscures the domain meaning the type is supposed to capture.
+
+## CTXT-3
+
+When core code imports types directly from an external SDK (`@aws-sdk/*`, `stripe`,
+`googleapis`) or third-party API client, the business logic becomes coupled to a
+vendor's representation of the domain. Vendor schema changes, new optional fields,
+deprecated endpoints, and breaking releases all ripple through core. The Anti-Corruption
+Layer pattern keeps core ignorant of vendor types: shell translates vendor responses
+into core's own domain types at the boundary.
+This rule prevents vendor coupling that turns business logic refactors into
+SDK-version refactors.

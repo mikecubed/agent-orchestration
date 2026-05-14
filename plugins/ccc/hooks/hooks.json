@@ -1,5 +1,5 @@
 {
-  "description": "Composable Code Codex enforcement hooks — SEC, ARCH, SIZE, DEP, TEST, OBS rules enforced at write/edit/bash time",
+  "description": "Composable Code Codex enforcement hooks — SEC, BOUND, PURE, IMMUT, RESULT, SIZE, DEP, TEST, OBS rules enforced at write/edit/bash time",
   "hooks": {
     "PreToolUse": [
       {
@@ -13,6 +13,11 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/hook-arch-write.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/hook-purity-write.sh",
             "timeout": 10
           }
         ]
@@ -45,6 +50,16 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/hook-obs-write.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/hook-immut-write.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/hook-result-write.sh",
             "timeout": 10
           },
           {

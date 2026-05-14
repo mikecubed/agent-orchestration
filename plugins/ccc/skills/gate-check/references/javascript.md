@@ -2,7 +2,7 @@
 
 Loaded by `gate-check` when language = `javascript`.
 Provides JavaScript-specific test framework defaults, file naming conventions,
-and scaffold templates for the test gate.
+and scaffold templates for the test gate (TEST-PINNED, TEST-RED-FIRST).
 
 **Important**: JavaScript lacks a compile-time type system. JSDoc annotations
 are required as a substitute where TypeScript's type system would normally catch errors.
@@ -33,7 +33,7 @@ are required as a substitute where TypeScript's type system would normally catch
 
 ---
 
-## TDD-1: Test File Detection
+## TEST-PINNED: Test File Detection
 
 Look for any of:
 ```
@@ -44,63 +44,14 @@ __tests__/{module}.test.js
 __tests__/{module}.spec.js
 ```
 
----
-
-## TDD-4: Test Naming — Vitest / Jest
-
-Pattern: `[subject]_[scenario]_[expected]` in `it`/`test`/`describe` strings (same as TypeScript).
-
----
-
-## TDD-7: Mocks — Permitted vs Prohibited
-
-**Permitted**: `vi.mock()` on I/O boundaries (database, HTTP clients, `fs/promises`).
-**Prohibited**: `vi.mock()` or `vi.spyOn()` on domain functions or value objects.
-**JavaScript test doubles**: use in-memory implementations instead of mocking.
-
----
-
-## TDD-8: Property-Based Tests — fast-check
-
-Use `fc.assert(fc.property(...))` to verify invariants on value objects.
-Test both valid inputs (invariant holds) and invalid inputs (throws expected error).
-
----
-
-## TDD-9: Test Ratio — Measurement
-
-```bash
-# Count source lines (excluding test files and node_modules)
-find src -name '*.js' ! -name '*.test.js' ! -name '*.spec.js' \
-  -not -path '*/node_modules/*' | xargs wc -l | tail -1
-
-# Count test lines
-find src -name '*.test.js' -o -name '*.spec.js' | \
-  xargs wc -l | tail -1
-```
+For each new exported function/class: confirm the test file imports it and
+calls/constructs it.
 
 ---
 
 ## Coverage Configuration (c8 / Vitest)
 
 `vitest.config.js` — set `test.coverage.provider` (`v8`), `test.coverage.thresholds` (statements/branches/functions/lines), and `test.coverage.exclude`.
-
-**Targets**: Domain layer: 90% | Application layer: 80%
-
----
-
-## TYPE Rules — JavaScript Applicability
-
-JavaScript lacks a static type system. The following TYPE rules are adjusted:
-
-| Rule | Status in JavaScript | Replacement |
-|------|---------------------|-------------|
-| TYPE-1 (`any`/`unknown` without guard) | **Not applicable** (no type system) | JSDoc `@type` annotation required instead |
-| TYPE-2 (double type assertion) | **Not applicable** | — |
-| TYPE-3 (exhaustive switch) | **Applies** | Add default case with explicit error throw |
-| TYPE-4 (branded types) | **Applies** | Use factory functions + JSDoc `@typedef` |
-| TYPE-5 (missing return type) | **Applies** | JSDoc `@returns` required on exports |
-| TYPE-6 (optional field design) | **Applies** | Use JSDoc `@type {{field?: type}}` |
 
 ---
 
@@ -114,6 +65,42 @@ JavaScript. This is encouraged for all production JavaScript files.
 ## Non-Standard Framework Handling
 
 If the project uses Mocha, Jasmine, AVA, or another framework:
-- Apply TDD-1 through TDD-9 language-agnostically
+- Apply TEST-PINNED and TEST-RED-FIRST language-agnostically
 - Note the non-standard framework in the report without blocking
 - Do NOT attempt to convert tests to Vitest/Jest
+
+---
+
+## Scaffold Patterns (`--scaffold-tests`)
+
+### Vitest
+
+```javascript
+import { describe, it, expect } from 'vitest';
+import { functionName } from '../path/to/module.js';
+
+describe('functionName', () => {
+  it('scenario_expected', () => {
+    const result = functionName();
+    expect(result).toBe(undefined); // TODO: replace with specific assertion
+  });
+});
+```
+
+### Jest
+
+```javascript
+const { functionName } = require('../path/to/module');
+
+describe('functionName', () => {
+  it('scenario_expected', () => {
+    const result = functionName();
+    expect(result).toBe(undefined); // TODO: replace with specific assertion
+  });
+});
+```
+
+**Rules for scaffold assertions**:
+- Use `toBe`, `toEqual`, `toStrictEqual` — never `toBeTruthy` or `toBeDefined`
+- Import the real function (no mocks in the skeleton)
+- The test MUST fail on first run
