@@ -73,9 +73,13 @@ describe('ccc runtime surfaces', () => {
       'skills/type-check/references/typescript.md',
       'skills/gate-check/references/python.md',
       'skills/naming-check/references/go.md',
-      'skills/purity-check/references/typescript.md',
-      'skills/immutability-check/references/python.md',
-      'skills/result-check/references/rust.md',
+      // Full 3 × 5 paradigm-skill reference matrix — protects against
+      // partial renames or per-language ref omissions.
+      ...['typescript', 'python', 'go', 'rust', 'javascript'].flatMap((lang) => [
+        `skills/purity-check/references/${lang}.md`,
+        `skills/immutability-check/references/${lang}.md`,
+        `skills/result-check/references/${lang}.md`,
+      ]),
       'hooks/scripts/hook-purity-write.sh',
       'hooks/scripts/hook-immut-write.sh',
       'hooks/scripts/hook-result-write.sh',
