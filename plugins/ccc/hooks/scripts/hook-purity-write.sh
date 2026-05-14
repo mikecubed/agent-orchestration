@@ -44,9 +44,13 @@ echo "0" >"$_EXIT_CODE_FILE"
 
   _core_dirs="$(python3 -c "import sys,json; d=json.load(open('${_LAYERMAP}')); print(' '.join(d.get('core_dirs',[])))" 2>/dev/null || echo "")"
 
+  # Match root-level (`core/foo.ts`), nested (`src/core/foo.ts`), and trailing paths.
   _file_layer=""
   for _d in $_core_dirs; do
-    if [[ "$TOOL_FILE" == *"/${_d}/"* || "$TOOL_FILE" == *"/${_d}" ]]; then
+    if [[ "$TOOL_FILE" == *"/${_d}/"* \
+       || "$TOOL_FILE" == *"/${_d}" \
+       || "$TOOL_FILE" == "${_d}/"* \
+       || "$TOOL_FILE" == "${_d}" ]]; then
       _file_layer="core"
       break
     fi
@@ -72,6 +76,13 @@ echo "0" >"$_EXIT_CODE_FILE"
         "^[[:space:]]*(import|from)[[:space:]]+(requests|httpx|urllib|aiohttp|flask|fastapi|django|starlette|tornado|sqlalchemy|psycopg|psycopg2|pymongo|redis|motor|asyncpg|boto3|botocore|google\\.cloud|azure|subprocess|os\\.system)\\b"
         "^[[:space:]]*from[[:space:]]+(requests|httpx|flask|fastapi|sqlalchemy|psycopg|psycopg2|boto3)[[:space:]]+import"
       )
+      # Python TYPE_CHECKING guard: imports indented under `if TYPE_CHECKING:`
+      # are type-only and allowed in core. We pre-scan the file for the guard
+      # and, if present, skip indented imports later in the scan loop.
+      _py_has_type_checking=0
+      if echo "$TOOL_CONTENT" | grep -qE '^[[:space:]]*if[[:space:]]+TYPE_CHECKING:' 2>/dev/null; then
+        _py_has_type_checking=1
+      fi
       ;;
     go)
       _patterns=(
@@ -94,6 +105,35 @@ echo "0" >"$_EXIT_CODE_FILE"
     [[ -z "$line" ]] && continue
     _lineno="$(echo "$line" | cut -d: -f1)"
     _content="$(echo "$line" | cut -d: -f2-)"
+
+    # TypeScript/JavaScript: skip purely-type-only inline imports.
+    #   `import { type Foo } from 'pg'` and `import { type Foo, type Bar }` are erased at compile time.
+    if [[ "$_ext" =~ ^(ts|tsx|js|jsx|mjs|cjs)$ ]] \
+       && [[ "$_content" =~ ^[[:space:]]*import[[:space:]]*\{[[:space:]]*type[[:space:]] ]]; then
+      _brace_body="$(echo "$_content" | sed -n 's/^[[:space:]]*import[[:space:]]*{\([^}]*\)}.*/\1/p')"
+      _all_type=1
+      IFS=',' read -ra _specs <<<"$_brace_body"
+      for _s in "${_specs[@]}"; do
+        _s_trimmed="$(echo "$_s" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+        [[ -z "$_s_trimmed" ]] && continue
+        if [[ ! "$_s_trimmed" =~ ^type[[:space:]] ]]; then
+          _all_type=0
+          break
+        fi
+      done
+      if ((_all_type == 1)); then
+        continue
+      fi
+    fi
+
+    # Python: skip imports indented under `if TYPE_CHECKING:` when the file
+    # has the guard. Heuristic: any import with leading whitespace in such a
+    # file is treated as type-only. Top-level imports still fire.
+    if [[ "$_ext" == "py" && "${_py_has_type_checking:-0}" == "1" ]] \
+       && [[ "$_content" =~ ^[[:space:]]+ ]]; then
+      continue
+    fi
+
     for _pat in "${_patterns[@]}"; do
       if echo "$_content" | grep -qE "$_pat" 2>/dev/null; then
         _matched_line="$_content"
@@ -112,8 +152,20 @@ echo "0" >"$_EXIT_CODE_FILE"
   _coverage_append "{\"rule\":\"PURE-1\",\"severity\":\"BLOCK\",\"file\":\"${TOOL_FILE}\",\"line\":${_matched_lineno},\"hook\":\"hook-purity-write\",\"ts\":${_ts}}"
 
   if [[ "$IS_CLAUDE_CODE" == "1" ]]; then
-    printf '{"permissionDecision":"deny","message":"PURE-1: Side-effect import in core file.\\nFile: %s\\nImport: '"'"'%s'"'"'\\nFix: receive the side-effect result as a parameter from shell, or move this function to shell."}' \
-      "$TOOL_FILE" "$_matched_trimmed"
+    # Escape quotes/backslashes via Python json.dumps — import statements
+    # contain quoted module paths, so direct interpolation would emit invalid JSON.
+    python3 - "$TOOL_FILE" "$_matched_trimmed" <<'PYEOF'
+import json, sys
+file_path, import_line = sys.argv[1], sys.argv[2]
+msg = (
+    "PURE-1: Side-effect import in core file.\n"
+    f"File: {file_path}\n"
+    f"Import: '{import_line}'\n"
+    "Fix: receive the side-effect result as a parameter from shell, "
+    "or move this function to shell."
+)
+sys.stdout.write(json.dumps({"permissionDecision": "deny", "message": msg}))
+PYEOF
     echo "2" >"$_EXIT_CODE_FILE"
     exit 0
   else

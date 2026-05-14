@@ -102,7 +102,7 @@ Load **only** the listed checks. Never pre-load all checks.
 | **security** — security audit | `sec-check` + `iac-check` | No |
 | **dependency** — dep update | `dep-check` | No |
 | **incident** — production issue | `obs-check` + `sec-check` | No |
-| **new service** — scaffold | `gate-check` + `arch-check` + `sec-check` + `session-check` + `purity-check` + `result-check` + `context-check` | Yes for gate |
+| **new service** — scaffold | `gate-check` + `arch-check` + `sec-check` + `session-check` + `purity-check` + `result-check` + `context-check` | Yes for gate, purity, result |
 | **observability** | `obs-check` | No |
 | **CI / full check** | All checks | Yes for gate, type, naming |
 | **boy scout** (session end) | `size-check` + `dead-check` + `naming-check` | Yes for naming |

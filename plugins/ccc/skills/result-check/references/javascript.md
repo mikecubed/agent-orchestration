@@ -113,18 +113,28 @@ core paths.
 
 ### `// @ts-check` with JSDoc
 
-When a file has `// @ts-check`, JSDoc `@throws` and `@returns` annotations
-participate in type-checking. Codebases using this pattern get most of
-TypeScript's typed-error story for free:
+When a file has `// @ts-check`, JSDoc `@type`, `@param`, and `@returns`
+annotations participate in TypeScript's type-checking. **`@throws` is
+documentation-only** — neither TypeScript nor JavaScript has checked
+exceptions, so `@throws` is never mechanically verified. Treat it as
+human-facing docs, not as a type guarantee. The typed-error discipline
+this skill encourages comes from `@returns` (and `@type` on internal
+helpers) — not from `@throws`:
 
 ```js
 // @ts-check
 /**
- * @throws {InvalidAmount} when amount <= 0
- * @returns {Receipt}
+ * @param {Money} amount
+ * @param {Card} card
+ * @returns {Receipt}    // ✅ participates in type-checking
+ * @throws {InvalidAmount} when amount <= 0   // ⚠️ documentation only — not enforced
  */
 function charge(amount, card) { ... }
 ```
+
+For full typed-error enforcement in plain JS, use Option B above
+(discriminated-object returns) — the `ok` field is type-checked, unlike
+`@throws`.
 
 ### CommonJS error handling
 

@@ -82,7 +82,11 @@ import { functionName } from '../path/to/module.js';
 describe('functionName', () => {
   it('scenario_expected', () => {
     const result = functionName();
-    expect(result).toBe(undefined); // TODO: replace with specific assertion
+    // SCAFFOLD — replace this throw with a real assertion that pins the
+    // expected behavior. The throw guarantees the test starts red
+    // (satisfies TEST-RED-FIRST). Using toBe(undefined) would silently
+    // pass for void or unimplemented functions.
+    throw new Error(`TODO: replace with expect(result).toBe(EXPECTED). Got: ${JSON.stringify(result)}`);
   });
 });
 ```
@@ -95,12 +99,16 @@ const { functionName } = require('../path/to/module');
 describe('functionName', () => {
   it('scenario_expected', () => {
     const result = functionName();
-    expect(result).toBe(undefined); // TODO: replace with specific assertion
+    // SCAFFOLD — see Vitest note above.
+    throw new Error(`TODO: replace with expect(result).toBe(EXPECTED). Got: ${JSON.stringify(result)}`);
   });
 });
 ```
 
 **Rules for scaffold assertions**:
-- Use `toBe`, `toEqual`, `toStrictEqual` — never `toBeTruthy` or `toBeDefined`
-- Import the real function (no mocks in the skeleton)
-- The test MUST fail on first run
+- The placeholder MUST be guaranteed to fail — never `toBe(undefined)`,
+  `toBeTruthy`, or `toBeDefined`. A bare `throw` is the safest scaffold.
+- Final assertion (after the developer replaces the throw): use `toBe`,
+  `toEqual`, or `toStrictEqual` — pinning a specific expected value.
+- Import the real function (no mocks in the skeleton).
+- The test MUST fail on first run.

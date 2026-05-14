@@ -55,20 +55,20 @@ echo "0" >"$_EXIT_CODE_FILE"
     local found_core=() found_shell=()
     local match_count=0
 
-    # Prefer functional-core convention: core/ + shell/ anywhere in the tree
-    if find . -type d \( -name core -o -name shell \) -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | grep -q .; then
-      while IFS= read -r d; do
-        found_core+=("core")
-        break
-      done < <(find . -type d -name core -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null)
-      while IFS= read -r d; do
-        found_shell+=("shell")
-        break
-      done < <(find . -type d -name shell -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null)
-      ((match_count = ${#found_core[@]} + ${#found_shell[@]}))
+    # Prefer functional-core convention only when BOTH core/ AND shell/ exist.
+    # (If only core/ is present with legacy adapters/infra/ siblings, fall through
+    #  to the legacy detection so _shell_dirs is populated.)
+    _has_core="$(find . -type d -name core -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -1)"
+    _has_shell="$(find . -type d -name shell -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -1)"
+    if [[ -n "$_has_core" && -n "$_has_shell" ]]; then
+      found_core+=("core")
+      found_shell+=("shell")
+      ((match_count = 2))
     fi
 
-    # Legacy fallback: domain/entities/models → core; application/services/infra/adapters/db/api/controllers/handlers → shell
+    # Legacy fallback: domain/entities/models → core; application/services/infra/adapters/db/api/controllers/handlers → shell.
+    # Also runs when only one of core/ or shell/ exists — the convention isn't fully adopted yet,
+    # so fold the present directory into the legacy lists for full coverage.
     if ((match_count == 0)); then
       for d in domain entities models; do
         if find . -type d -name "$d" -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | grep -q .; then
@@ -122,10 +122,15 @@ json.dump(data, open('${_LAYERMAP}', 'w'))
     exit 0
   fi
 
-  # Determine whether the target file is in core
+  # Determine whether the target file is in core.
+  # Match root-level (`core/foo.ts`), nested (`src/core/foo.ts`), and trailing
+  # (`pkg/core`) paths. TOOL_FILE may be either absolute or relative.
   _file_layer=""
   for _d in $_core_dirs; do
-    if [[ "$TOOL_FILE" == *"/${_d}/"* || "$TOOL_FILE" == *"/${_d}" ]]; then
+    if [[ "$TOOL_FILE" == *"/${_d}/"* \
+       || "$TOOL_FILE" == *"/${_d}" \
+       || "$TOOL_FILE" == "${_d}/"* \
+       || "$TOOL_FILE" == "${_d}" ]]; then
       _file_layer="core"
       break
     fi
@@ -150,9 +155,33 @@ json.dump(data, open('${_LAYERMAP}', 'w'))
     _lineno="$(echo "$_iline" | cut -d: -f1)"
     _content="$(echo "$_iline" | cut -d: -f2-)"
 
-    # Skip TypeScript type-only imports
-    if [[ "$_content" =~ ^[[:space:]]*import[[:space:]]+type ]]; then
+    # Skip TypeScript type-only imports:
+    #   import type { Foo } from '...'
+    #   import { type Foo } from '...'           (purely type-only inline)
+    #   import { type Foo, type Bar } from '...' (all specifiers type-only)
+    if [[ "$_content" =~ ^[[:space:]]*import[[:space:]]+type[[:space:]] ]]; then
       continue
+    fi
+    # Inline type-only form: braces contain ONLY `type X` specifiers (each
+    # comma-separated specifier starts with `type `). Mixed imports like
+    # `import { X, type Y }` still trigger — `X` is a runtime specifier.
+    if [[ "$_content" =~ ^[[:space:]]*import[[:space:]]*\{[[:space:]]*type[[:space:]] ]]; then
+      # Extract the brace body and check every specifier starts with `type `
+      _brace_body="$(echo "$_content" | sed -n 's/^[[:space:]]*import[[:space:]]*{\([^}]*\)}.*/\1/p')"
+      _all_type=1
+      IFS=',' read -ra _specs <<<"$_brace_body"
+      for _s in "${_specs[@]}"; do
+        # Trim whitespace
+        _s_trimmed="$(echo "$_s" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+        [[ -z "$_s_trimmed" ]] && continue
+        if [[ ! "$_s_trimmed" =~ ^type[[:space:]] ]]; then
+          _all_type=0
+          break
+        fi
+      done
+      if ((_all_type == 1)); then
+        continue
+      fi
     fi
 
     for _shell_d in $_shell_dirs; do
@@ -173,8 +202,21 @@ json.dump(data, open('${_LAYERMAP}', 'w'))
   _coverage_append "{\"rule\":\"BOUND-1\",\"severity\":\"BLOCK\",\"file\":\"${TOOL_FILE}\",\"line\":${_blocked_line},\"hook\":\"hook-arch-write\",\"ts\":${_ts}}"
 
   if [[ "$IS_CLAUDE_CODE" == "1" ]]; then
-    printf '{"permissionDecision":"deny","message":"BOUND-1: Core layer import of shell/infrastructure detected.\\nFile: %s\\nImport: '"'"'%s'"'"'\\nFix: Define a port (interface/protocol/trait/function type) in core; implement the adapter in shell; have shell call into core."}' \
-      "$TOOL_FILE" "$_blocked_import_trimmed"
+    # Build deny JSON via Python to escape quotes/backslashes in the import line.
+    # Import statements usually contain quoted module paths; direct interpolation
+    # would emit invalid JSON.
+    python3 - "$TOOL_FILE" "$_blocked_import_trimmed" <<'PYEOF'
+import json, sys
+file_path, import_line = sys.argv[1], sys.argv[2]
+msg = (
+    "BOUND-1: Core layer import of shell/infrastructure detected.\n"
+    f"File: {file_path}\n"
+    f"Import: '{import_line}'\n"
+    "Fix: Define a port (interface/protocol/trait/function type) in core; "
+    "implement the adapter in shell; have shell call into core."
+)
+sys.stdout.write(json.dumps({"permissionDecision": "deny", "message": msg}))
+PYEOF
     echo "2" >"$_EXIT_CODE_FILE"
     exit 0
   else
