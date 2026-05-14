@@ -116,8 +116,13 @@ PYEOF
       rm -f "$_py_tmp_src" 2>/dev/null || true
       ;;
     go)
+      # Go imports take two forms: single-line `import "pkg"` and the block
+      # form `import (\n  "pkg"\n  "pkg2"\n)`. The block-inner lines start
+      # with whitespace + a quoted path, so they do NOT pass the generic
+      # `^\s*(import|from|use|require|const\b.*require)` pre-filter. Match
+      # both forms by anchoring on either `import ` or a leading quote.
       _patterns=(
-        "^[[:space:]]*\"(net/http|database/sql|os/exec|github.com/gin-gonic|github.com/labstack/echo|github.com/gofiber|gorm.io/gorm|github.com/lib/pq|github.com/aws/aws-sdk-go|cloud.google.com/go|go.mongodb.org/mongo-driver|github.com/redis/go-redis)\""
+        "^[[:space:]]*(import[[:space:]]+)?\"(net/http|database/sql|os/exec|github.com/gin-gonic|github.com/labstack/echo|github.com/gofiber|gorm.io/gorm|github.com/lib/pq|github.com/aws/aws-sdk-go|cloud.google.com/go|go.mongodb.org/mongo-driver|github.com/redis/go-redis)\""
       )
       ;;
     rs)
@@ -188,7 +193,7 @@ PYEOF
         break 2
       fi
     done
-  done < <(_regex_matching_lines '^\s*(import|from|use|require|const\b.*require)' "$TOOL_CONTENT")
+  done < <(_regex_matching_lines '^\s*(import|from|use|require|const\b.*require|")' "$TOOL_CONTENT")
 
   if [[ -z "$_matched_line" ]]; then
     exit 0
@@ -198,7 +203,7 @@ PYEOF
 
   _coverage_append "{\"rule\":\"PURE-1\",\"severity\":\"BLOCK\",\"file\":\"${TOOL_FILE}\",\"line\":${_matched_lineno},\"hook\":\"hook-purity-write\",\"ts\":${_ts}}"
 
-  if [[ "$IS_CLAUDE_CODE" == "1" ]]; then
+  if [[ "$IS_CLAUDE_CODE" == "1" && "$IS_TEST_FIXTURE" == "0" ]]; then
     # Escape quotes/backslashes via Python json.dumps — import statements
     # contain quoted module paths, so direct interpolation would emit invalid JSON.
     python3 - "$TOOL_FILE" "$_matched_trimmed" <<'PYEOF'
@@ -216,6 +221,9 @@ PYEOF
     echo "2" >"$_EXIT_CODE_FILE"
     exit 0
   else
+    # GH Copilot CLI, or Claude Code on a test fixture path — warn, don't deny.
+    # Fixtures often intentionally contain the very imports PURE-1 is meant
+    # to catch; following the hook-sec-write.sh convention here.
     echo "⚠️  PURE-1 (BLOCK): Side-effect import in core file '${TOOL_FILE}' line ${_matched_lineno}: '${_matched_trimmed}'. Receive the result as a parameter from shell."
     exit 0
   fi

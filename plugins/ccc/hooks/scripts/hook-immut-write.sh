@@ -82,11 +82,21 @@
       )
       ;;
     go)
-      # In Go, only flag obvious parameter mutation (sort.Slice on param,
-      # explicit slice index writes).
+      # In Go, flag the patterns the IMMUT-1 Go reference calls out:
+      #   * sort.Slice / sort.SliceStable on a parameter slice
+      #   * explicit slice index writes:   items[i] = x
+      #   * map index writes:              m[k] = v
+      #   * map deletions:                 delete(m, k)
+      # WARN severity — patterns are heuristic; humans verify the receiver
+      # is actually a parameter (vs. a locally-constructed slice/map).
       _patterns=(
         'sort\.Slice\('
         'sort\.SliceStable\('
+        # `<ident>[<key>] = …` — slice/map index assignment. Single-equal,
+        # not `==`/`!=`. Matches `items[i] = x`, `m[k] = v`, `o.items[0] = x`.
+        '^[[:space:]]*[A-Za-z_][A-Za-z0-9_.]*\[[^]]+\][[:space:]]*=[^=]'
+        # `delete(m, k)` — built-in map deletion. Always mutates the map.
+        '\bdelete\([A-Za-z_]'
       )
       ;;
     rs)

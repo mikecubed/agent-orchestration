@@ -87,6 +87,12 @@ echo "0" >"$_EXIT_CODE_FILE"
 
     # If .codex/config.json has an explicit layer_map, prefer its core/shell paths
     # over auto-detection (and mark high confidence).
+    #
+    # Two schemas are documented by the conductor:
+    #   - Functional-core (preferred): layer_map.core + layer_map.shell
+    #   - Classical layered (also documented at conductor/SKILL.md:232):
+    #       layer_map.domain (→ core) + layer_map.application + layer_map.infrastructure (→ shell)
+    # Honor both. The functional-core keys take precedence when both are present.
     local conf
     _cfg_core=""
     _cfg_shell=""
@@ -98,7 +104,10 @@ echo "0" >"$_EXIT_CODE_FILE"
 try:
     d = json.load(open('$PWD/.codex/config.json'))
     lm = d.get('layer_map') or {}
-    raw = lm.get('core', [])
+    raw = lm.get('core')
+    # Classical schema fallback: layer_map.domain → core
+    if raw is None:
+        raw = lm.get('domain', [])
     if isinstance(raw, str): raw = [raw]
     names = []
     for p in raw:
@@ -113,7 +122,15 @@ except Exception:
 try:
     d = json.load(open('$PWD/.codex/config.json'))
     lm = d.get('layer_map') or {}
-    raw = lm.get('shell', [])
+    raw = lm.get('shell')
+    # Classical schema fallback: layer_map.application + layer_map.infrastructure → shell
+    if raw is None:
+        raw = []
+        for k in ('application', 'infrastructure'):
+            v = lm.get(k)
+            if v is None: continue
+            if isinstance(v, str): v = [v]
+            raw.extend(v)
     if isinstance(raw, str): raw = [raw]
     names = []
     for p in raw:
@@ -256,7 +273,7 @@ json.dump(data, open('${_LAYERMAP}', 'w'))
 
   _coverage_append "{\"rule\":\"BOUND-1\",\"severity\":\"BLOCK\",\"file\":\"${TOOL_FILE}\",\"line\":${_blocked_line},\"hook\":\"hook-arch-write\",\"ts\":${_ts}}"
 
-  if [[ "$IS_CLAUDE_CODE" == "1" ]]; then
+  if [[ "$IS_CLAUDE_CODE" == "1" && "$IS_TEST_FIXTURE" == "0" ]]; then
     # Build deny JSON via Python to escape quotes/backslashes in the import line.
     # Import statements usually contain quoted module paths; direct interpolation
     # would emit invalid JSON.
@@ -275,6 +292,9 @@ PYEOF
     echo "2" >"$_EXIT_CODE_FILE"
     exit 0
   else
+    # GH Copilot CLI, or Claude Code on a test fixture path — warn, don't deny.
+    # Fixtures often intentionally contain the very imports BOUND-1 is meant
+    # to catch; following the hook-sec-write.sh convention here.
     echo "⚠️  BOUND-1 (BLOCK): Core layer imports shell/infrastructure in '${TOOL_FILE}' line ${_blocked_line}: '${_blocked_import_trimmed}'. Define a port in core; implement in shell."
     exit 0
   fi
