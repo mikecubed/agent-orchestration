@@ -87,25 +87,25 @@ describe('tdd-check TDD-5 references ports/contracts and the new ARCH rules', ()
   });
 });
 
-describe('ccc plugin version bump to 3.1.0', () => {
-  it('package.json is at 3.1.0', () => {
+describe('ccc plugin version bump to 4.0.0', () => {
+  it('package.json is at 4.0.0', () => {
     const pkg = JSON.parse(readText('package.json'));
-    assert.equal(pkg.version, '3.1.0');
+    assert.equal(pkg.version, '4.0.0');
   });
 
-  it('plugin.json is at 3.1.0', () => {
+  it('plugin.json is at 4.0.0', () => {
     const pkg = JSON.parse(readText('plugin.json'));
-    assert.equal(pkg.version, '3.1.0');
+    assert.equal(pkg.version, '4.0.0');
   });
 
-  it('.claude-plugin/plugin.json is at 3.1.0', () => {
+  it('.claude-plugin/plugin.json is at 4.0.0', () => {
     const pkg = JSON.parse(readText('.claude-plugin/plugin.json'));
-    assert.equal(pkg.version, '3.1.0');
+    assert.equal(pkg.version, '4.0.0');
   });
 
-  it('package-lock.json reflects 3.1.0', () => {
+  it('package-lock.json reflects 4.0.0', () => {
     const lock = JSON.parse(readText('package-lock.json'));
-    assert.equal(lock.version, '3.1.0');
-    assert.equal(lock.packages[''].version, '3.1.0');
+    assert.equal(lock.version, '4.0.0');
+    assert.equal(lock.packages[''].version, '4.0.0');
   });
 });

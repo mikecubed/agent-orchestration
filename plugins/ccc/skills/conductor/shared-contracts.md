@@ -1,4 +1,4 @@
-# Shared Contracts — Clean Code Codex
+# Shared Contracts — Composable Code Codex
 
 Loaded by conductor at startup. Referenced by all check SKILL files.
 
@@ -10,7 +10,7 @@ Every check MUST produce output in this exact structure.
 Free-form violation descriptions without a rule ID are prohibited.
 
 ```markdown
-## Clean Code Codex Review — {CheckName}
+## Composable Code Codex Review — {CheckName}
 
 ### ✅ Passing
 - {RULE-ID}: {Brief confirmation of what passes}

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# token-budget.sh — Estimate token footprints for canonical Clean Code Codex scenarios.
+# token-budget.sh — Estimate token footprints for canonical Composable Code Codex scenarios.
 #
 # Uses word count × 1.3 as a token approximation (same method used in docs/spec-evaluation.md).
 # Exits with code 1 if the typical session estimate exceeds the TOKEN_LIMIT threshold.
@@ -63,7 +63,7 @@ print_section() {
 }
 
 echo ""
-echo "Clean Code Codex — Token Budget Report"
+echo "Composable Code Codex — Token Budget Report"
 echo "Estimator: word count × 1.3"
 echo ""
 

@@ -1,7 +1,7 @@
 ---
 name: conductor
 description: >
-  Core orchestrator for Clean Code Codex enforcement. Auto-invoked when writing,
+  Core orchestrator for Composable Code Codex enforcement. Auto-invoked when writing,
   reviewing, refactoring, or testing code in TypeScript, Python, Go, Rust, or
   JavaScript. Detects language, routes to targeted check sub-skills, enforces the
   TDD gate on write operations, and runs a Boy Scout check at session end.
@@ -18,9 +18,9 @@ model: opus
 permissionMode: default
 ---
 
-# Conductor — Clean Code Codex Orchestrator
+# Conductor — Composable Code Codex Orchestrator
 
-The conductor is the **single always-loaded entry point** to Clean Code Codex.
+The conductor is the **single always-loaded entry point** to Composable Code Codex.
 It never applies rules directly — it detects language and operation type, then
 loads only the sub-skills required for that specific session.
 
@@ -480,3 +480,55 @@ Show only rules that appear in the history (skip zero-count columns).
 
 After rendering the trend report: exit 0 (skip the full scan).
 Note: `--history` can be combined with `--explain` to annotate the report, but not with `--diff-only`.
+
+---
+
+## 14. Layer Detection
+
+Detect the project's layer layout once per session and cache the result in
+`.codex/config.json` under `layer_map`. Consumed by any skill that needs to
+distinguish core (pure) code from shell (I/O / framework) code — currently
+`arch-check`, in the future `purity-check`, `immutability-check`, `result-check`,
+and `boundary-check`.
+
+**Detection order** (first match wins):
+
+1. **Functional-core convention** — if both `core/` and `shell/` directories
+   exist anywhere in the project tree, use them:
+   ```json
+   "layer_map": {
+     "core":  ["**/core/**"],
+     "shell": ["**/shell/**"]
+   }
+   ```
+   This is the preferred layout for new projects.
+
+2. **Legacy layered layout** — if `core/` is absent, fall back to the historical
+   heuristic. All I/O-adjacent paths collapse into `shell`:
+   ```
+   core    ← domain/, entities/, models/
+   shell   ← application/, app/, usecases/, services/, infra/, infrastructure/,
+            adapters/, db/, api/, controllers/, handlers/
+   ```
+   Pure domain logic should live under one of the core paths only.
+
+3. **Prompt and cache** — if neither layout is detected, ask the user once:
+   ```
+   "I can't auto-detect the layer layout for this project. Where does pure
+   domain logic live (relative to repo root)? Where does I/O / framework
+   code live? I'll cache the answer in .codex/config.json so I don't ask
+   again."
+   ```
+   Cache the user's answers in `.codex/config.json` `layer_map`. Future sessions
+   skip detection.
+
+**When detection runs**: only when a layer-aware skill is being dispatched
+(currently arch-check). Sessions that load only cross-cutting checks (sec, dep,
+obs, iac, perf, etc.) skip this step.
+
+**Manual override**: users can edit `.codex/config.json` `layer_map` directly.
+The `--refresh` flag forces re-detection on the next session.
+
+**Why the layered fallback**: enforcement should catch terrible agent code, not
+police folder names. New repos adopt `core/`/`shell/`; existing repos keep
+working with their idiomatic layout; nothing silently disables coverage.
