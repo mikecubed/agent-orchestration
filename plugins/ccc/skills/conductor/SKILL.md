@@ -94,15 +94,15 @@ Load **only** the listed checks. Never pre-load all checks.
 
 | Situation | Checks to load | Language refs |
 |-----------|---------------|---------------|
-| **write** — new code | `gate-check` + `type-check` + `naming-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` | Yes for gate, type, naming |
-| **write** — boundary-touching (modules, adapters, ports, domain logic, composition-root wiring) | `gate-check` + `type-check` + `naming-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` + `arch-check` | Yes for gate, type, naming |
-| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` + `resilience-check` + `a11y-check` + `docs-check` + `i18n-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` | Yes for type, naming |
-| **refactor** — existing code | `gate-check` (gate only) + `arch-check` + `naming-check` + `size-check` + `dead-check` + `purity-check` + `immutability-check` | Yes for naming |
+| **write** — new code | `gate-check` + `type-check` + `naming-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` | Yes for gate, type, naming, purity, immut, result |
+| **write** — boundary-touching (modules, adapters, ports, domain logic, composition-root wiring) | `gate-check` + `type-check` + `naming-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` + `arch-check` | Yes for gate, type, naming, purity, immut, result |
+| **review** — PR / code review | `arch-check` + `type-check` + `naming-check` + `size-check` + `dead-check` + `test-check` + `obs-check` + `sec-check` + `iac-check` + `perf-check` + `resilience-check` + `a11y-check` + `docs-check` + `i18n-check` + `session-check` + `purity-check` + `immutability-check` + `result-check` + `context-check` | Yes for type, naming, purity, immut, result |
+| **refactor** — existing code | `gate-check` (gate only) + `arch-check` + `naming-check` + `size-check` + `dead-check` + `purity-check` + `immutability-check` | Yes for naming, purity, immut |
 | **test** — writing/fixing tests | `gate-check` + `test-check` | Yes for gate |
 | **security** — security audit | `sec-check` + `iac-check` | No |
 | **dependency** — dep update | `dep-check` | No |
 | **incident** — production issue | `obs-check` + `sec-check` | No |
-| **new service** — scaffold | `gate-check` + `arch-check` + `sec-check` + `session-check` + `purity-check` + `result-check` | Yes for gate |
+| **new service** — scaffold | `gate-check` + `arch-check` + `sec-check` + `session-check` + `purity-check` + `result-check` + `context-check` | Yes for gate |
 | **observability** | `obs-check` | No |
 | **CI / full check** | All checks | Yes for gate, type, naming |
 | **boy scout** (session end) | `size-check` + `dead-check` + `naming-check` | Yes for naming |
@@ -444,7 +444,7 @@ When `--explain RULE-ID` is passed (e.g., `/codex --explain NAME-1`):
 3. Find the `## RULE-ID` section matching the requested rule
 4. Print the section and exit
 
-**If RULE-ID is unknown**: print "Unknown rule ID. Valid IDs: TEST-PINNED, TEST-RED-FIRST, TEST-1–9, TEST-BEHAVIOR, TEST-NO-MOCK-FOR-PURE, TEST-VACUOUS, BOUND-1–4, COMP-1, PURE-1–3, IMMUT-1–3, RESULT-1–3, TYPE-1–6, TYPED-1–2, NAME-1–7, NAME-UL, SIZE-1–6, DEAD-1–5, SEC-1–7, DEP-1–5, OBS-1–5, IAC-1–5, PERF-1–5, RES-1–5, A11Y-1–5, DOCS-1–5, I18N-1–5, SESS-1–3" and exit 1.
+**If RULE-ID is unknown**: print "Unknown rule ID. Valid IDs: TEST-PINNED, TEST-RED-FIRST, TEST-1–9, TEST-BEHAVIOR, TEST-NO-MOCK-FOR-PURE, TEST-VACUOUS, BOUND-1–4, COMP-1, PURE-1–3, IMMUT-1–3, RESULT-1–3, TYPE-1–6, TYPED-1–2, NAME-1–7, NAME-UL, SIZE-1–6, DEAD-1–5, SEC-1–7, DEP-1–5, OBS-1–5, IAC-1–5, PERF-1–5, RES-1–5, A11Y-1–5, DOCS-1–5, I18N-1–5, SESS-1–3, CTXT-1–3" and exit 1.
 
 **Token cost**: `rule-explanations.md` is loaded on-demand only. It is never loaded during normal scans.
 

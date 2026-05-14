@@ -131,4 +131,8 @@ const order = new Order({ id: orderId, customer, items })
 
 ---
 
+Per-language mutation idioms (`.push`/`.splice` in JS, `list.append` in
+Python, slice/map mutation in Go, `&mut` discipline in Rust): see
+`references/{language}.md`.
+
 Report schema: see `skills/conductor/shared-contracts.md`.

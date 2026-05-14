@@ -2,7 +2,7 @@
 
 Loaded by `gate-check` when language = `typescript`.
 Provides TypeScript-specific test framework defaults, file naming conventions,
-and scaffold templates for the test gate.
+and scaffold templates for the test gate (TEST-PINNED, TEST-RED-FIRST).
 
 ---
 
@@ -34,7 +34,7 @@ A test in `src/__tests__/` is NOT valid for a source file in `lib/`.
 
 ---
 
-## TDD-1: Test File Detection
+## TEST-PINNED: Test File Detection
 
 Look for any of:
 ```
@@ -44,38 +44,8 @@ __tests__/{module}.test.ts
 __tests__/{module}.spec.ts
 ```
 
----
-
-## TDD-4: Test Naming — Vitest / Jest
-
----
-
-## TDD-7: Mocks — Permitted vs Prohibited
-
-**Permitted**: `vi.mock()` on I/O boundaries (database, HTTP clients, `fs/promises`).
-**Prohibited**: `vi.mock()` or `vi.spyOn()` on domain functions or value objects.
-**Vitest doubles for domain logic**: use in-memory interface implementations instead.
-
----
-
-## TDD-8: Property-Based Tests — fast-check
-
-Use `fc.assert(fc.property(...))` to verify invariants on value objects.
-Test both valid inputs (invariant holds) and invalid inputs (throws expected error).
-
----
-
-## TDD-9: Test Ratio — Measurement
-
-```bash
-# Count source lines (excluding test files and node_modules)
-find src -name '*.ts' ! -name '*.test.ts' ! -name '*.spec.ts' \
-  -not -path '*/node_modules/*' | xargs wc -l | tail -1
-
-# Count test lines
-find src -name '*.test.ts' -o -name '*.spec.ts' | \
-  xargs wc -l | tail -1
-```
+For each new public symbol: confirm the test file imports the symbol and
+calls it (or constructs the type, for classes).
 
 ---
 
@@ -83,17 +53,12 @@ find src -name '*.test.ts' -o -name '*.spec.ts' | \
 
 `vitest.config.ts` — set `test.coverage.provider` (`v8`), `test.coverage.thresholds` (statements/branches/functions/lines), and `test.coverage.exclude`.
 
-**Targets** (per TDD-9 / TEST-8):
-- Domain layer: 90%
-- Application layer: 80%
-- Infrastructure layer: no mandatory floor (integration tests cover this)
-
 ---
 
 ## Non-Standard Framework Handling
 
 If the project uses a framework not listed above (e.g., Mocha, Jasmine, AVA):
-- Apply TDD-1 through TDD-9 language-agnostically
+- Apply TEST-PINNED and TEST-RED-FIRST language-agnostically
 - Note the non-standard framework in the report without blocking
 - Do NOT attempt to convert tests to Vitest/Jest
 

@@ -19,7 +19,13 @@
         "type": "command",
         "bash": "../hooks/scripts/hook-arch-write.sh",
         "timeoutSec": 10,
-        "description": "ARCH-1: Warn on domain-layer imports of app/infra before write (Claude Code: block, Copilot: warn-only)"
+        "description": "BOUND-1: Warn on core-layer imports of shell/infrastructure before write (Claude Code: block, Copilot: warn-only)"
+      },
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-purity-write.sh",
+        "timeoutSec": 10,
+        "description": "PURE-1: Warn on side-effect imports in core before write (Claude Code: block, Copilot: warn-only)"
       }
     ],
     "postToolUse": [
@@ -46,6 +52,18 @@
         "bash": "../hooks/scripts/hook-obs-write.sh",
         "timeoutSec": 10,
         "description": "OBS-1: Warn on missing observability patterns after write"
+      },
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-immut-write.sh",
+        "timeoutSec": 10,
+        "description": "IMMUT-1: Warn on mutation patterns in core files after write"
+      },
+      {
+        "type": "command",
+        "bash": "../hooks/scripts/hook-result-write.sh",
+        "timeoutSec": 10,
+        "description": "RESULT-1: Warn on throw/raise/panic for likely domain failures in core after write"
       }
     ]
   }

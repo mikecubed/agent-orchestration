@@ -6,6 +6,123 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [ccc 4.0.0] - 2026-05-14
+
+### BREAKING CHANGES (ccc 4.0.0)
+
+The `ccc` plugin (Composable Code Codex, formerly Clean Code Codex) has been
+modernized away from OOP-flavored "clean code" enforcement toward functional-core
+/ pure-function-first discipline. Rule IDs and skill directories have changed.
+There is no migration tooling — existing waivers and `.codex/config.json`
+references must be updated by hand.
+
+#### Rebrand
+
+- **"Clean Code Codex" → "Composable Code Codex"** across manifests, README,
+  conductor metadata, and rule citations.
+- Plugin slug unchanged: `ccc` (preserves the `/codex` command and marketplace
+  paths).
+- Umbrella `metadata.version` unchanged at 3.1.0 — this is a ccc-only bump.
+
+#### Skill renames and removals
+
+| Before | After | Notes |
+|---|---|---|
+| `tdd-check` | `gate-check` | TDD framing replaced with test-pinned correctness at merge |
+| `ctx-check` | `session-check` | "Context" namespace freed for new strategic-DDD context-check |
+| `arch-check` (old ARCH-1..10) | `arch-check` (BOUND-1..4 + COMP-1) | Boundary direction, port stability, composition root, no-cycle, composition over inheritance |
+| (new) | `purity-check` | PURE-1..3 — functional-core enforcement |
+| (new) | `immutability-check` | IMMUT-1..3 — value discipline in core |
+| (new) | `result-check` | RESULT-1..3 — typed errors over exceptions for domain failures |
+| (new) | `context-check` | CTXT-1..3 — strategic DDD signals (bounded contexts, ubiquitous language, ACL) |
+
+#### Rule ID map (old → new)
+
+| Old | New | Notes |
+|---|---|---|
+| TDD-1..9 | TEST-PINNED + TEST-RED-FIRST (gate-check) | Strict ordering replaced with test-pinned correctness at merge |
+| TDD-2 (test names) | NAME-7 (already existed) | Test-name discipline lives in naming-check |
+| TDD-3 (test ratio) | (dropped) | Vacuous tests gamed this; replaced by TEST-VACUOUS in test-check |
+| TDD-4 (test naming) | NAME-7 | Same |
+| TDD-5 (test isolation) | TEST-6 (already existed) | Existing rule covered this |
+| TDD-6 (mocks for I/O) | TEST-NO-MOCK-FOR-PURE (test-check) | Inverted: mocks for pure functions BLOCKED, mocks for I/O allowed |
+| TDD-7 (mock discipline) | TEST-BEHAVIOR + TEST-NO-MOCK-FOR-PURE | Implementation-pinning + mocking-pure-functions |
+| TDD-8 (property-based) | (dropped) | Too aspirational per pragmatism principle |
+| TDD-9 (mutation score) | TEST-9 (already existed; demoted to INFO) | Aspirational, not gating |
+| ARCH-1 (domain → infra import) | BOUND-1 | Renamed; layer detection now prefers core/+shell/ |
+| ARCH-2..3 (port stability) | BOUND-2 | Merged |
+| ARCH-4 (composition root) | BOUND-3 | Severity nuance preserved |
+| ARCH-5 (circular imports) | BOUND-4 | Renamed |
+| ARCH-6..7 (inheritance) | COMP-1 | Merged; carve-outs preserved |
+| ARCH-8..10 | (various) | Subsumed under BOUND/COMP or moved to size/naming |
+| CTX-1..3 (session hygiene) | SESS-1..3 | Skill renamed ctx-check → session-check |
+| (new) | PURE-1..3 | Side effects / ambient state / mock-required signal in core |
+| (new) | IMMUT-1..3 | Parameter mutation / shared mutable state / partial construction |
+| (new) | RESULT-1..3 | Domain failures as values / Option for not-found / no silent swallow |
+| (new) | TYPED-1..2 | Newtype wrappers / sum types for state machines |
+| (new) | NAME-UL | Ubiquitous-language alignment in core |
+| (new) | TEST-PINNED | Every new symbol must have a test that imports + calls it |
+| (new) | TEST-RED-FIRST | Tests must record a red→green transition |
+| (new) | TEST-BEHAVIOR | No implementation-pinning (mock-count, private-state) assertions |
+| (new) | TEST-NO-MOCK-FOR-PURE | Mocks of pure functions BLOCK |
+| (new) | TEST-VACUOUS | Tests with no assertion or truthy-only checks |
+| (new) | CTXT-1..3 | Strategic-DDD signals |
+
+#### Severity philosophy
+
+- **BLOCK** is reserved for structural / mechanical failures with no judgment
+  call (side effects in core, mocks of pure functions, parameter mutation,
+  missing tests at session end).
+- **WARN** is the default for heuristic, language-dependent, or context-sensitive
+  concerns (typed errors in Python/JS, primitive obsession, generic naming).
+- **INFO** is advisory / aspirational (ubiquitous language, formal context
+  maps, sum types in languages without ergonomic support).
+
+This is the formal version of the pragmatism-over-dogma calibration applied
+throughout the v4 rules: enforcement catches real agent failures, not paradigm
+violations.
+
+### Added (ccc 4.0.0)
+
+- **PR-1** (#42): rebrand to "Composable Code Codex"; conductor Section 14
+  layered layer detection (prefer `core/`+`shell/`, fall back to legacy paths,
+  prompt-and-cache as last resort); fixed Windows `execFileSync('npm')` bug in
+  4 test files.
+- **PR-2** (#43): paradigm rules and skill restructuring — `gate-check`,
+  `arch-check` rewrite (BOUND-1..4 + COMP-1), `test-check` (TEST-BEHAVIOR,
+  TEST-NO-MOCK-FOR-PURE, TEST-VACUOUS), `naming-check` NAME-UL, `type-check`
+  TYPED-1..2; new `purity-check`, `immutability-check`, `result-check`
+  skills (SKILL.md only); conductor wiring, auto-fix-eligibility,
+  rule-explanations updated; deleted obsolete `composition-arch.test.js`.
+- **PR-3** (this entry): new `context-check` skill (CTXT-1..3) — strategic DDD
+  signals; per-language reference files for `purity-check`,
+  `immutability-check`, `result-check` (5 languages each); hook rewrites
+  (`hook-arch-write.sh` → BOUND-1; new `hook-purity-write.sh`,
+  `hook-immut-write.sh`, `hook-result-write.sh`); stale TDD-4/7/8/9 references
+  removed from `gate-check/references/*.md`.
+
+### Changed (ccc 4.0.0)
+
+- **Version sync**: `plugins/ccc/plugin.json`, `plugins/ccc/.claude-plugin/plugin.json`,
+  and `plugins/ccc/package.json` bumped from 3.x → 4.0.0.
+- **Description**: ccc now advertises "composition-first, pure-function-friendly"
+  rather than "clean-code enforcement".
+- **Rule precedence**: SEC → gate → BOUND/PURE/RESULT/TYPED → COMP/IMMUT →
+  quality BLOCK → WARN → INFO.
+- **Hooks**: `hook-arch-write.sh` now cites BOUND-1 (was ARCH-1) and uses
+  Section 14 layer detection. Three new hooks added for PURE-1, IMMUT-1,
+  RESULT-1.
+
+### Removed (ccc 4.0.0)
+
+- Skills: `tdd-check`, `ctx-check` (renamed; see map above).
+- Rules: TDD-1..9 (replaced by gate + test-check rules), ARCH-1..10 (replaced
+  by BOUND-1..4 + COMP-1), CTX-1..3 (renamed to SESS-1..3).
+- Test file: `plugins/ccc/test/composition-arch.test.js` (covered v3 rules that
+  no longer exist).
+- TDD-3 (test ratio) and TDD-8 (property-based tests) — dropped per pragmatism
+  principle.
+
 ## [3.0.1] - 2026-05-04
 
 ### Fixed (flow 3.0.1)

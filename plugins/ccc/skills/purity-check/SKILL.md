@@ -115,4 +115,7 @@ that a function's purity is in question.
 
 ---
 
+Per-language detection patterns (I/O libraries, clock/RNG calls, mocking
+libraries to recognise): see `references/{language}.md`.
+
 Report schema: see `skills/conductor/shared-contracts.md`.

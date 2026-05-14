@@ -2,7 +2,7 @@
 
 Loaded by `gate-check` when language = `python`.
 Provides Python-specific test framework defaults, file naming conventions,
-and scaffold templates for the test gate.
+and scaffold templates for the test gate (TEST-PINNED, TEST-RED-FIRST).
 
 ---
 
@@ -43,7 +43,7 @@ OR in a top-level `tests/` directory mirroring the source tree.
 
 ---
 
-## TDD-1: Test File Detection
+## TEST-PINNED: Test File Detection
 
 Look for any of:
 ```
@@ -53,47 +53,14 @@ tests/test_{module}.py
 tests/{module}_test.py
 ```
 
----
-
-## TDD-4: Test Naming — pytest
-
-Pattern: `test_[subject]_[scenario]_[expected]` (snake_case throughout).
-
----
-
-## TDD-7: Mocks — Permitted vs Prohibited
-
-**Permitted** (`@patch`): I/O boundaries — `execute_query`, `requests.post`, `smtplib.SMTP`.
-**Prohibited**: domain functions (`calculate_tax`), domain validation methods.
-**Python doubles for domain logic**: use real or in-memory class implementations instead.
-
----
-
-## TDD-8: Property-Based Tests — Hypothesis
-
-Use `@given` with `strategies` to verify invariants. Use `@settings(max_examples=200)` for CI thoroughness.
-
----
-
-## TDD-9: Test Ratio — Measurement
-
-```bash
-# Count source lines (excluding test files)
-find . -name "*.py" ! -name "test_*.py" ! -name "*_test.py" \
-  ! -path "*/tests/*" ! -path "*/.venv/*" | xargs wc -l | tail -1
-
-# Count test lines
-find . \( -name "test_*.py" -o -name "*_test.py" \) \
-  ! -path "*/.venv/*" | xargs wc -l | tail -1
-```
+For each new public symbol: confirm the test file imports the symbol and
+calls it (or instantiates the class).
 
 ---
 
 ## Coverage Configuration (coverage.py / pytest-cov)
 
 `pyproject.toml` — set `[tool.pytest.ini_options] addopts` with `--cov`, `--cov-report`, `--cov-fail-under=80`; set `[tool.coverage.run] source` and `omit`; set `[tool.coverage.report] exclude_lines`.
-
-**Targets**: Domain layer: 90% | Application layer: 80%
 
 ---
 
@@ -106,7 +73,7 @@ Use `@pytest.mark.parametrize` for data-driven tests covering multiple input/exp
 ## Non-Standard Framework Handling
 
 If the project uses unittest only (no pytest), nose, or another framework:
-- Apply TDD-1 through TDD-9 language-agnostically
+- Apply TEST-PINNED and TEST-RED-FIRST language-agnostically
 - Note the non-standard framework in the report without blocking
 - Do NOT attempt to convert tests to pytest
 

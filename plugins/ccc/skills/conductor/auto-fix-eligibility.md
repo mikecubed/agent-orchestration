@@ -98,3 +98,6 @@ ambiguity) or requires a human decision. This file is loaded by the conductor
 | SESS-1 | WARN | ❌ Human required | Session state file update requires user decision |
 | SESS-2 | WARN | ❌ Human required | Context-hygiene pause is a user action |
 | SESS-3 | WARN | ❌ Human required | Scout brief is a discovery action |
+| CTXT-1 | WARN | ❌ Human required | Splitting a shared type across bounded contexts requires domain knowledge |
+| CTXT-2 | WARN | ❌ Human required | Domain-aligned renames require ubiquitous-language agreement |
+| CTXT-3 | WARN | ❌ Human required | Designing an Anti-Corruption Layer requires understanding the external API and the domain |
