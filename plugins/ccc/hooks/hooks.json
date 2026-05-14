@@ -1,5 +1,5 @@
 {
-  "description": "Clean Code Codex enforcement hooks — SEC, ARCH, SIZE, DEP, TEST, OBS rules enforced at write/edit/bash time",
+  "description": "Composable Code Codex enforcement hooks — SEC, ARCH, SIZE, DEP, TEST, OBS rules enforced at write/edit/bash time",
   "hooks": {
     "PreToolUse": [
       {

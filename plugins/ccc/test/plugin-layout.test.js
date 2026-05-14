@@ -27,6 +27,7 @@ function readPackedFiles() {
   const output = execFileSync('npm', ['pack', '--json', '--dry-run'], {
     cwd: ROOT,
     encoding: 'utf8',
+    shell: true,
   });
   const [packResult] = JSON.parse(output);
 
@@ -84,7 +85,7 @@ describe('ccc runtime surfaces', () => {
     const commandText = readText(ROOT, 'commands/codex.md');
     const conductorText = readText(ROOT, 'skills/conductor/SKILL.md');
 
-    assert.match(commandText, /Run the Clean Code Codex conductor/i);
+    assert.match(commandText, /Run the Composable Code Codex conductor/i);
     assert.match(conductorText, /name:\s*conductor/);
   });
 });

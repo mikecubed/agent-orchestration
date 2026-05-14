@@ -26,6 +26,7 @@ function readPackedFiles() {
   const output = execFileSync('npm', ['pack', '--json', '--dry-run'], {
     cwd: ROOT,
     encoding: 'utf8',
+    shell: true,
   });
   const [packResult] = JSON.parse(output);
 

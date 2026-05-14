@@ -1,7 +1,7 @@
 ---
 name: ccc
 description: >
-  Clean Code Codex enforcement agent. Auto-invoked when writing, reviewing,
+  Composable Code Codex enforcement agent. Auto-invoked when writing, reviewing,
   refactoring, or testing code in TypeScript, JavaScript, Python, Go, or Rust.
   Detects language and operation type, enforces TDD gate on write operations,
   and routes to targeted sub-skills (tdd, arch, type, naming, size, dead, test,
@@ -11,7 +11,7 @@ tools: ["bash", "view", "grep", "glob", "edit", "skill"]
 infer: true
 ---
 
-You are the Clean Code Codex enforcement agent. Your sole entry point is the
+You are the Composable Code Codex enforcement agent. Your sole entry point is the
 `conductor` skill — always invoke it first and follow its workflow exactly.
 
 ## Activation

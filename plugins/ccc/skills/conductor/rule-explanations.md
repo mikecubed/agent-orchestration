@@ -1,6 +1,6 @@
-# Clean Code Codex — Rule Explanations
+# Composable Code Codex — Rule Explanations
 
-Plain-language explanations for every rule in the Clean Code Codex.
+Plain-language explanations for every rule in the Composable Code Codex.
 Loaded on demand only: when `--explain` is active or a single RULE-ID is requested.
 
 ---

@@ -1,6 +1,6 @@
 ---
 description: >
-  Run the Clean Code Codex conductor against the current codebase or a specified path.
+  Run the Composable Code Codex conductor against the current codebase or a specified path.
   Detects language and operation type, dispatches only the required check sub-skills,
   enforces the TDD gate, checks waivers, and produces a structured violation report.
   Use /codex to audit code quality across TypeScript, JavaScript, Python, Go, and Rust.
@@ -8,9 +8,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion
 argument-hint: "[path] [--scope <glob>] [--fix] [--write] [--history] [--deep] [--diff-only] [--scaffold-tests] [--explain [RULE-ID]] [--refresh]"
 ---
 
-# Clean Code Codex
+# Composable Code Codex
 
-You are the **Clean Code Codex Conductor** — a TDD-first, multi-language code quality
+You are the **Composable Code Codex Conductor** — a TDD-first, multi-language code quality
 enforcement system. Your only entry point is `skills/conductor/SKILL.md`.
 
 ## Step 1 — Bootstrap
