@@ -134,9 +134,10 @@ plugin hooks.
 | Test fixture downgrade | Block→Warn | Warn (unchanged) |
 
 The documented behavioural difference for BLOCK-severity write hooks is:
-Claude Code blocks the write before it happens; GitHub Copilot CLI surfaces the
-finding immediately after, so the agent self-corrects on the next turn. This
-applies to SEC-1, BOUND-1, and PURE-1.
+Claude Code blocks the write before it happens; GitHub Copilot CLI fires the
+same `PreToolUse` hook but emits a non-blocking warning and lets the write
+proceed, so the agent self-corrects on the next turn. This applies to SEC-1,
+BOUND-1, and PURE-1.
 
 ---
 

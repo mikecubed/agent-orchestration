@@ -84,11 +84,16 @@ echo "0" >"$_EXIT_CODE_FILE"
       # `if TYPE_CHECKING:` block are type-only and allowed in core.
       # Use the AST to find the exact line numbers — a naive "any indented
       # import in a file containing TYPE_CHECKING" check would silently
-      # exempt runtime imports inside function bodies.
+      # exempt runtime imports inside function bodies. Pass TOOL_CONTENT via
+      # a temp file (argv path) so the heredoc-as-script redirect doesn't
+      # consume stdin.
       _py_type_check_lines=""
-      _py_type_check_lines="$(printf '%s' "$TOOL_CONTENT" | python3 - <<'PYEOF' 2>/dev/null
+      _py_tmp_src="$(mktemp /tmp/codex-pure-src-XXXXXX 2>/dev/null || echo /tmp/codex-pure-src-$$)"
+      printf '%s' "$TOOL_CONTENT" >"$_py_tmp_src"
+      _py_type_check_lines="$(python3 - "$_py_tmp_src" <<'PYEOF' 2>/dev/null
 import ast, sys
-src = sys.stdin.read()
+with open(sys.argv[1], 'r', encoding='utf-8', errors='replace') as f:
+    src = f.read()
 def is_tc_test(node):
     if isinstance(node, ast.Name) and node.id == 'TYPE_CHECKING':
         return True
@@ -108,6 +113,7 @@ except Exception:
 print(' '.join(str(n) for n in sorted(out)))
 PYEOF
 )"
+      rm -f "$_py_tmp_src" 2>/dev/null || true
       ;;
     go)
       _patterns=(
@@ -130,6 +136,13 @@ PYEOF
     [[ -z "$line" ]] && continue
     _lineno="$(echo "$line" | cut -d: -f1)"
     _content="$(echo "$line" | cut -d: -f2-)"
+
+    # TypeScript/JavaScript: skip top-level `import type { ... } from '...'` —
+    # erased at compile time, allowed in core by the purity reference.
+    if [[ "$_ext" =~ ^(ts|tsx|js|jsx|mjs|cjs)$ ]] \
+       && [[ "$_content" =~ ^[[:space:]]*import[[:space:]]+type[[:space:]] ]]; then
+      continue
+    fi
 
     # TypeScript/JavaScript: skip purely-type-only inline imports.
     #   `import { type Foo } from 'pg'` and `import { type Foo, type Bar }` are erased at compile time.

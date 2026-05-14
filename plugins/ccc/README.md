@@ -212,10 +212,10 @@ In addition to on-demand skills, the plugin ships with a set of **automatic enfo
 
 | Rule | Trigger | Claude Code | GH Copilot CLI |
 |------|---------|-------------|----------------|
-| SEC-1 — No Hardcoded Secrets | Write or Edit | **Block** before write | Warn after write |
+| SEC-1 — No Hardcoded Secrets | Write or Edit | **Block** before write | Warn before write |
 | SEC-7 — No Bash Injection | Bash command | **Block** before execution | **Block** before execution |
-| BOUND-1 — Core/Shell Boundary Direction | Write or Edit | **Block** before write | Warn after write |
-| PURE-1 — No Side Effects in Core | Write or Edit | **Block** before write | Warn after write |
+| BOUND-1 — Core/Shell Boundary Direction | Write or Edit | **Block** before write | Warn before write |
+| PURE-1 — No Side Effects in Core | Write or Edit | **Block** before write | Warn before write |
 | IMMUT-1 — No Parameter Mutation in Core | Write or Edit | Warn after write | Warn after write |
 | RESULT-1 — No Domain-Failure Throws in Core | Write or Edit | Warn after write | Warn after write |
 | SIZE-1 — Functions Must Be Small | Write or Edit | Warn after write | Warn after write |
