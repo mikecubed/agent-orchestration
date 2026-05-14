@@ -141,7 +141,10 @@ factories/builders; the composition root itself; framework or test fixture
 setup.
 
 **agent_action**:
-1. Cite: `BOUND-3 (BLOCK): Hidden construction of '{name}' inside core at {file}:{line}.`
+1. Cite: `BOUND-3 ({BLOCK|WARN|INFO}): Hidden construction of '{name}' inside core at {file}:{line}.`
+   Choose severity per the nuance above — `BLOCK` for hidden construction or
+   service-locator access in core; `WARN` for duplicated wiring outside the
+   composition root; `INFO` for small scripts or approved factories.
 2. Identify the concrete dependency created internally.
 3. Move construction to the composition root or a dedicated factory.
 4. Pass the dependency through a constructor or function parameter.
