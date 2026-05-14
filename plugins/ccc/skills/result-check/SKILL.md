@@ -44,7 +44,7 @@ layer detection). Shell code uses idiomatic exceptions freely.
 - **WARN** in **Go** (idiom is multi-return `(value, error)`, which already
   satisfies the spirit — flag only when functions `panic` for domain failures).
 
-| **Languages**: * | **Source**: CCC
+**Languages**: * | **Source**: CCC
 
 **What it prohibits**: A core function that signals a *domain* failure via a
 raw exception/throw/panic. Domain failures include:
@@ -60,11 +60,19 @@ raw exception/throw/panic. Domain failures include:
 - Resource-exhaustion / system-level failures where the language convention
   is to throw (e.g., out-of-memory, network kill).
 
-**Detection**:
-1. In core files: grep for `throw new`, `raise`, `panic!`, `Err(`, `bail!`.
-2. For each throw: classify by exception type. Domain-failure types
-   (anything caller is expected to handle) are violations in Rust/TS; warnings
-   elsewhere.
+**Detection**: focus on exception-like control flow per language. Typed
+error returns (`Err(...)`, Go's `(T, error)` tuple, `Result<T, E>`) are the
+*preferred* path and must not be flagged.
+
+1. In core files, grep by language:
+   - TS/JS: `throw new` / `throw `.
+   - Python: `raise ` (excluding `raise` inside an `except` re-raise chain).
+   - Rust: `panic!`, `.unwrap()`, `.expect(`. Do **not** flag `Err(...)` or
+     `bail!` — those are typed error returns.
+   - Go: `panic(` for domain failures. Do **not** flag `return ..., err`.
+2. For each hit: classify by exception/panic type. Domain-failure types
+   (anything caller is expected to handle) are violations in Rust/TS;
+   warnings elsewhere.
 
 **agent_action**:
 1. Cite: `RESULT-1 ({BLOCK|WARN}): Core function '{name}' raises '{type}' for domain failure at {file}:{line}.`
