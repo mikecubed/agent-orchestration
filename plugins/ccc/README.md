@@ -309,6 +309,37 @@ waivers:
 
 ---
 
+### Per-project severity overrides
+
+Paradigm-family rules — prefixes `PURE-`, `IMMUT-`, `RESULT-`, `COMP-`,
+`TYPED-` — can have their severity shifted per project via the
+`severity_overrides` block in `.codex/config.json`:
+
+```json
+{
+  "severity_overrides": {
+    "RESULT-1": "BLOCK",
+    "IMMUT-1": "INFO"
+  }
+}
+```
+
+Permitted severities are `BLOCK`, `WARN`, and `INFO` (no `OFF` — to
+silence a rule, set it to `INFO`). Structural rules (`SEC-`, `BOUND-`,
+`NAME-UL`, `TEST-PINNED`, `TEST-RED-FIRST`, `SIZE-`, etc.) are not
+overridable. The allowlist of eligible prefixes lives in
+`plugins/ccc/config/overridable-rules.json`. Invalid entries, unknown
+rules, and parse errors all fall back to the default severity — the
+override mechanism never escalates beyond what the allowlist permits.
+
+When a finding is emitted at an overridden severity, the violation
+report annotates the change inline (e.g.,
+`RESULT-1 (BLOCK, overridden from WARN)`). Auto-fix eligibility is
+unchanged: overriding severity does not affect whether `--fix` can
+repair a rule. See conductor `§7.1` for the full specification.
+
+---
+
 ## Contributing
 
 See `CHANGELOG.md` for the full rule set.

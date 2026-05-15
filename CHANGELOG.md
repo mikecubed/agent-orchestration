@@ -6,6 +6,37 @@ The format is based on Keep a Changelog and the project follows Semantic Version
 
 ## [Unreleased]
 
+## [ccc 4.1.0] - 2026-05-14
+
+### Added (ccc 4.1.0)
+
+- **Per-project severity overrides for paradigm-family rules.** A new
+  `severity_overrides` map in `.codex/config.json` can shift the severity
+  of `PURE-*`, `IMMUT-*`, `RESULT-*`, `COMP-*`, and `TYPED-*` rules to
+  `BLOCK`, `WARN`, or `INFO`. Structural rules (`SEC-`, `BOUND-`,
+  `NAME-UL`, `TEST-PINNED`, `SIZE-`, etc.) cannot be overridden. The
+  allowlist of eligible prefixes and severities lives in
+  `plugins/ccc/config/overridable-rules.json` and is consulted by both
+  the hook scripts (`hook-purity-write.sh`, `hook-immut-write.sh`,
+  `hook-result-write.sh` via the shared `_override_severity` helper in
+  `hook-lib.sh`) and the conductor's reporting layer. Documented in
+  conductor `§7.1`.
+- `plugins/ccc/test/rule-coverage.test.js`: replaces the
+  `composition-arch.test.js` that PR-2 deleted. Asserts rule-ID
+  consistency between SKILL.md emissions, `rule-explanations.md`, and
+  `auto-fix-eligibility.md`; conductor dispatch resolution; paradigm
+  language-reference coverage; and the overridable-rules manifest
+  shape.
+- `plugins/ccc/config/overridable-rules.json`: single source of truth
+  for the override allowlist.
+
+### Fixed (ccc 4.1.0)
+
+- Refreshed the token-budget table in `plugins/ccc/skills/conductor/SKILL.md`
+  to match current SKILL.md sizes. Worst-case CI moved from ~33,000 to
+  ~39,000 tokens following the PR-3 paradigm-skill / language-ref
+  additions.
+
 ## [ccc 4.0.0] - 2026-05-14
 
 ### BREAKING CHANGES (ccc 4.0.0)
