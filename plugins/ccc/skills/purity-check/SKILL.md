@@ -119,3 +119,8 @@ Per-language detection patterns (I/O libraries, clock/RNG calls, mocking
 libraries to recognise): see `references/{language}.md`.
 
 Report schema: see `skills/conductor/shared-contracts.md`.
+
+**Severity overrides**: `PURE-1`, `PURE-2`, `PURE-3` are paradigm-family
+rules; a project may shift their severity (`BLOCK` / `WARN` / `INFO`) via
+`.codex/config.json` `severity_overrides`. Defaults stay as documented
+above. See conductor §7.1.

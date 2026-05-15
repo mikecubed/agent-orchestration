@@ -136,3 +136,8 @@ Python, slice/map mutation in Go, `&mut` discipline in Rust): see
 `references/{language}.md`.
 
 Report schema: see `skills/conductor/shared-contracts.md`.
+
+**Severity overrides**: `IMMUT-1`, `IMMUT-2`, `IMMUT-3` are paradigm-family
+rules; a project may shift their severity (`BLOCK` / `WARN` / `INFO`) via
+`.codex/config.json` `severity_overrides`. Defaults stay as documented
+above. See conductor §7.1.

@@ -1,7 +1,7 @@
 {
   "name": "ccc",
   "description": "Composable Code Codex: composition-first, pure-function-friendly code quality enforcement for TypeScript, JavaScript, Python, Go, and Rust. Orchestrates 21 check sub-skills covering boundaries, purity, immutability, typed errors, types, naming, tests, security, observability, and strategic DDD.",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "author": {
     "name": "mikecubed"
   },

@@ -288,3 +288,41 @@ _deny_response() {
     "$rule" "$(echo "$message" | sed 's/"/\\"/g')"
 }
 export -f _deny_response
+
+# ── 10. Helper: paradigm-family severity override lookup ─────────────────────
+# Usage: _eff="$(_override_severity 'PURE-1' 'BLOCK')"
+# Returns the overridden severity if .codex/config.json has a valid override
+# for this rule under "severity_overrides", otherwise echoes the default
+# unchanged. Fails open: any parse error, missing file, or unrecognised
+# severity / non-overridable prefix returns the default.
+_override_severity() {
+  local _rule="$1" _default="$2"
+  local _config="${PWD}/.codex/config.json"
+  local _allowlist
+  _allowlist="$(dirname "${BASH_SOURCE[0]}")/../../config/overridable-rules.json"
+
+  if [[ ! -f "$_config" || ! -f "$_allowlist" ]]; then
+    echo "$_default"
+    return 0
+  fi
+
+  python3 - "$_rule" "$_default" "$_config" "$_allowlist" <<'PY' 2>/dev/null || echo "$_default"
+import json, sys
+rule, default, cfg_path, allow_path = sys.argv[1:5]
+try:
+    cfg = json.load(open(cfg_path))
+    allow = json.load(open(allow_path))
+except Exception:
+    print(default); sys.exit(0)
+overrides = cfg.get("severity_overrides") or {}
+if not isinstance(overrides, dict) or rule not in overrides:
+    print(default); sys.exit(0)
+new_sev = overrides[rule]
+if new_sev not in allow.get("valid_severities", []):
+    print(default); sys.exit(0)
+if not any(rule.startswith(p) for p in allow.get("overridable_prefixes", [])):
+    print(default); sys.exit(0)
+print(new_sev)
+PY
+}
+export -f _override_severity

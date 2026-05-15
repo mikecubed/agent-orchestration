@@ -3,6 +3,12 @@
 Plain-language explanations for every rule in the Composable Code Codex.
 Loaded on demand only: when `--explain` is active or a single RULE-ID is requested.
 
+> Paradigm-family rules — prefixes `PURE-`, `IMMUT-`, `RESULT-`, `COMP-`,
+> `TYPED-` — have project-overridable severity. A project's
+> `.codex/config.json` `severity_overrides` map may shift any of these to
+> `BLOCK`, `WARN`, or `INFO`. Structural rules (`SEC-`, `BOUND-`, `NAME-UL`,
+> `TEST-PINNED`, `SIZE-`, etc.) are not overridable. See conductor §7.1.
+
 ---
 
 ## TEST-PINNED

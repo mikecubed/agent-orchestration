@@ -201,9 +201,14 @@ PYEOF
 
   _matched_trimmed="$(echo "$_matched_line" | sed 's/^[[:space:]]*//')"
 
-  _coverage_append "{\"rule\":\"PURE-1\",\"severity\":\"BLOCK\",\"file\":\"${TOOL_FILE}\",\"line\":${_matched_lineno},\"hook\":\"hook-purity-write\",\"ts\":${_ts}}"
+  # Apply per-project severity override (paradigm-family rules only).
+  # WARN / INFO downgrades still emit a message + record coverage but
+  # allow the write through (exit 0).
+  _eff_sev="$(_override_severity 'PURE-1' 'BLOCK')"
 
-  if [[ "$IS_CLAUDE_CODE" == "1" && "$IS_TEST_FIXTURE" == "0" ]]; then
+  _coverage_append "{\"rule\":\"PURE-1\",\"severity\":\"${_eff_sev}\",\"file\":\"${TOOL_FILE}\",\"line\":${_matched_lineno},\"hook\":\"hook-purity-write\",\"ts\":${_ts}}"
+
+  if [[ "$_eff_sev" == "BLOCK" && "$IS_CLAUDE_CODE" == "1" && "$IS_TEST_FIXTURE" == "0" ]]; then
     # Escape quotes/backslashes via Python json.dumps — import statements
     # contain quoted module paths, so direct interpolation would emit invalid JSON.
     python3 - "$TOOL_FILE" "$_matched_trimmed" <<'PYEOF'
@@ -221,10 +226,9 @@ PYEOF
     echo "2" >"$_EXIT_CODE_FILE"
     exit 0
   else
-    # GH Copilot CLI, or Claude Code on a test fixture path — warn, don't deny.
-    # Fixtures often intentionally contain the very imports PURE-1 is meant
-    # to catch; following the hook-sec-write.sh convention here.
-    echo "⚠️  PURE-1 (BLOCK): Side-effect import in core file '${TOOL_FILE}' line ${_matched_lineno}: '${_matched_trimmed}'. Receive the result as a parameter from shell."
+    # WARN / INFO override, GH Copilot CLI, or Claude Code on a test fixture
+    # path — emit a message, don't deny.
+    echo "⚠️  PURE-1 (${_eff_sev}): Side-effect import in core file '${TOOL_FILE}' line ${_matched_lineno}: '${_matched_trimmed}'. Receive the result as a parameter from shell."
     exit 0
   fi
 

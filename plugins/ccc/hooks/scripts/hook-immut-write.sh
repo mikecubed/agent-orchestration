@@ -131,9 +131,14 @@
   _content="$(echo "$_first" | cut -d: -f2-)"
   _content_trimmed="$(echo "$_content" | sed 's/^[[:space:]]*//')"
 
-  _coverage_append "{\"rule\":\"IMMUT-1\",\"severity\":\"WARN\",\"file\":\"${TOOL_FILE}\",\"line\":${_lineno},\"hook\":\"hook-immut-write\",\"ts\":${_ts}}"
+  # Apply per-project severity override (paradigm-family rules only).
+  # This hook runs PostToolUse and cannot block; the override changes the
+  # severity surfaced in coverage records and the warning message.
+  _eff_sev="$(_override_severity 'IMMUT-1' 'WARN')"
 
-  echo "⚠️  IMMUT-1 (WARN): Mutation pattern in core file '${TOOL_FILE}' line ${_lineno}: '${_content_trimmed}'. If '${_content_trimmed}' mutates a parameter, return a new value instead."
+  _coverage_append "{\"rule\":\"IMMUT-1\",\"severity\":\"${_eff_sev}\",\"file\":\"${TOOL_FILE}\",\"line\":${_lineno},\"hook\":\"hook-immut-write\",\"ts\":${_ts}}"
+
+  echo "⚠️  IMMUT-1 (${_eff_sev}): Mutation pattern in core file '${TOOL_FILE}' line ${_lineno}: '${_content_trimmed}'. If '${_content_trimmed}' mutates a parameter, return a new value instead."
 
   exit 0
 ) || exit 0

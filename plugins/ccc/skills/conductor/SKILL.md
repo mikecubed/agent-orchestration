@@ -126,11 +126,11 @@ to manage token cost.
 
 | Session type | Components loaded | ~Tokens |
 |---|---|---|
-| Typical — write, TypeScript (no `--fix`) | conductor + gate + type + naming + session + purity + immut + result + 3 TS refs | ~14,000 |
-| Boundary-touching write, TypeScript | adds arch-check to the above | ~16,500 |
-| Minimal — security audit | conductor + sec-check | ~4,723 |
-| Worst-case — CI / full check (no `--fix`) | conductor + all 20 checks + 1 lang ref (largest) | ~33,000 |
-| `--fix` session: add auto-fix-eligibility.md | +1 file on demand | +~1,310 |
+| Typical — write, TypeScript (no `--fix`) | conductor + gate + type + naming + session + purity + immut + result + 3 TS refs | ~16,000 |
+| Boundary-touching write, TypeScript | adds arch-check to the above | ~17,700 |
+| Minimal — security audit | conductor + sec-check | ~6,800 |
+| Worst-case — CI / full check (no `--fix`) | conductor + all 20 checks + 1 lang ref (largest) | ~39,000 |
+| `--fix` session: add auto-fix-eligibility.md | +1 file on demand | +~1,950 |
 
 > Note: SC-007 (≤1,000) and SC-008 (≤2,000) targets reflect the design goal of a
 > just-in-time progressive-loading model. Current SKILL.md files are comprehensive
@@ -326,6 +326,42 @@ Before reporting any violation, check for a matching waiver:
 | Expired | `expiry ≤ today` | Re-raise at original severity under ❌ Violations; show waiver as EXPIRED |
 | Invalid | Missing `expiry` OR missing `owner` OR scope is `**` | Treat as no waiver; violation active at full severity |
 | No waiver | No matching record | Normal violation handling |
+
+### 7.1 Per-Project Severity Overrides
+
+A project may shift the **severity** of paradigm-family rules via a
+`severity_overrides` map in `.codex/config.json`. Overrides differ from
+waivers: a waiver exempts a specific scope; an override changes the rule's
+severity for the entire project.
+
+```json
+{
+  "severity_overrides": {
+    "RESULT-1": "BLOCK",
+    "IMMUT-1": "INFO"
+  }
+}
+```
+
+Constraints (enforced by `plugins/ccc/config/overridable-rules.json` and the
+hook-side `_override_severity` helper):
+
+- **Eligible prefixes only**: `PURE-`, `IMMUT-`, `RESULT-`, `COMP-`, `TYPED-`.
+  Structural rules (`SEC-`, `BOUND-`, `NAME-UL`, `TEST-PINNED`,
+  `TEST-RED-FIRST`, `SIZE-`, etc.) are **not** overridable. Setting one of
+  these in the map is silently ignored.
+- **Valid severities**: `BLOCK`, `WARN`, `INFO`. No `OFF` — to silence a
+  rule, override it to `INFO`.
+- **Fail-open**: a malformed config, an unknown rule, or an invalid severity
+  all fall back to the rule's default severity. The override never escalates
+  beyond what the allowlist permits.
+- **Auto-fix eligibility is unchanged**: overriding a rule's severity does
+  not change whether `--fix` can repair it.
+
+When a finding is emitted at an overridden severity, the violation report
+must mark the change inline:
+`RESULT-1 (BLOCK, overridden from WARN): …`. This keeps the project-specific
+decision visible at review time.
 
 ---
 
