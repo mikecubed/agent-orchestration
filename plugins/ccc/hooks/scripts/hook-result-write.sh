@@ -113,9 +113,16 @@
   _content="$(echo "$_first" | cut -d: -f2-)"
   _content_trimmed="$(echo "$_content" | sed 's/^[[:space:]]*//')"
 
-  _coverage_append "{\"rule\":\"RESULT-1\",\"severity\":\"WARN\",\"file\":\"${TOOL_FILE}\",\"line\":${_lineno},\"hook\":\"hook-result-write\",\"ts\":${_ts}}"
+  # Apply per-project severity override (paradigm-family rules only).
+  # This hook runs PostToolUse and cannot block; the override changes the
+  # severity surfaced in coverage records and the warning message. Teams
+  # that prefer Result-style across the board can pin RESULT-1 to BLOCK so
+  # downstream report + gate-check stages treat it accordingly.
+  _eff_sev="$(_override_severity 'RESULT-1' 'WARN')"
 
-  echo "⚠️  RESULT-1 (WARN): Possible domain failure thrown/raised in core '${TOOL_FILE}' line ${_lineno}: '${_content_trimmed}'. Consider Result<T, E> / typed error return instead."
+  _coverage_append "{\"rule\":\"RESULT-1\",\"severity\":\"${_eff_sev}\",\"file\":\"${TOOL_FILE}\",\"line\":${_lineno},\"hook\":\"hook-result-write\",\"ts\":${_ts}}"
+
+  echo "⚠️  RESULT-1 (${_eff_sev}): Possible domain failure thrown/raised in core '${TOOL_FILE}' line ${_lineno}: '${_content_trimmed}'. Consider Result<T, E> / typed error return instead."
 
   exit 0
 ) || exit 0
