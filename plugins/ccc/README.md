@@ -2,7 +2,7 @@
 
 Composition-first, pure-function-friendly code quality enforcement for AI agents. Catches the failure modes that produce terrible AI-generated code — side effects in pure logic, mocks of pure functions, parameter mutation, vacuous tests, concrete-infra leakage into domain code — without dogmatic paradigm policing.
 
-**Version**: 4.0.0 | **Languages**: TypeScript · Python · Go · Rust · JavaScript
+**Version**: 4.1.0 | **Languages**: TypeScript · Python · Go · Rust · JavaScript
 
 ---
 
