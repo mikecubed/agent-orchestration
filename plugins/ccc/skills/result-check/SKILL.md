@@ -171,3 +171,9 @@ Per-language typed-error idioms (neverthrow, `returns`, Go multi-return,
 Rust Result, typed exception hierarchies): see `references/{language}.md`.
 
 Report schema: see `skills/conductor/shared-contracts.md`.
+
+**Severity overrides**: `RESULT-1`, `RESULT-2`, `RESULT-3` are
+paradigm-family rules; a project may shift their severity
+(`BLOCK` / `WARN` / `INFO`) via `.codex/config.json` `severity_overrides`.
+Defaults stay as documented above (note `RESULT-1` defaults to BLOCK in
+TypeScript/Rust and WARN in Python/JS/Go). See conductor §7.1.

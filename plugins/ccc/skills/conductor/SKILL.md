@@ -327,6 +327,42 @@ Before reporting any violation, check for a matching waiver:
 | Invalid | Missing `expiry` OR missing `owner` OR scope is `**` | Treat as no waiver; violation active at full severity |
 | No waiver | No matching record | Normal violation handling |
 
+### 7.1 Per-Project Severity Overrides
+
+A project may shift the **severity** of paradigm-family rules via a
+`severity_overrides` map in `.codex/config.json`. Overrides differ from
+waivers: a waiver exempts a specific scope; an override changes the rule's
+severity for the entire project.
+
+```json
+{
+  "severity_overrides": {
+    "RESULT-1": "BLOCK",
+    "IMMUT-1": "INFO"
+  }
+}
+```
+
+Constraints (enforced by `plugins/ccc/config/overridable-rules.json` and the
+hook-side `_override_severity` helper):
+
+- **Eligible prefixes only**: `PURE-`, `IMMUT-`, `RESULT-`, `COMP-`, `TYPED-`.
+  Structural rules (`SEC-`, `BOUND-`, `NAME-UL`, `TEST-PINNED`,
+  `TEST-RED-FIRST`, `SIZE-`, etc.) are **not** overridable. Setting one of
+  these in the map is silently ignored.
+- **Valid severities**: `BLOCK`, `WARN`, `INFO`. No `OFF` — to silence a
+  rule, override it to `INFO`.
+- **Fail-open**: a malformed config, an unknown rule, or an invalid severity
+  all fall back to the rule's default severity. The override never escalates
+  beyond what the allowlist permits.
+- **Auto-fix eligibility is unchanged**: overriding a rule's severity does
+  not change whether `--fix` can repair it.
+
+When a finding is emitted at an overridden severity, the violation report
+must mark the change inline:
+`RESULT-1 (BLOCK, overridden from WARN): …`. This keeps the project-specific
+decision visible at review time.
+
 ---
 
 ## 8. Violation Report Output Schema
