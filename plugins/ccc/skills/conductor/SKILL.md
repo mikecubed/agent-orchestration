@@ -126,11 +126,11 @@ to manage token cost.
 
 | Session type | Components loaded | ~Tokens |
 |---|---|---|
-| Typical — write, TypeScript (no `--fix`) | conductor + gate + type + naming + session + purity + immut + result + 3 TS refs | ~14,000 |
-| Boundary-touching write, TypeScript | adds arch-check to the above | ~16,500 |
-| Minimal — security audit | conductor + sec-check | ~4,723 |
-| Worst-case — CI / full check (no `--fix`) | conductor + all 20 checks + 1 lang ref (largest) | ~33,000 |
-| `--fix` session: add auto-fix-eligibility.md | +1 file on demand | +~1,310 |
+| Typical — write, TypeScript (no `--fix`) | conductor + gate + type + naming + session + purity + immut + result + 3 TS refs | ~16,000 |
+| Boundary-touching write, TypeScript | adds arch-check to the above | ~17,700 |
+| Minimal — security audit | conductor + sec-check | ~6,800 |
+| Worst-case — CI / full check (no `--fix`) | conductor + all 20 checks + 1 lang ref (largest) | ~39,000 |
+| `--fix` session: add auto-fix-eligibility.md | +1 file on demand | +~1,950 |
 
 > Note: SC-007 (≤1,000) and SC-008 (≤2,000) targets reflect the design goal of a
 > just-in-time progressive-loading model. Current SKILL.md files are comprehensive
