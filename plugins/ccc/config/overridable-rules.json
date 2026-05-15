@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "overridable_prefixes": ["PURE-", "IMMUT-", "RESULT-", "COMP-", "TYPED-"],
+  "valid_severities": ["BLOCK", "WARN", "INFO"],
+  "notes": "Only rules whose IDs begin with one of overridable_prefixes may appear as keys in .codex/config.json's severity_overrides map. Structural rules (SEC-, BOUND-, NAME-UL, TEST-PINNED, SIZE-, etc.) are excluded by design — see docs/ccc-v4-handoff.md and the pragmatism-over-dogma memory."
+}

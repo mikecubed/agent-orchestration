@@ -167,13 +167,8 @@ describe('ccc paradigm language coverage', () => {
 describe('ccc overridable-rules manifest', () => {
   const manifestPath = path.join(ROOT, 'config', 'overridable-rules.json');
 
-  it('parses cleanly and declares overridable_prefixes + valid_severities when present', () => {
-    if (!fs.existsSync(manifestPath)) {
-      // Gate this assertion: the manifest is introduced alongside the
-      // severity-override hook integration. Until that lands the file is
-      // optional; once it lands this branch turns into a hard requirement.
-      return;
-    }
+  it('exists, parses cleanly, and declares overridable_prefixes + valid_severities', () => {
+    assert.ok(fs.existsSync(manifestPath), `expected ${manifestPath} to exist`);
     const manifest = JSON.parse(readText(manifestPath));
     assert.ok(Array.isArray(manifest.overridable_prefixes), 'overridable_prefixes must be an array');
     assert.ok(
